@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/components/administration/admin-master-tables/admin-master-siderbar-tables/admin-master-siderbar-tables.component.css"],
+  "sourcesContent": [".list-group-item.active {\r\n  background-color: #f8f9fa;\r\n  color: #114e21;\r\n  border-color: #f8f9fa;\r\n  border-left: 4px solid #114e21;\r\n}\r\n\r\n.list-group-item {\r\n  cursor: pointer;\r\n  transition: all 0.2s ease;\r\n  border-left: 4px solid transparent;\r\n}\r\n\r\n.list-group-item:hover:not(.active) {\r\n  background-color: #f8f9fa;\r\n}\r\n"],
+  "mappings": ";AAAA,CAAC,eAAe,CAAC;AACf,oBAAkB;AAClB,SAAO;AACP,gBAAc;AACd,eAAa,IAAI,MAAM;AACzB;AAEA,CAPC;AAQC,UAAQ;AACR,cAAY,IAAI,KAAK;AACrB,eAAa,IAAI,MAAM;AACzB;AAEA,CAbC,eAae,MAAM,KAAK,CAbV;AAcf,oBAAkB;AACpB;",
+  "names": []
+}

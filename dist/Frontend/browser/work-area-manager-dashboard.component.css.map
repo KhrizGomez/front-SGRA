@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/components/workAreaManager/work-area-manager-dashboard/work-area-manager-dashboard.component.css"],
+  "sourcesContent": [".icon-wrapper {\r\n  width: 3rem;\r\n  height: 3rem;\r\n}\r\n\r\n.quick-action-card {\r\n  cursor: pointer;\r\n  transition: transform 0.15s ease, box-shadow 0.15s ease;\r\n}\r\n\r\n.quick-action-card:hover {\r\n  transform: translateY(-2px);\r\n  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;\r\n}\r\n\r\n.quick-link {\r\n  color: #198754;\r\n  font-weight: 600;\r\n  font-size: 0.875rem;\r\n  user-select: none;\r\n}\r\n"],
+  "mappings": ";AAAA,CAAC;AACC,SAAO;AACP,UAAQ;AACV;AAEA,CAAC;AACC,UAAQ;AACR,cAAY,UAAU,MAAM,IAAI,EAAE,WAAW,MAAM;AACrD;AAEA,CALC,iBAKiB;AAChB,aAAW,WAAW;AACtB,cAAY,EAAE,OAAO,KAAK,KAAK,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE;AAC1C;AAEA,CAAC;AACC,SAAO;AACP,eAAa;AACb,aAAW;AACX,uBAAa;AAAb,eAAa;AACf;",
+  "names": []
+}

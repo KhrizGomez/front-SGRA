@@ -1,0 +1,247 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import {
+  Student,
+  Teacher,
+  UploadResult,
+  UploadStats,
+  AIValidationResult
+} from '../../../models/coordination/coord-dataload';
+
+/**
+ * Servicio para la carga de información base (RF26)
+ * Gestiona la carga  desde archivos Excel
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class CoordDataloadService {
+
+  uploadRegistrations(selectedFile: File): Observable<string[]> {
+    const formData = new FormData();
+    formData.append('file', selectedFile, selectedFile.name);
+    return this.http.post<string[]>(
+      `${this.apiUrl}/academic/coordinations/upload-registrations`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al cargar matrículas:', error);
+        const errorMessage = typeof error.error === 'string'
+          ? error.error
+          : (error.message || 'Error al procesar el archivo de matrículas');
+        return of([`ERROR: ${errorMessage}`]);
+      })
+    );
+  }
+
+  constructor(private http: HttpClient) {}
+  private readonly apiUrl = environment.apiUrl;
+
+  // ============================================
+  // MÉTODOS PARA ESTUDIANTES
+  // ============================================
+
+  /**
+   * Carga un archivo Excel de estudiantes al servidor
+   * @param file Archivo Excel a cargar
+   * @returns Observable con el reporte de la carga (string[])
+   */
+  uploadStudentsFile(file: File): Observable<string[]> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.post<string[]>(`${this.apiUrl}/academic/coordinations/upload-students`, formData, {
+      withCredentials: true
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al cargar estudiantes:', error);
+
+        // HTTP 422: el body ES el array de resultados con errores parciales (mismo formato que 200)
+        if (error.status === 422 && Array.isArray(error.error)) {
+          return of(error.error as string[]);
+        }
+
+        // Para cualquier otro error (400, 417, 500…), prefijamos "ERROR:" para que
+        // la clasificación en el componente lo marque correctamente como error
+        const raw = typeof error.error === 'string' && error.error.trim()
+          ? error.error
+          : (error.message || 'Error al procesar el archivo de estudiantes');
+        return of([`ERROR: ${raw}`]);
+      })
+    );
+  }
+
+  /**
+   * Carga un archivo Excel de docentes al servidor
+   * @param file Archivo Excel a cargar
+   * @returns Observable con el reporte de la carga (string[])
+   */
+  uploadTeachersFile(file: File): Observable<string[]> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.post<string[]>(`${this.apiUrl}/academic/coordinations/upload-teachers`, formData, {
+      withCredentials: true
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al cargar docentes:', error);
+        const errorMessage = typeof error.error === 'string'
+          ? error.error
+          : 'Error al procesar el archivo';
+        return of([errorMessage]);
+      })
+    );
+  }
+
+  /**
+   * Obtiene la lista de estudiantes cargados
+   */
+  getStudents(): Observable<Student[]> {
+    return this.http.get<Student[]>(`${this.apiUrl}/academic/coordinations/students`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Obtiene un estudiante por su código
+   */
+  getStudentByCodigo(codigo: string): Observable<Student | null> {
+    return this.http.get<Student>(`${this.apiUrl}/academic/coordinations/students/${codigo}`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of(null))
+    );
+  }
+
+  /**
+   * Obtiene la lista de docentes cargados
+   */
+  getTeachers(): Observable<Teacher[]> {
+    return this.http.get<Teacher[]>(`${this.apiUrl}/academic/coordinations/teachers`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Obtiene un docente por su código
+   */
+  getTeacherByCodigo(codigo: string): Observable<Teacher | null> {
+    return this.http.get<Teacher>(`${this.apiUrl}/academic/coordinations/teachers/${codigo}`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of(null))
+    );
+  }
+
+  // ============================================
+  // MÉTODOS DE CONSULTA
+  // ============================================
+
+  /**
+   * Obtiene la lista de matrículas cargadas
+   */
+  getRegistrations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/academic/coordinations/registrations`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  // ============================================
+  // MÉTODOS GENERALES
+  // ============================================
+
+  /**
+   * Obtiene estadísticas de las cargas realizadas
+   */
+  getUploadStats(): Observable<UploadStats> {
+    return this.http.get<UploadStats>(`${this.apiUrl}/stats`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of({
+        totalArchivos: 0,
+        totalRegistros: 0,
+        exitosos: 0,
+        errores: 0
+      }))
+    );
+  }
+
+  /**
+   * Obtiene el historial de resultados de carga
+   */
+  getUploadHistory(): Observable<UploadResult[]> {
+    return this.http.get<UploadResult[]>(`${this.apiUrl}/history`, {
+      withCredentials: true
+    }).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  /**
+   * Valida el formato de un archivo antes de cargarlo
+   */
+  validateFile(file: File): { valid: boolean; message: string } {
+    const maxSize = 10 * 1024 * 1024; // 10 MB
+    const allowedExtensions = ['.xls', '.xlsx'];
+
+    // Validar tamaño
+    if (file.size > maxSize) {
+      return { valid: false, message: 'El archivo excede el tamaño máximo de 10 MB.' };
+    }
+
+    // Validar extensión
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+      return { valid: false, message: 'Formato no válido. Use archivos .xls o .xlsx' };
+    }
+
+    return { valid: true, message: 'Archivo válido' };
+  }
+
+  // ============================================
+  // VALIDACIÓN IA DE ARCHIVOS EXCEL
+  // ============================================
+
+  /**
+   * Valida un archivo Excel usando IA antes de subirlo
+   * Analiza campos, formatos, duplicados, idioma, etc.
+   * @param file Archivo Excel a validar
+   * @param loadType Tipo de carga: 'students', 'teachers', 'registrations'
+   * @returns Observable con el resultado de la validación IA
+   */
+  validateExcelWithAI(file: File, loadType: string): Observable<AIValidationResult> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('loadType', loadType);
+
+    return this.http.post<AIValidationResult>(
+      `${this.apiUrl}/academic/coordinations/validate-excel`,
+      formData,
+      { withCredentials: true }
+    ).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error al validar archivo con IA:', error);
+        // Retornar un resultado de error para que el componente pueda manejarlo
+        return of({
+          issues: [],
+          aiValidated: false,
+          recommendedAction: 'REVIEW' as const,
+          summary: 'No se pudo conectar con el servicio de validación. Puede continuar bajo su responsabilidad.',
+          validationTimeMs: 0
+        });
+      })
+    );
+  }
+}
+
+

@@ -1,0 +1,181 @@
+﻿﻿.dropzone-container {
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropzone-container:hover {
+  border-color: #1B7505;
+  background-color: #f1f8f4;
+}
+
+.dropzone-container.dragover {
+  border-color: #1B7505;
+  background-color: rgba(25, 135, 84, 0.05);
+  border-style: solid;
+}
+
+.dropzone-container.has-file {
+  border-color: #1B7505;
+  background-color: #f1f8f4;
+  border-style: solid;
+}
+
+/* Dropzone Content */
+.dropzone-content > i {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.dropzone-content p {
+  margin-bottom: 0;
+}
+
+/* Botón dentro del dropzone */
+.dropzone-content .btn i {
+  font-size: 0.875rem;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  min-width: 180px;
+}
+
+.dropdown-item.active {
+  background-color: #1B7505;
+  color: white;
+}
+
+.dropdown-item:hover:not(.active) {
+  background-color: #f8f9fa;
+}
+
+/* Table Styles */
+.table thead th {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* Pagination */
+.page-link {
+  border: none;
+  color: #6c757d;
+}
+
+.page-link:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.page-item.disabled .page-link {
+  background-color: transparent;
+  color: #adb5bd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dropzone-container {
+    padding: 32px 16px;
+    min-height: 150px;
+  }
+
+  .dropzone-content i {
+    font-size: 2.5rem;
+  }
+}
+
+/* ===== VALIDACIÓN IA STYLES ===== */
+
+/* Botón de validación IA */
+.btn-outline-primary {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.btn-outline-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alertas de validación */
+.alert {
+  border-radius: 8px;
+}
+
+.alert-success {
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+}
+
+/* Modal de validación */
+.issues-list .accordion-item {
+  background-color: #f8f9fa;
+}
+
+.issues-list .accordion-button {
+  font-size: 0.875rem;
+  padding: 0.75rem 1rem;
+}
+
+.issues-list .accordion-button:not(.collapsed) {
+  background-color: #e9ecef;
+  box-shadow: none;
+}
+
+.issues-list .accordion-button::after {
+  width: 1rem;
+  height: 1rem;
+  background-size: 1rem;
+}
+
+.issues-list .accordion-body {
+  font-size: 0.875rem;
+  padding: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+/* Badge de severidad */
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #212529 !important;
+}
+
+.badge.bg-info {
+  background-color: #0dcaf0 !important;
+  color: #212529 !important;
+}
+
+/* Checkbox de skip validation */
+.form-check-input:checked {
+  background-color: #ffc107;
+  border-color: #ffc107;
+}
+

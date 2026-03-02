@@ -1,0 +1,151 @@
+import { Routes } from '@angular/router';
+import { authGuard, loginGuard, roleGuard } from './core/guards/auth.guard';
+
+export const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  },
+  {
+    path: 'login',
+    loadComponent: () => import('./components/auth/login.component').then(m => m.LoginComponent),
+    canActivate: [loginGuard]
+  },
+  {
+    path: 'change-password',
+    loadComponent: () => import('./components/auth/change-password/change-password.component').then(m => m.ChangePasswordComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./components/administration/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
+    canActivate: [authGuard, roleGuard(['admin', 'administrador'])],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./components/administration/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./components/administration/admin-user-management/admin-user-management.component').then(m => m.AdminUserManagementComponent)
+      },
+      {
+        path: 'master-tables',
+        loadComponent: () => import('./components/administration/admin-master-tables/admin-master-tables.component').then(m => m.AdminMasterTablesComponent)
+      },
+      {
+        path: 'permissions',
+        loadComponent: () => import('./components/administration/admin-permission-management/admin-permission-management.component').then(m => m.AdminPermissionManagementComponent)
+      },
+      {
+        path: 'roles',
+        loadComponent: () => import('./components/administration/admin-role-management/admin-role-management.component').then(m => m.AdminRoleManagementComponent)
+      },
+      {
+        path: 'email-config',
+        loadComponent: () => import('./components/administration/admin-email-config/admin-email-config.component').then(m => m.AdminEmailConfigComponent)
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+  {
+    path: 'teacher',
+    loadComponent: () => import('./components/teacher/teacher-layout/teacher-layout.component').then(m => m.TeacherLayoutComponent),
+    canActivate: [authGuard, roleGuard(['teacher', 'docente'])],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./components/teacher/teacher-dashboard/teacher-dashboard.component').then(m => m.TeacherDashboardComponent)
+      },
+      {
+        path: 'availability',
+        loadComponent: () => import('./components/teacher/teacher-availability/teacher-availability.component').then(m => m.TeacherAvailabilityComponent)
+      },
+      {
+        path: 'requests',
+        loadComponent: () => import('./components/teacher/teacher-requests/teacher-requests.component').then(m => m.TeacherRequestsComponent)
+      },
+      {
+        path: 'history',
+        loadComponent: () => import('./components/teacher/teacher-history/teacher-history.component').then(m => m.TeacherHistoryComponent)
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+  {
+    path: 'student',
+    loadComponent: () => import('./components/student/student-layout/student-layout.component')
+      .then(m => m.StudentLayoutComponent),
+    canActivate: [authGuard, roleGuard(['student', 'estudiante'])],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./components/student/student-dashboard.component')
+          .then(m => m.StudentDashboardComponent)
+      },
+      {
+        path: 'new-request',
+        loadComponent: () => import('./components/student/student-new-request/student-new-request.component')
+          .then(m => m.StudentNewRequestComponent)
+      },
+      {
+        path: 'my-requests',
+        loadComponent: () => import('./components/student/student-my-requests/student-my-requests.component')
+          .then(m => m.StudentMyRequestsComponent)
+      },
+      {
+        path: 'history',
+        loadComponent: () => import('./components/student/student-history/student-history.component')
+          .then(m => m.StudentHistoryComponent)
+      },
+      {
+        path: 'preferences',
+        loadComponent: () => import('./components/student/student-preferences/student-preferences.component')
+          .then(m => m.StudentPreferencesComponent)
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+  {
+    path: 'coordinator',
+    loadComponent: () => import('./components/coordination/coord-layout/coord-layout.component').then(m => m.CoordLayoutComponent),
+    canActivate: [authGuard, roleGuard(['coordinator', 'coordinador'])],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./components/coordination/coord-dashboard/coord-dashboard.component').then(m => m.CoordDashboardComponent)
+      },
+      {
+        path: 'dataload',
+        loadComponent: () => import('./components/coordination/coord-dataload/coord-dataload.component').then(m => m.CoordDataloadComponent)
+      },
+      {
+        path: 'physicalspaces',
+        loadComponent: () => import('./components/coordination/coord-physicalspaces/coord-physicalspaces.component').then(m => m.CoordPhysicalspacesComponent)
+      },
+
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+  {
+    path: 'workAreaManagement',
+    loadComponent: () => import('./components/workAreaManager/work-area-manager-layout/work-area-manager-layout.component').then(m => m.WorkAreaManagerLayoutComponent),
+    canActivate: [authGuard, roleGuard(['workAreaManagement', 'Gestor de Espacios Fisicos'])],
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./components/workAreaManager/work-area-manager-dashboard/work-area-manager-dashboard.component').then(m => m.WorkAreaManagerDashboardComponent)
+      },
+      {
+        path: 'management-requests',
+        loadComponent: () => import('./components/workAreaManager/work-area-manager-management-of-in-person-requests/work-area-manager-management-of-in-person-requests.component').then(m => m.WorkAreaManagerManagementOfInPersonRequestsComponent)
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+    ]
+  },
+  {
+    path: '**',
+    redirectTo: '/login'
+  }
+];

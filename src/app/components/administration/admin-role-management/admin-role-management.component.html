@@ -1,0 +1,78 @@
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h3 class="mb-1">Gestión de Roles</h3>
+      <p class="text-muted mb-0">Administra los roles y su conexión de seguridad.</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="rolesTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="app-roles-tab" data-bs-toggle="pill"
+              data-bs-target="#app-roles" type="button" role="tab"
+              aria-controls="app-roles" aria-selected="true">
+        <i class="bi bi-people-fill me-2"></i>Roles del servidor
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="server-roles-tab" data-bs-toggle="pill"
+              data-bs-target="#server-roles" type="button" role="tab"
+              aria-controls="server-roles" aria-selected="false">
+        <i class="bi bi-database-fill-gear me-2"></i>Conexión con roles del servidor
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="rolesTabContent">
+
+    <!-- Tab: Roles de la Aplicación -->
+    <div class="tab-pane fade show active" id="app-roles" role="tabpanel" aria-labelledby="app-roles-tab">
+
+      <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-success d-flex align-items-center gap-2"
+                (click)="prepareCreate()">
+          <i class="bi bi-plus-lg"></i> Nuevo Rol
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-8">
+              <label class="form-label mb-1">Buscar</label>
+              <input type="text" class="form-control"
+                     placeholder="Buscar por roles..." [formControl]="searchControl">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label mb-1">Estado</label>
+              <select class="form-select" [formControl]="statusControl">
+                <option value="">Todos</option>
+                <option value="true">Activos</option>
+                <option value="false">Inactivos</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <app-admin-role-table [roles]="roles" [isLoading]="isLoading"
+            (editRole)="prepareEdit($event)"></app-admin-role-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Conexión con servidor -->
+    <div class="tab-pane fade" id="server-roles" role="tabpanel" aria-labelledby="server-roles-tab">
+      <app-admin-role-management-server-connection></app-admin-role-management-server-connection>
+    </div>
+
+  </div>
+</div>
+
+<app-admin-role-create-modal (roleCreated)="loadRoles()" [roleToEdit]="selectedRoleToEdit"></app-admin-role-create-modal>

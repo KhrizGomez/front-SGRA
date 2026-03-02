@@ -1,0 +1,361 @@
+<div class="container-fluid p-0">
+  <!-- Header Principal -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Carga de Información Base</h2>
+      <p class="text-muted mb-0">Importa datos de estudiantes, matrículas y docentes desde archivos Excel</p>
+    </div>
+  </div>
+
+  <!-- Card de Carga Unificada -->
+  <div class="card border-0 rounded-4 shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h5 class="fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+          <i class="bi bi-cloud-arrow-up text-muted"></i> Subir Archivo
+        </h5>
+        <p class="text-muted small mb-0">Selecciona el tipo de datos y arrastra o selecciona tu archivo Excel.</p>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-success dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i [class]="selectedOption.icon"></i>
+          {{ selectedOption.label }}
+        </button>
+
+        <ul class="dropdown-menu shadow">
+          <li *ngFor="let option of uploadOptions">
+            <a class="dropdown-item d-flex align-items-center gap-2" href="javascript:void(0)" (click)="selectOption(option)">
+              <i [class]="option.icon"></i>
+              {{ option.label }}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card-body px-4 pb-4">
+      <!-- Dropzone -->
+      <div class="dropzone-container"
+           [class.dragover]="isDragging"
+           [class.has-file]="selectedFile"
+           (click)="openFileSelect()"
+           (drop)="onDrop($event)"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave()">
+
+        <!-- Estado Vacío -->
+        <div *ngIf="!selectedFile" class="dropzone-content text-center">
+          <i class="bi bi-file-earmark-spreadsheet text-muted"></i>
+          <p class="text-dark fw-semibold mb-1">Arrastra el archivo aquí</p>
+          <p class="text-muted small mb-0">o <a href="javascript:void(0)" class="text-success fw-medium">haz clic para seleccionar</a></p>
+          <small class="text-muted d-block mt-2">Formatos: .xls, .xlsx • Máx. 10 MB</small>
+        </div>
+
+        <!-- Estado con Archivo -->
+        <div *ngIf="selectedFile" class="dropzone-content text-center" (click)="$event.stopPropagation()">
+          <i class="bi bi-file-earmark-check text-success"></i>
+          <p class="text-dark fw-semibold mb-1">{{ selectedFile.name }}</p>
+          <small class="text-muted d-block mb-2">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</small>
+          <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" (click)="clearFile($event); $event.stopPropagation()">
+            <i class="bi bi-trash me-1"></i> Quitar
+          </button>
+        </div>
+      </div>
+
+      <!-- Botón de Subida (valida con IA automáticamente antes de subir) -->
+      <button class="btn btn-success w-100 mt-3"
+              (click)="uploadData()"
+              [disabled]="isLoading || !selectedFile">
+        <i class="bi bi-cloud-arrow-up me-2"></i>
+        Subir datos
+      </button>
+
+      <!-- Indicador de validación en progreso -->
+      <div *ngIf="isValidating" class="alert alert-info d-flex align-items-center mt-3 mb-0" role="alert">
+        <div class="spinner-border spinner-border-sm text-info me-2" role="status">
+          <span class="visually-hidden">Validando...</span>
+        </div>
+        <span>Validando archivo con IA...</span>
+      </div>
+
+      <!-- Mensaje de estado de validación (solo se muestra si hay resultado y no está cargando) -->
+      <div *ngIf="aiValidationResult && !isLoading && !isValidating" class="mt-3">
+        <div *ngIf="aiValidationResult.recommendedAction === 'PROCEED'"
+             class="alert alert-success d-flex align-items-center mb-0" role="alert">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <div>
+            <strong>✅ Validación exitosa.</strong> {{ aiValidationResult.summary }}
+            <span *ngIf="aiValidationResult.aiValidated" class="badge bg-primary ms-2">IA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reporte de Carga -->
+  <div class="card border-0 rounded-4 shadow-sm " *ngIf="uploadResults.length > 0">
+    <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h5 class="fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-clipboard-data text-muted"></i> Reporte de Carga
+          </h5>
+          <div class="d-flex gap-2 mt-2">
+            <span class="badge bg-success-subtle text-success rounded-pill px-3">
+              <i class="bi bi-check-circle me-1"></i>{{ successCount }} exitosos
+            </span>
+            <span class="badge bg-danger-subtle text-danger rounded-pill px-3">
+              <i class="bi bi-exclamation-circle me-1"></i>{{ errorCount }} errores
+            </span>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">
+              <i class="bi bi-list-ol me-1"></i>{{ uploadedItems }} filas
+            </span>
+          </div>
+        </div>
+        <button class="btn btn-outline-secondary rounded-pill px-4 fw-medium d-flex align-items-center gap-2">
+          <i class="bi bi-download"></i> Exportar
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body px-4 pb-4">
+      <!-- Filtros -->
+      <div class="d-flex gap-3 mb-4 align-items-center flex-wrap">
+        <div class="input-group" style="max-width: 300px;">
+          <input type="text"
+                 class="form-control bg-light border-0 shadow-none"
+                 placeholder="Buscar en resultados..."
+                 [(ngModel)]="searchTerm"
+                 (input)="filterResults()">
+          <span class="input-group-text bg-light border-0 text-muted">
+            <i class="bi bi-search"></i>
+          </span>
+        </div>
+
+        <div class="btn-group" role="group">
+          <button type="button"
+                  class="btn btn-sm"
+                  [class.btn-success]="currentFilterStatus === 'all'"
+                  [class.btn-outline-secondary]="currentFilterStatus !== 'all'"
+                  (click)="filterByStatus('all')">
+            Todos
+          </button>
+          <button type="button"
+                  class="btn btn-sm"
+                  [class.btn-success]="currentFilterStatus === 'success'"
+                  [class.btn-outline-secondary]="currentFilterStatus !== 'success'"
+                  (click)="filterByStatus('success')">
+            Exitosos
+          </button>
+          <button type="button"
+                  class="btn btn-sm"
+                  [class.btn-success]="currentFilterStatus === 'error'"
+                  [class.btn-outline-secondary]="currentFilterStatus !== 'error'"
+                  (click)="filterByStatus('error')">
+            Errores
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de Resultados -->
+      <div *ngIf="paginatedResults.length > 0; else noResults" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-transparent text-secondary small text-uppercase">
+            <tr>
+              <th scope="col" class="py-3 border-bottom border-2 text-center" style="width: 60px;">#</th>
+              <th scope="col" class="py-3 border-bottom border-2" style="width: 120px;">Estado</th>
+              <th scope="col" class="py-3 border-bottom border-2">Mensaje del Sistema</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let result of paginatedResults; let i = index">
+              <td class="text-center text-muted fw-medium">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td>
+                <span *ngIf="result.status === 'success'"
+                      class="badge bg-success-subtle text-success rounded-pill px-3">
+                  <i class="bi bi-check-circle-fill me-1"></i>Éxito
+                </span>
+                <span *ngIf="result.status === 'error'"
+                      class="badge bg-danger-subtle text-danger rounded-pill px-3">
+                  <i class="bi bi-exclamation-circle-fill me-1"></i>Error
+                </span>
+              </td>
+              <td class="text-dark">{{ result.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sin Resultados -->
+      <ng-template #noResults>
+        <div class="text-center py-5">
+          <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+          <p class="text-muted mt-3 mb-1">Sin resultados</p>
+          <p class="text-muted small">No hay registros que coincidan con tu búsqueda.</p>
+        </div>
+      </ng-template>
+
+      <!-- Paginación -->
+      <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top" *ngIf="uploadResults.length > pageSize">
+        <small class="text-muted">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ Math.min(currentPage * pageSize, filteredResults.length) }} de {{ filteredResults.length }}
+        </small>
+        <nav aria-label="Paginación de resultados">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link rounded-start-pill" (click)="previousPage($event)" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link">{{ currentPage }} / {{ getTotalPages() }}</span>
+            </li>
+            <li class="page-item" [class.disabled]="!hasNextPage()">
+              <button class="page-link rounded-end-pill" (click)="nextPage($event)" [disabled]="!hasNextPage()">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden File Input -->
+  <input type="file"
+         #fileInput
+         (change)="onFileSelected($event)"
+         accept=".xlsx,.xls,.csv"
+         style="display: none;">
+</div>
+
+<!-- MODAL DE ALERTA DE PRERREQUISITO -->
+<div *ngIf="showPrerequisiteModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.15); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1050; display: flex; align-items: center; justify-content: center;">
+  <div class="modal-dialog modal-dialog-centered" style="margin: 0 auto;">
+    <div class="modal-content border-2" style="border-color: #198754; background: #fff; min-width: 350px; max-width: 90vw;">
+      <div class="modal-body text-center py-4">
+        <div class="fw-bold text-success mb-2">
+          <i class="bi bi-exclamation-circle me-2"></i> Atención
+        </div>
+        <div class="text-dark mb-3" style="font-size: 1.1rem;">{{ prerequisiteMessage }}</div>
+        <button class="btn btn-success px-4 py-2 rounded-pill fw-bold" (click)="closePrerequisiteModal()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE DETALLES DE VALIDACIÓN IA -->
+<div *ngIf="showValidationModal && aiValidationResult"
+     class="modal fade show d-block"
+     tabindex="-1"
+     style="background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1050;">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header"
+           [class.bg-success]="aiValidationResult.recommendedAction === 'PROCEED'"
+           [class.bg-warning]="aiValidationResult.recommendedAction === 'REVIEW'"
+           [class.bg-danger]="aiValidationResult.recommendedAction === 'REJECT'"
+           [class.text-white]="aiValidationResult.recommendedAction !== 'REVIEW'">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <i class="bi"
+             [class.bi-check-circle-fill]="aiValidationResult.recommendedAction === 'PROCEED'"
+             [class.bi-exclamation-triangle-fill]="aiValidationResult.recommendedAction === 'REVIEW'"
+             [class.bi-x-circle-fill]="aiValidationResult.recommendedAction === 'REJECT'"></i>
+          Resultado de Validación
+          <span *ngIf="aiValidationResult.aiValidated" class="badge bg-light text-primary small">Validado por IA</span>
+          <span *ngIf="!aiValidationResult.aiValidated" class="badge bg-light text-secondary small">Validación Local</span>
+        </h5>
+        <button type="button" class="btn-close"
+                [class.btn-close-white]="aiValidationResult.recommendedAction !== 'REVIEW'"
+                (click)="closeValidationModal()"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Resumen -->
+        <div class="alert"
+             [class.alert-success]="aiValidationResult.recommendedAction === 'PROCEED'"
+             [class.alert-warning]="aiValidationResult.recommendedAction === 'REVIEW'"
+             [class.alert-danger]="aiValidationResult.recommendedAction === 'REJECT'">
+          <p class="mb-1"><strong>Resumen:</strong> {{ aiValidationResult.summary }}</p>
+          <small class="text-muted" *ngIf="aiValidationResult.validationTimeMs">
+            Tiempo de validación: {{ aiValidationResult.validationTimeMs }}ms
+          </small>
+        </div>
+
+        <!-- Estadísticas de issues -->
+        <div class="d-flex gap-3 mb-4" *ngIf="aiValidationResult.issues && aiValidationResult.issues.length > 0">
+          <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
+            <i class="bi bi-x-circle me-1"></i>{{ getIssueCount('ERROR') }} Errores
+          </span>
+          <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>{{ getIssueCount('WARNING') }} Advertencias
+          </span>
+          <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2">
+            <i class="bi bi-info-circle me-1"></i>{{ getIssueCount('INFO') }} Sugerencias
+          </span>
+        </div>
+
+        <!-- Lista de Issues -->
+        <div *ngIf="aiValidationResult.issues && aiValidationResult.issues.length > 0" class="issues-list">
+          <h6 class="fw-bold text-muted mb-3">
+            <i class="bi bi-list-check me-2"></i>Problemas Detectados ({{ aiValidationResult.issues.length }})
+          </h6>
+
+          <div class="accordion" id="issuesAccordion">
+            <div *ngFor="let issue of aiValidationResult.issues; let i = index"
+                 class="accordion-item border-0 mb-2 rounded overflow-hidden"
+                 [class.border-start]="true"
+                 [class.border-danger]="issue.severity === 'ERROR'"
+                 [class.border-warning]="issue.severity === 'WARNING'"
+                 [class.border-info]="issue.severity === 'INFO'"
+                 style="border-left-width: 4px !important;">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed py-2 bg-light"
+                        type="button"
+                        [attr.data-bs-toggle]="'collapse'"
+                        [attr.data-bs-target]="'#issue' + i">
+                  <span class="badge me-2"
+                        [class.bg-danger]="issue.severity === 'ERROR'"
+                        [class.bg-warning]="issue.severity === 'WARNING'"
+                        [class.bg-info]="issue.severity === 'INFO'">
+                    {{ issue.severity }}
+                  </span>
+                  <span class="badge bg-secondary me-2">Fila {{ issue.row }}</span>
+                  <span class="badge bg-light text-dark me-2">{{ issue.field }}</span>
+                  <span class="text-truncate small">{{ issue.message }}</span>
+                </button>
+              </h2>
+              <div [id]="'issue' + i" class="accordion-collapse collapse" data-bs-parent="#issuesAccordion">
+                <div class="accordion-body small bg-white">
+                  <p class="mb-2"><strong>Problema:</strong> {{ issue.message }}</p>
+                  <p *ngIf="issue.suggestion" class="mb-1 text-success">
+                    <i class="bi bi-lightbulb me-1"></i><strong>Sugerencia:</strong> {{ issue.suggestion }}
+                  </p>
+                  <p class="mb-0 text-muted small">
+                    <i class="bi bi-geo-alt me-1"></i>Ubicación: Fila {{ issue.row }}, Campo "{{ issue.field }}"
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin Issues -->
+        <div *ngIf="!aiValidationResult.issues || aiValidationResult.issues.length === 0" class="text-center py-4">
+          <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+          <h5 class="text-success mt-3">¡Todo en orden!</h5>
+          <p class="text-muted">No se detectaron problemas en el archivo. Puede proceder con la carga.</p>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" (click)="closeValidationModal()">Cerrar</button>
+        <button *ngIf="aiValidationResult.recommendedAction !== 'REJECT'"
+                type="button"
+                class="btn btn-success"
+                (click)="proceedAfterValidation()">
+          <i class="bi bi-cloud-arrow-up me-1"></i>Proceder con la carga
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

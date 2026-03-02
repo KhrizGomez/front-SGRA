@@ -1,0 +1,37 @@
+<div class="container-fluid">
+
+  <div class="mb-3">
+    <h3 class="mb-1">Gestión de Tablas Maestras</h3>
+    <p class="text-muted mb-0">Gestiona los catálogos base del sistema: instituciones, áreas, periodos y más.</p>
+  </div>
+
+  <app-admin-master-kpis [metrics]="metrics"></app-admin-master-kpis>
+
+  <div class="row g-3">
+
+    <div class="col-lg-3 col-md-4">
+      <app-admin-master-siderbar-tables
+        [catalogs]="catalogs"
+        [selectedCatalogSchema]="selectedCatalogSchema"
+        (catalogSelected)="onCatalogSelected($event)">
+      </app-admin-master-siderbar-tables>
+    </div>
+
+    <div class="col-lg-9 col-md-8">
+      <app-admin-master-table-list
+        [records]="currentRecords"
+        [catalogName]="selectedCatalogName"
+        [isLoading]="isLoadingRecords"
+        (editRecord)="prepareEdit($event)"
+        (createRecord)="prepareCreate()"
+        (search)="onSearch($event)">
+      </app-admin-master-table-list>
+    </div>
+
+    <app-admin-master-create-modal [currentSchema]="selectedCatalogSchema" [recordToEdit]="selectedRecordToEdit"
+      (recordSaved)="reloadCurrentCatalog()">
+    </app-admin-master-create-modal>
+
+  </div>
+
+</div>

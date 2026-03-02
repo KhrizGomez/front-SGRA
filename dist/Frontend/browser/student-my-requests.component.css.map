@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/components/student/student-my-requests/student-my-requests.component.css"],
+  "sourcesContent": [".chip-box { min-height: 72px; }\r\n    th { white-space: nowrap; font-size: .85rem; letter-spacing: .02em; }\r\n    td { vertical-align: middle; }\r\n    .nav-link { cursor: pointer; }\r\n"],
+  "mappings": ";AAAA,CAAC;AAAW,cAAY;AAAM;AAC1B;AAAK,eAAa;AAAQ,aAAW;AAAQ,kBAAgB;AAAO;AACpE;AAAK,kBAAgB;AAAQ;AAC7B,CAAC;AAAW,UAAQ;AAAS;",
+  "names": []
+}

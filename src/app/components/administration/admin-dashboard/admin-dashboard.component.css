@@ -1,0 +1,7 @@
+.quick-action-card {
+  transition: transform 0.15s ease;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-2px);
+}

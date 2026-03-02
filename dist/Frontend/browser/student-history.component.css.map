@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/components/student/student-history/student-history.component.css"],
+  "sourcesContent": [".nav-link { cursor: pointer; }\r\n    th { white-space: nowrap; font-size: .85rem; }\r\n"],
+  "mappings": ";AAAA,CAAC;AAAW,UAAQ;AAAS;AACzB;AAAK,eAAa;AAAQ,aAAW;AAAQ;",
+  "names": []
+}
