@@ -18,3 +18,13 @@ export interface AuthError {
   error: string;
 }
 
+export interface ChangePasswordRequest {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  success: boolean;
+}
+
