@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadResult, AIValidationResult } from '../../../models/coordination/coord-dataload';
@@ -17,6 +17,19 @@ export type UploadType = 'students' | 'registrations' | 'teachers';
 export class CoordDataloadComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
+  // Estado del dropdown
+  dropdownOpen = false;
+
+  toggleDropdown(event: Event): void {
+    event.stopPropagation();
+    this.dropdownOpen = !this.dropdownOpen;
+  }
+
+  @HostListener('document:click')
+  closeDropdown(): void {
+    this.dropdownOpen = false;
+  }
+
   // Opción seleccionada para el dropdown
   selectedOption: { id: UploadType; label: string; icon: string } = {
     id: 'students',
@@ -31,6 +44,7 @@ export class CoordDataloadComponent {
   selectOption(option: any) {
     this.selectedOption = option;
     this.selectedUploadType = option.id;
+    this.dropdownOpen = false;
     this.clearFile();
   }
 
