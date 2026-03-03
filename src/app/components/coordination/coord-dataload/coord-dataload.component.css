@@ -1,12 +1,12 @@
 ﻿﻿.dropzone-container {
   border: 2px dashed #dee2e6;
-  border-radius: 12px;
-  padding: 48px 24px;
+  border-radius: 16px;
+  padding: 120px 80px;
   text-align: center;
   background-color: #f8f9fa;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 180px;
+  min-height: 420px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,12 +84,12 @@
 /* Responsive */
 @media (max-width: 768px) {
   .dropzone-container {
-    padding: 32px 16px;
-    min-height: 150px;
+    padding: 40px 16px;
+    min-height: 180px;
   }
 
   .dropzone-content i {
-    font-size: 2.5rem;
+    font-size: 3rem;
   }
 }
 
