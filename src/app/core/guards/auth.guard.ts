@@ -4,13 +4,21 @@ import { map, catchError, of } from 'rxjs';
 import { AuthService } from '../../services/auth/auth.service';
 import { LoginResponse } from '../../models/auth.model';
 
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (route) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
   return authService.me().pipe(
     map((user: LoginResponse | null) => {
       if (user) {
+        // Si el usuario tiene estado 'C' y NO está yendo a change-password, forzar redirección
+        if (user.accountState === 'C') {
+          const targetPath = route.routeConfig?.path;
+          if (targetPath !== 'change-password') {
+            router.navigate(['/change-password']);
+            return false;
+          }
+        }
         return true;
       }
       router.navigate(['/login']);
@@ -25,10 +33,16 @@ export const authGuard: CanActivateFn = () => {
 
 export const loginGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
+  const router = inject(Router);
 
   return authService.me().pipe(
     map((user: LoginResponse | null) => {
       if (user) {
+        // Si requiere cambio de contraseña, redirigir ahí en lugar del dashboard
+        if (user.accountState === 'C') {
+          router.navigate(['/change-password']);
+          return false;
+        }
         // Ya está autenticado, redirigir según rol
         authService.redirectByRole(user);
         return false;

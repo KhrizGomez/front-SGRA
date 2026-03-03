@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { LoginRequest, LoginResponse } from '../../models/auth.model';
+import { LoginRequest, LoginResponse, ChangePasswordRequest, ChangePasswordResponse } from '../../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -92,6 +92,20 @@ export class AuthService {
       // Fallback: si no tiene rol reconocido
       this.router.navigate(['/login']);
     }
+  }
+
+  /**
+   * Cambia la contraseña en el primer acceso (estado='C').
+   * El backend invalida la sesión al éxito, forzando nuevo login.
+   */
+  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/auth/change-password`, request, {
+      withCredentials: true
+    }).pipe(
+      tap(() => {
+        this.currentUser.set(null);
+      })
+    );
   }
 
   hasRole(role: string): boolean {
