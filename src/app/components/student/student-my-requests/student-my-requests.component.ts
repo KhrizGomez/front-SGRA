@@ -141,7 +141,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading subjects:', err);
+        console.error('Error al cargar asignaturas:', err);
       }
     });
   }
@@ -167,7 +167,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
         this.totalPages = Math.max(1, Math.ceil(this.totalCount / this.size));
         this.loading = false;
 
-        // ✅ evita que “se pinte” solo al tocar hamburguesa
+        // evita que “se pinte” solo al tocar hamburguesa
         this.cdr.detectChanges();
       },
       error: (err) => {
