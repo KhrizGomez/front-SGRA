@@ -99,6 +99,21 @@
               </div>
             }
 
+            <!-- Advertencia: sesión grupal sin compañeros -->
+            @if (isGroupSession() && selectedClassmates.length === 0) {
+              <div class="alert alert-warning d-flex align-items-center justify-content-between mb-3">
+                <div>
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  Debes seleccionar al menos <strong>1 compañero</strong> para una sesión grupal.
+                  Se les enviará un correo de invitación al confirmar la solicitud.
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-warning" (click)="openClassmatesModal()"
+                        [disabled]="!form.subjectId">
+                  <i class="bi bi-people-fill me-1"></i>Seleccionar
+                </button>
+              </div>
+            }
+
             <!-- Row 3: Motivo -->
             <div class="row g-3 mb-3">
               <div class="col-12">
@@ -249,7 +264,7 @@
                   Cancelar
                 </button>
                 <button type="button" class="btn btn-success" (click)="confirmClassmatesSelection()"
-                        [disabled]="loadingClassmates">
+                        [disabled]="loadingClassmates || tempSelectedIds.size === 0">
                   <i class="bi bi-check-lg me-1"></i>
                   Confirmar ({{ tempSelectedIds.size }})
                 </button>
@@ -260,4 +275,3 @@
       }
 
     </div>
-  

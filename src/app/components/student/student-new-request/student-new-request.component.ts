@@ -297,12 +297,19 @@ export class StudentNewRequestComponent implements AfterViewInit {
   }
 
   isFormValid(): boolean {
-    return !!(
+    const baseValid = !!(
       this.form.subjectId &&
       this.form.sessionTypeId &&
       this.teacherInfo &&                    // Debe haber docente asignado
       this.form.reason?.trim().length >= 10
     );
+
+    // Si es sesión grupal, debe tener al menos 1 compañero seleccionado
+    if (this.isGroupSession()) {
+      return baseValid && this.selectedClassmateIds.size >= 1;
+    }
+
+    return baseValid;
   }
 
   goBack(): void {
