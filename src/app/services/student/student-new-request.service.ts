@@ -109,8 +109,10 @@ export class StudentNewRequestService {
       message = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
     } else if (error.status === 400) {
       message = error.error?.message || 'Datos inválidos.';
+    } else if (error.status === 409) {
+      message = error.error?.message || 'Ya existe una solicitud en proceso para esta asignatura.';
     } else if (error.status >= 500) {
-      message = 'Error en el servidor. Intenta más tarde.';
+      message = error.error?.message || 'Error en el servidor. Intenta más tarde.';
     } else if (error.error?.message) {
       message = error.error.message;
     }

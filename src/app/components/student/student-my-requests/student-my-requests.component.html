@@ -264,21 +264,21 @@
                       </td>
 
                       <td class="text-end">
-                        <div class="dropdown">
+                        <div class="dropdown" [class.show]="activeDropdown === r.requestId">
                           <button class="btn btn-sm btn-outline-secondary" type="button"
-                                  data-bs-toggle="dropdown" aria-expanded="false">
+                                  (click)="toggleDropdown(r.requestId)">
                             <i class="bi bi-three-dots"></i>
                           </button>
-                          <ul class="dropdown-menu dropdown-menu-end">
+                          <ul class="dropdown-menu dropdown-menu-end" [class.show]="activeDropdown === r.requestId">
                             <li>
-                              <button class="dropdown-item" type="button" (click)="viewDetail(r)">
+                              <button class="dropdown-item" type="button" (click)="viewDetail(r); closeDropdown()">
                                 <i class="bi bi-eye me-2"></i>Ver detalle
                               </button>
                             </li>
                             @if (canCancel(r.status)) {
                               <li><hr class="dropdown-divider"></li>
                               <li>
-                                <button class="dropdown-item text-danger" type="button" (click)="confirmCancel(r)">
+                                <button class="dropdown-item text-danger" type="button" (click)="confirmCancel(r); closeDropdown()">
                                   <i class="bi bi-x-circle me-2"></i>Cancelar solicitud
                                 </button>
                               </li>
@@ -326,7 +326,7 @@
               <i class="bi bi-people me-2 text-success"></i>
               Invitaciones a Tutorías Grupales
             </h5>
-            <button class="btn btn-outline-secondary btn-sm" (click)="loadInvitations()" [disabled]="loadingInvitations">
+            <button class="btn btn-outline-secondary btn-sm" (click)="loadInvitations(); loadInvitationHistory()" [disabled]="loadingInvitations">
               <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
             </button>
           </div>
@@ -412,7 +412,83 @@
 
           </div>
         </div>
+
+        <!-- Historial de Invitaciones Respondidas -->
+        <div class="card border-0 shadow-sm mt-4">
+          <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0">
+              <i class="bi bi-clock-history me-2 text-secondary"></i>
+              Historial de Invitaciones
+            </h5>
+          </div>
+          <div class="card-body">
+
+            @if (loadingHistory) {
+              <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-secondary mb-2" role="status"></div>
+                <p class="text-muted mb-0 small">Cargando historial...</p>
+              </div>
+            } @else if (invitationHistory.length === 0) {
+              <div class="text-center py-4 text-muted">
+                <i class="bi bi-journal-check display-6 mb-2 d-block opacity-50"></i>
+                <p class="mb-0 small">Aún no has respondido invitaciones.</p>
+              </div>
+            } @else {
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>ASIGNATURA</th>
+                      <th>SOLICITANTE</th>
+                      <th>DOCENTE</th>
+                      <th>MOTIVO</th>
+                      <th>FECHA</th>
+                      <th>MI RESPUESTA</th>
+                      <th>ESTADO SOLICITUD</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (h of invitationHistory; track h.participantId) {
+                      <tr>
+                        <td>
+                          <div class="fw-semibold">{{ h.subjectName }}</div>
+                          <small class="text-muted">Semestre {{ h.semester }}</small>
+                        </td>
+                        <td>
+                          <div>{{ h.requesterName }}</div>
+                          <small class="text-muted">{{ h.requesterEmail }}</small>
+                        </td>
+                        <td>{{ h.teacherName }}</td>
+                        <td class="text-truncate" style="max-width: 200px;">{{ h.reason }}</td>
+                        <td class="text-nowrap">{{ formatDate(h.requestDate) }}</td>
+                        <td>
+                          <span class="badge rounded-pill"
+                                [class.bg-success]="h.invitationStatus === 'Aceptada'"
+                                [class.bg-danger]="h.invitationStatus === 'Rechazada'">
+                            {{ h.invitationStatus }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge rounded-pill"
+                                [class.bg-warning]="isPending(h.requestStatus)"
+                                [class.text-dark]="isPending(h.requestStatus)"
+                                [class.bg-success]="isAccepted(h.requestStatus)"
+                                [class.bg-danger]="isRejected(h.requestStatus)"
+                                [class.bg-secondary]="isCancelled(h.requestStatus)"
+                                [class.bg-dark]="isFinished(h.requestStatus)">
+                            {{ h.requestStatus }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+
+          </div>
+        </div>
+
       } <!-- fin tab invitations -->
 
     </div>
-  

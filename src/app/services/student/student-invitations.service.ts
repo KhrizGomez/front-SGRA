@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { InvitationItem, InvitationResponse } from '../../models/student/invitation.model';
+import { InvitationItem, InvitationResponse, InvitationHistoryItem } from '../../models/student/invitation.model';
 
 /**
  * StudentInvitationsService
@@ -24,6 +24,16 @@ export class StudentInvitationsService {
   getMyInvitations(): Observable<InvitationItem[]> {
     return this.http.get<InvitationItem[]>(
       `${this.baseUrl}/student/invitations`,
+      this.httpOptions
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Obtiene el historial de invitaciones grupales ya respondidas.
+   */
+  getInvitationHistory(): Observable<InvitationHistoryItem[]> {
+    return this.http.get<InvitationHistoryItem[]>(
+      `${this.baseUrl}/student/invitations/history`,
       this.httpOptions
     ).pipe(catchError(this.handleError));
   }
@@ -51,7 +61,7 @@ export class StudentInvitationsService {
     } else if (error.status === 400) {
       message = error.error?.message || 'Datos inválidos.';
     } else if (error.status >= 500) {
-      message = 'Error en el servidor. Intenta más tarde.';
+      message = error.error?.message || 'Error en el servidor. Intenta más tarde.';
     } else if (error.error?.message) {
       message = error.error.message;
     }

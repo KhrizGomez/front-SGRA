@@ -10,6 +10,8 @@
     .bg-accepted { background-color: #3b82f6; }
     .bg-upcoming { background-color: #8b5cf6; }
     .bg-finished { background-color: #198754; }
+    .bg-cancelled { background-color: #dc3545; }
+    .bg-invitation { background-color: #0d6efd; }
 
     .quick-card {
       border-radius: 14px;
@@ -24,3 +26,5 @@
       font-weight: 600;
       user-select: none;
     }
+
+
