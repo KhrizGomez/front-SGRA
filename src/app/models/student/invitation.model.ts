@@ -23,3 +23,20 @@ export interface InvitationResponse {
   message: string;
 }
 
+export interface InvitationHistoryItem {
+  participantId: number;
+  requestId: number;
+  subjectName: string;
+  semester: number;
+  requesterName: string;
+  requesterEmail: string;
+  teacherName: string;
+  sessionType: string;
+  reason: string;
+  requestDate: string;
+  invitationStatus: string;   // "Aceptada" o "Rechazada"
+  requestStatus: string;      // Estado de la solicitud
+  totalInvited: number;
+  totalAccepted: number;
+}
+

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, AfterViewInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, AfterViewInit, inject, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import {
   StudentMyRequestsService,
   StudentMyRequestsPageDTO,
@@ -9,7 +9,7 @@ import {
 } from '../../../services/student/student-my-requests.service';
 import { StudentNewRequestService } from '../../../services/student/student-new-request.service';
 import { StudentInvitationsService } from '../../../services/student/student-invitations.service';
-import { InvitationItem } from '../../../models/student/invitation.model';
+import { InvitationItem, InvitationHistoryItem } from '../../../models/student/invitation.model';
 
 type Option = { value: number | null; label: string };
 type TabType = 'requests' | 'invitations';
@@ -26,6 +26,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   private catalogSvc = inject(StudentNewRequestService);
   private invitationsSvc = inject(StudentInvitationsService);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
 
   activeTab: TabType = 'requests';
   loading = false;
@@ -85,17 +86,32 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     // Use microtask to ensure view is fully rendered before loading data
     Promise.resolve().then(() => {
+      const tab = this.route.snapshot.queryParamMap.get('tab');
+      if (tab === 'invitations') {
+        this.activeTab = 'invitations';
+      }
       this.loadSubjects();
       this.load();
       this.loadSummary();
       this.loadInvitations();
+      this.loadInvitationHistory();
     });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.dropdown');
+    if (!dropdown) {
+      this.closeDropdown();
+    }
   }
 
   switchTab(tab: TabType): void {
     this.activeTab = tab;
-    if (tab === 'invitations' && this.invitations.length === 0 && !this.loadingInvitations) {
+    if (tab === 'invitations') {
       this.loadInvitations();
+      this.loadInvitationHistory();
     }
   }
 
@@ -192,6 +208,15 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   selectedRequest: MyRequestRowDTO | null = null;
   cancelling = false;
   successMessage: string | null = null;
+  activeDropdown: number | null = null;
+
+  toggleDropdown(requestId: number): void {
+    this.activeDropdown = this.activeDropdown === requestId ? null : requestId;
+  }
+
+  closeDropdown(): void {
+    this.activeDropdown = null;
+  }
 
   viewDetail(row: MyRequestRowDTO): void {
     this.selectedRequest = row;
@@ -269,7 +294,9 @@ export class StudentMyRequestsComponent implements AfterViewInit {
 
   // ==================== INVITACIONES GRUPALES ====================
   invitations: InvitationItem[] = [];
+  invitationHistory: InvitationHistoryItem[] = [];
   loadingInvitations = false;
+  loadingHistory = false;
   respondingInvId: number | null = null;
   respondingAccept = false;
 
@@ -290,6 +317,23 @@ export class StudentMyRequestsComponent implements AfterViewInit {
     });
   }
 
+  loadInvitationHistory(): void {
+    this.loadingHistory = true;
+    this.invitationsSvc.getInvitationHistory().subscribe({
+      next: (data) => {
+        this.invitationHistory = data ?? [];
+        this.loadingHistory = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('[Historial] Error:', err);
+        this.invitationHistory = [];
+        this.loadingHistory = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   respondInvitation(participantId: number, accept: boolean): void {
     this.respondingInvId = participantId;
     this.respondingAccept = accept;
@@ -300,6 +344,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
         this.respondingInvId = null;
         this.successMessage = response.message || (accept ? 'Invitación aceptada' : 'Invitación rechazada');
         this.loadInvitations();
+        this.loadInvitationHistory();
         this.cdr.detectChanges();
 
         setTimeout(() => {

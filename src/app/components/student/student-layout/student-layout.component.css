@@ -12,6 +12,8 @@
   width: 17.5rem;
   background-color: var(--sgra-primary);
   transition: width 0.3s ease-in-out;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .student-sidebar.collapsed {
@@ -122,3 +124,10 @@
 .btn-profile:hover {
   background-color: #f8f9fa;
 }
+
+/* Main content area */
+main {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+

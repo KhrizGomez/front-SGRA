@@ -20,7 +20,7 @@
       <!-- Stats Cards -->
       <div class="row g-3 mb-3">
         @for (card of cards; track card.key) {
-          <div class="col-12 col-sm-6 col-lg-3">
+          <div class="col-12 col-sm-6 col-lg-4">
             <div class="card h-100 border-0 shadow-sm">
               <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
@@ -47,11 +47,11 @@
       <div class="mt-3">
         <h5 class="fw-semibold mb-3">Accesos rápidos</h5>
         <div class="row g-3">
-          <div class="col-12 col-lg-4">
+          <div class="col-12 col-lg-3">
             <div class="card h-100 border-0 shadow-sm quick-card"
                  (click)="navigateTo('/student/new-request')" role="button">
               <div class="card-body">
-                <h5 class="mb-2">Nueva Solicitud</h5>
+                <h5 class="mb-2"><i class="bi bi-plus-circle-fill me-2"></i>Nueva Solicitud</h5>
                 <p class="text-muted mb-3">Solicita un refuerzo y selecciona tu horario ideal</p>
                 <span class="quick-link">
                   Crear solicitud <i class="bi bi-arrow-right-short"></i>
@@ -60,11 +60,11 @@
             </div>
           </div>
 
-          <div class="col-12 col-lg-4">
+          <div class="col-12 col-lg-3">
             <div class="card h-100 border-0 shadow-sm quick-card"
                  (click)="navigateTo('/student/my-requests')" role="button">
               <div class="card-body">
-                <h5 class="mb-2">Mis Solicitudes</h5>
+                <h5 class="mb-2"><i class="bi bi-list-check me-2"></i>Mis Solicitudes</h5>
                 <p class="text-muted mb-3">Revisa el estado, confirma horarios y realiza seguimiento.</p>
                 <span class="quick-link">
                   Ver solicitudes <i class="bi bi-arrow-right-short"></i>
@@ -73,11 +73,11 @@
             </div>
           </div>
 
-          <div class="col-12 col-lg-4">
+          <div class="col-12 col-lg-3">
             <div class="card h-100 border-0 shadow-sm quick-card"
                  (click)="navigateTo('/student/history')" role="button">
               <div class="card-body">
-                <h5 class="mb-2">Historial</h5>
+                <h5 class="mb-2"><i class="bi bi-clock-history me-2"></i>Historial</h5>
                 <p class="text-muted mb-3">Consulta sesiones anteriores y retroalimentación.</p>
                 <span class="quick-link">
                   Ir al historial <i class="bi bi-arrow-right-short"></i>
@@ -85,7 +85,19 @@
               </div>
             </div>
           </div>
+
+          <div class="col-12 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm quick-card"
+                 (click)="navigateTo('/student/my-requests?tab=invitations')" role="button">
+              <div class="card-body">
+                <h5 class="mb-2"><i class="bi bi-people-fill me-2"></i>Tutorías Grupales</h5>
+                <p class="text-muted mb-3">Revisa y responde invitaciones a sesiones grupales.</p>
+                <span class="quick-link">
+                  Ver invitaciones <i class="bi bi-arrow-right-short"></i>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  

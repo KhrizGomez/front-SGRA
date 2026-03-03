@@ -14,6 +14,8 @@ export interface StudentDashboardData {
   accepted: number;
   upcoming: number;
   completed: number;
+  cancelled: number;
+  groupInvitations: number;
 }
 
 /**
