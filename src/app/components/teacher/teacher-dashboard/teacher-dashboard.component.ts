@@ -3,9 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../services/auth/auth.service';
-import { TeacherClassScheduleService, TeacherAvailabilityService } from '../../../services/teacher';
+import { TeacherClassScheduleService } from '../../../services/teacher';
 import { ClassScheduleDetail } from '../../../models/teacher';
-import { TeacherAvailabilityItem } from '../../../models/teacher';
 
 interface DashboardCard {
   title: string;
@@ -32,7 +31,6 @@ export class TeacherDashboardComponent implements OnInit {
   public authService = inject(AuthService);
   private router = inject(Router);
   private scheduleSvc = inject(TeacherClassScheduleService);
-  private availabilitySvc = inject(TeacherAvailabilityService);
   private cdr = inject(ChangeDetectorRef);
 
   loading = true;
@@ -40,7 +38,6 @@ export class TeacherDashboardComponent implements OnInit {
   // Stats
   stats: StatCard[] = [];
   schedules: ClassScheduleDetail[] = [];
-  availabilitySlots: TeacherAvailabilityItem[] = [];
 
   // Quick access cards
   readonly cards: DashboardCard[] = [
@@ -76,12 +73,10 @@ export class TeacherDashboardComponent implements OnInit {
     }
 
     forkJoin({
-      schedules: this.scheduleSvc.getSchedulesByTeacherId(userId),
-      availability: this.availabilitySvc.getAvailabilityByUser(userId)
+      schedules: this.scheduleSvc.getSchedulesByTeacherId(userId)
     }).subscribe({
-      next: ({ schedules, availability }) => {
+      next: ({ schedules }) => {
         this.schedules = schedules;
-        this.availabilitySlots = availability;
         this.buildStats();
         this.loading = false;
         this.cdr.detectChanges();
@@ -114,12 +109,6 @@ export class TeacherDashboardComponent implements OnInit {
         value: subjects.size,
         icon: 'bi-journals',
         subtitle: Array.from(subjects).slice(0, 2).join(', ') || '—'
-      },
-      {
-        label: 'Bloques Disponibles',
-        value: this.availabilitySlots.length,
-        icon: 'bi-calendar2-check',
-        subtitle: 'bloques horarios registrados'
       },
       {
         label: 'Periodo Académico',
