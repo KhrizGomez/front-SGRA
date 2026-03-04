@@ -42,9 +42,9 @@
 
         @if (showDropdown) {
         <div class="profile-dropdown shadow-sm border">
-          <div class="dropdown-header px-3 py-2 border-bottom">
-            <p class="fw-bold mb-0 small">{{ userName }}</p>
-            <small class="text-muted">Docente</small>
+          <div class="dropdown-header px-3 py-3 border-bottom">
+            <p class="fw-bold mb-1">{{ userName }}</p>
+            <span class="text-muted">Docente</span>
           </div>
           <button type="button" class="dropdown-item text-danger d-flex align-items-center gap-2 px-3 py-2"
             (click)="logout()">

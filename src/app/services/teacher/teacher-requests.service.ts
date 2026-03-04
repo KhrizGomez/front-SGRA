@@ -8,6 +8,8 @@ import {
     AcceptRescheduleBodyDTO,
     ReasonBodyDTO,
     ApiActionResponseDTO,
+    WorkAreaTypeDTO,
+    ModalityDTO,
 } from '../../models/teacher/teacher-request.model';
 
 function buildHttpParams(params: Record<string, unknown>): HttpParams {
@@ -68,6 +70,22 @@ export class TeacherRequestsService {
         return this.http.put<ApiActionResponseDTO>(
             `${this.baseUrl}/teacher/requests/${requestId}/reschedule`,
             body,
+            this.opts
+        ).pipe(catchError(this.handleError));
+    }
+
+    /** Catalog – Get all modalities (Virtual, Presencial) */
+    getModalities(): Observable<ModalityDTO[]> {
+        return this.http.get<ModalityDTO[]>(
+            `${this.baseUrl}/academic/modalities`,
+            this.opts
+        ).pipe(catchError(this.handleError));
+    }
+
+    /** Catalog – Get all work area types (Aula, Laboratorio, etc.) */
+    getWorkAreaTypes(): Observable<WorkAreaTypeDTO[]> {
+        return this.http.get<WorkAreaTypeDTO[]>(
+            `${this.baseUrl}/reinforcement/work-area-types`,
             this.opts
         ).pipe(catchError(this.handleError));
     }

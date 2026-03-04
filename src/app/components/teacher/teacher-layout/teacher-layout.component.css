@@ -48,11 +48,19 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 200px;
+  min-width: 260px;
   background: #fff;
   border-radius: 10px;
   overflow: hidden;
   z-index: 1050;
+}
+
+.profile-dropdown .dropdown-header p {
+  font-size: 1rem;
+}
+
+.profile-dropdown .dropdown-header span {
+  font-size: 0.9rem;
 }
 
 .profile-dropdown .dropdown-item {
@@ -60,7 +68,7 @@
   border: none;
   width: 100%;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.15s;
 }

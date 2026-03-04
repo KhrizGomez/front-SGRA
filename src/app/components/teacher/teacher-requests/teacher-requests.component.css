@@ -78,3 +78,82 @@ td {
 .clickable-row:hover {
   background-color: #edf7e8 !important;
 }
+
+/* ── Time picker ── */
+.time-card-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 8px 10px 2px;
+  margin-top: 0px;
+  width: 40px;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.time-card--active {
+  border-color: #1b7505;
+  box-shadow: 0 0 0 1px #1b7505;
+  background: #fff;
+}
+
+.time-card-input {
+  width: 40px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #1a1a2e;
+  padding: 0;
+  -moz-appearance: textfield;
+  outline: none;
+  line-height: 1.4;
+}
+
+.time-card-input::-webkit-inner-spin-button,
+.time-card-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  opacity: 0;
+  display: none;
+}
+
+.time-card-input::placeholder {
+  color: #bbb;
+  font-weight: 400;
+}
+
+.time-card-label {
+  font-size: 0.65rem;
+  color: #6c757d;
+  margin-top: 2px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.time-card-sep {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #6c757d;
+  margin-bottom: 14px;
+  line-height: 1;
+}
+
+.time-range-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}

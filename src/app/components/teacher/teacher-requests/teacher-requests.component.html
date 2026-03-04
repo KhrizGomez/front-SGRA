@@ -205,7 +205,7 @@
 <!-- MODAL: Accept / Reschedule (RF10, RF11) -->
 @if ((activeModal === 'accept' || activeModal === 'reschedule') && selected) {
   <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content border">
         <div class="modal-header border-bottom">
           <div class="d-flex align-items-center gap-3">
@@ -220,7 +220,7 @@
         <div class="modal-body">
           <p class="text-muted small mb-3">
             {{ activeModal === 'accept'
-              ? 'Define fecha, franja horaria, modalidad y duración para programar la sesión de refuerzo.'
+              ? 'Define fecha, hora de inicio y fin, modalidad y duración para programar la sesión de refuerzo.'
               : 'Actualiza los datos de programación. Solo disponible para solicitudes Aceptadas.' }}
           </p>
           <div class="row g-3">
@@ -229,27 +229,93 @@
               <input type="date" class="form-control border" [(ngModel)]="scheduleForm.scheduledDate" [min]="todayStr" />
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-semibold small">ID Franja horaria <span class="text-danger">*</span></label>
-              <input type="number" class="form-control border" min="1" [(ngModel)]="scheduleForm.timeSlotId" placeholder="Ej: 3" />
-              <div class="form-text">Identificador del bloque horario institucional.</div>
+              <label class="form-label fw-semibold small mb-1">Horario <span class="text-danger">*</span></label>
+              <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="d-flex flex-column">
+                  <div class="time-card-group">
+                    <div class="time-card" [class.time-card--active]="startHour !== null">
+                      <input type="number" class="time-card-input"
+                        [(ngModel)]="startHour" (ngModelChange)="onStartTimeSelect()"
+                        min="0" max="23" placeholder="--" />
+                    </div>
+                    <span class="time-card-sep">:</span>
+                    <div class="time-card" [class.time-card--active]="true">
+                      <input type="number" class="time-card-input"
+                        [(ngModel)]="startMinNum" (ngModelChange)="onStartTimeSelect()"
+                        min="0" max="45" step="15" placeholder="--" />
+                    </div>
+                  </div>
+                </div>
+                <i class="bi bi-arrow-right text-secondary fs-5 mt-3"></i>
+                <div class="d-flex flex-column">
+                  <div class="time-card-group">
+                    <div class="time-card" [class.time-card--active]="endHour !== null">
+                      <input type="number" class="time-card-input"
+                        [(ngModel)]="endHour" (ngModelChange)="onEndTimeSelect()"
+                        min="0" max="23" placeholder="--" />
+                    </div>
+                    <span class="time-card-sep">:</span>
+                    <div class="time-card" [class.time-card--active]="true">
+                      <input type="number" class="time-card-input"
+                        [(ngModel)]="endMinNum" (ngModelChange)="onEndTimeSelect()"
+                        min="0" max="45" step="15" placeholder="--" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold small">Duración estimada <span class="text-danger">*</span></label>
+              @if (durationPresets.length === 0) {
+                <p class="text-muted small mb-0">Selecciona la hora de inicio y fin para ver las opciones.</p>
+              } @else {
+                <div class="d-flex flex-wrap gap-2">
+                  @for (opt of durationPresets; track $index) {
+                    <button type="button"
+                      class="btn btn-sm rounded-pill"
+                      [class.btn-success]="scheduleForm.estimatedDuration === opt"
+                      [class.btn-outline-secondary]="scheduleForm.estimatedDuration !== opt"
+                      (click)="scheduleForm.estimatedDuration = opt">
+                      {{ durationLabel(opt) }}
+                    </button>
+                  }
+                </div>
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold small">Modalidad <span class="text-danger">*</span></label>
               <select class="form-select border" [(ngModel)]="scheduleForm.modalityId" (ngModelChange)="onModalityChange()">
-                <option [ngValue]="1">Virtual</option>
-                <option [ngValue]="2">Presencial</option>
+                @for (m of modalities; track m.idModality) {
+                  <option [ngValue]="m.idModality">{{ m.modality }}</option>
+                }
               </select>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold small">Duración estimada <span class="text-danger">*</span></label>
-              <input type="text" class="form-control border" [(ngModel)]="scheduleForm.estimatedDuration"
-                     placeholder="HH:mm  (ej: 01:30)" />
-            </div>
-            @if (scheduleForm.modalityId === 2) {
+            @if (scheduleForm.modalityId === presencialId) {
               <div class="col-md-6">
-                <label class="form-label fw-semibold small">ID Área de trabajo <span class="text-danger">*</span></label>
-                <input type="number" class="form-control border" min="1" [(ngModel)]="scheduleForm.workAreaId" placeholder="Ej: 2" />
-                <div class="form-text">Requerido para sesiones presenciales.</div>
+                <label class="form-label fw-semibold small">Tipo de área de trabajo <span class="text-danger">*</span></label>
+                @if (loadingWorkAreaTypes) {
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="spinner-border spinner-border-sm text-secondary"></span>
+                    <small class="text-muted">Cargando áreas...</small>
+                  </div>
+                } @else if (workAreaTypesError) {
+                  <div class="alert alert-danger py-1 px-2 small mb-0">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    Error al cargar tipos de área.
+                    <button type="button" class="btn btn-link btn-sm p-0 ms-1" (click)="retryWorkAreaTypes()">Reintentar</button>
+                  </div>
+                } @else {
+                  <select class="form-select border" [(ngModel)]="scheduleForm.workAreaTypeId">
+                    <option [ngValue]="null" disabled selected>Selecciona un tipo...</option>
+                    @for (type of workAreaTypes; track $index) {
+                      <option [ngValue]="type.workAreaTypeId">{{ type.workAreaType }}</option>
+                    }
+                  </select>
+                  @if (workAreaTypes.length === 0) {
+                    <div class="form-text text-warning">No se encontraron tipos de área.</div>
+                  }
+                }
               </div>
             }
             <div class="col-12">

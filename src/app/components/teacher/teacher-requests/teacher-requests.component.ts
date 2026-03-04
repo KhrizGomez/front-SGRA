@@ -7,12 +7,13 @@ import {
   TeacherRequestItemDTO,
   AcceptRescheduleBodyDTO,
   AttendanceEntryDTO,
+  WorkAreaTypeDTO,
+  ModalityDTO,
 } from '../../../models/teacher/teacher-request.model';
 
 type ModalMode = 'none' | 'detail' | 'accept' | 'reject' | 'reschedule' | 'cancel' | 'virtualLink' | 'attendance' | 'performed';
 
 const STATUS_ID = { PENDING: 1, ACCEPTED: 2, REJECTED: 3, CANCELLED: 4, COMPLETED: 5 } as const;
-const MODALITY  = { VIRTUAL: 1, PRESENCIAL: 2 } as const;
 
 const STATUS_META: Record<number, { badge: string }> = {
   1: { badge: 'bg-warning text-dark' },
@@ -58,8 +59,75 @@ export class TeacherRequestsComponent implements OnInit {
   selected: TeacherRequestItemDTO | null = null;
 
   // Accept/Reschedule form
-  scheduleForm: AcceptRescheduleBodyDTO = { scheduledDate: '', timeSlotId: 0, modalityId: 1, estimatedDuration: '', reason: '', workAreaId: undefined };
+  scheduleForm: AcceptRescheduleBodyDTO = { scheduledDate: '', startTime: '', endTime: '', modalityId: 1, estimatedDuration: '', reason: '', workAreaTypeId: null };
   todayStr = new Date().toISOString().split('T')[0];
+
+  // Custom 24h time pickers
+  timeMinutes: string[] = ['00', '15', '30', '45'];
+  startHour: number | null = null; startMin = '00'; startMinNum: number | null = null;
+  endHour:   number | null = null; endMin   = '00'; endMinNum:   number | null = null;
+
+  // Duration presets
+  durationPresets: string[] = [];
+
+  // Work area types catalog
+  workAreaTypes: WorkAreaTypeDTO[] = [];
+  loadingWorkAreaTypes = false;
+  workAreaTypesError = false;
+
+  // Modalities catalog
+  modalities: ModalityDTO[] = [];
+
+  /** ID de la modalidad presencial (obtenido dinámicamente desde el catálogo) */
+  get presencialId(): number | null {
+    return this.modalities.find(m =>
+      m.modality.toLowerCase().includes('presencial')
+    )?.idModality ?? null;
+  }
+
+  onStartTimeSelect(): void {
+    const min = this.startMinNum !== null ? this.startMinNum : 0;
+    this.startMin = String(min).padStart(2, '0');
+    this.scheduleForm.startTime = this.startHour !== null
+      ? `${String(this.startHour).padStart(2,'0')}:${this.startMin}` : '';
+    this.onTimeChange();
+  }
+
+  onEndTimeSelect(): void {
+    const min = this.endMinNum !== null ? this.endMinNum : 0;
+    this.endMin = String(min).padStart(2, '0');
+    this.scheduleForm.endTime = this.endHour !== null
+      ? `${String(this.endHour).padStart(2,'0')}:${this.endMin}` : '';
+    this.onTimeChange();
+  }
+
+  onTimeChange(): void {
+    const start = this.scheduleForm.startTime;
+    const end   = this.scheduleForm.endTime;
+    this.durationPresets = [];
+    this.scheduleForm.estimatedDuration = '';
+    const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (!timeRe.test(start) || !timeRe.test(end)) return;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const totalMin = (eh * 60 + em) - (sh * 60 + sm);
+    if (totalMin <= 0) return;
+    for (let m = 30; m <= totalMin; m += 30) {
+      const h = Math.floor(m / 60);
+      const min = m % 60;
+      this.durationPresets.push(`${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`);
+    }
+    if (this.durationPresets.length) {
+      this.scheduleForm.estimatedDuration = this.durationPresets[this.durationPresets.length - 1];
+    }
+  }
+
+  durationLabel(value: string): string {
+    const [h, m] = value.split(':').map(Number);
+    if (h === 0) return `${m} min`;
+    if (m === 0) return `${h} h`;
+    return `${h}h ${m}min`;
+  }
 
   // Reject/Cancel
   reasonText = '';
@@ -76,7 +144,17 @@ export class TeacherRequestsComponent implements OnInit {
   performedDuration    = '';
   performedFiles: File[] = [];
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+    this.loadModalities();
+  }
+
+  private loadModalities(): void {
+    this.reqSvc.getModalities().subscribe({
+      next: list => { this.modalities = list; this.cdr.detectChanges(); },
+      error: () => { /* si falla, el usuario puede seleccionar manualmente */ }
+    });
+  }
 
   load(): void {
     this.loading  = true;
@@ -119,13 +197,21 @@ export class TeacherRequestsComponent implements OnInit {
 
   openAccept(r: TeacherRequestItemDTO): void {
     this.selected = r;
-    this.scheduleForm = { scheduledDate: '', timeSlotId: 0, modalityId: 1, estimatedDuration: '', reason: '', workAreaId: undefined };
+    const defaultModality = this.modalities[0]?.idModality ?? 1;
+    this.scheduleForm = { scheduledDate: '', startTime: '', endTime: '', modalityId: defaultModality, estimatedDuration: '', reason: '', workAreaTypeId: null };
+    this.durationPresets = [];
+    this.startHour = null; this.startMin = '00'; this.startMinNum = null;
+    this.endHour = null;   this.endMin   = '00'; this.endMinNum   = null;
     this.activeModal = 'accept';
   }
 
   openReschedule(r: TeacherRequestItemDTO): void {
     this.selected = r;
-    this.scheduleForm = { scheduledDate: '', timeSlotId: 0, modalityId: 1, estimatedDuration: '', reason: '', workAreaId: undefined };
+    const defaultModality = this.modalities[0]?.idModality ?? 1;
+    this.scheduleForm = { scheduledDate: '', startTime: '', endTime: '', modalityId: defaultModality, estimatedDuration: '', reason: '', workAreaTypeId: null };
+    this.durationPresets = [];
+    this.startHour = null; this.startMin = '00'; this.startMinNum = null;
+    this.endHour = null;   this.endMin   = '00'; this.endMinNum   = null;
     this.activeModal = 'reschedule';
   }
 
@@ -147,15 +233,41 @@ export class TeacherRequestsComponent implements OnInit {
   closeModal(): void { this.activeModal = 'none'; this.selected = null; }
 
   onModalityChange(): void {
-    if (this.scheduleForm.modalityId !== MODALITY.PRESENCIAL) {
-      this.scheduleForm.workAreaId = undefined;
+    if (this.scheduleForm.modalityId !== this.presencialId) {
+      this.scheduleForm.workAreaTypeId = null;
+    } else {
+      this.loadWorkAreaTypes();
     }
+  }
+
+  retryWorkAreaTypes(): void {
+    this.workAreaTypes = [];
+    this.workAreaTypesError = false;
+    this.loadWorkAreaTypes();
+  }
+
+  private loadWorkAreaTypes(): void {
+    if (this.workAreaTypes.length > 0) return; // already loaded
+    this.loadingWorkAreaTypes = true;
+    this.workAreaTypesError = false;
+    this.reqSvc.getWorkAreaTypes().subscribe({
+      next: types => {
+        this.workAreaTypes = types;
+        this.loadingWorkAreaTypes = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loadingWorkAreaTypes = false;
+        this.workAreaTypesError = true;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   scheduleFormValid(): boolean {
     const f = this.scheduleForm;
-    const base = !!f.scheduledDate && f.timeSlotId > 0 && f.modalityId > 0 && !!f.estimatedDuration.trim();
-    const pres = f.modalityId !== MODALITY.PRESENCIAL || (!!f.workAreaId && f.workAreaId > 0);
+    const base = !!f.scheduledDate && !!f.startTime && !!f.endTime && f.modalityId > 0 && !!f.estimatedDuration.trim();
+    const pres = this.scheduleForm.modalityId !== this.presencialId || (!!f.workAreaTypeId && f.workAreaTypeId > 0);
     return base && pres;
   }
 
@@ -176,9 +288,10 @@ export class TeacherRequestsComponent implements OnInit {
     if (!this.selected) return;
     this.busy = true;
     const id   = this.selected.requestId;
+    const body: AcceptRescheduleBodyDTO = { ...this.scheduleForm };
     const obs  = this.activeModal === 'accept'
-      ? this.reqSvc.acceptRequest(id, { ...this.scheduleForm })
-      : this.reqSvc.rescheduleRequest(id, { ...this.scheduleForm });
+      ? this.reqSvc.acceptRequest(id, body)
+      : this.reqSvc.rescheduleRequest(id, body);
     const label = this.activeModal === 'accept' ? 'aceptada y programada' : 'reprogramada';
     obs.subscribe({
       next: res => { this.busy = false; this.showSuccess(`Solicitud #${id} ${label}. ${res.message}`); this.closeModal(); this.load(); },

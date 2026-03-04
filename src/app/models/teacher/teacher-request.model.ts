@@ -26,15 +26,32 @@ export interface TeacherRequestsPageDTO {
   totalPages: number;
 }
 
+// ─── Modalities ─────────────────────────────────────────────────────
+
+export interface ModalityDTO {
+  idModality: number;
+  modality: string;   // e.g. "Virtual", "Presencial"
+  state: boolean;
+}
+
+// ─── Work Area Types ─────────────────────────────────────────────────────────
+
+export interface WorkAreaTypeDTO {
+  workAreaTypeId: number;
+  workAreaType: string;
+  state: boolean;
+}
+
 // ─── Accept / Reschedule body ─────────────────────────────────────────────────
 
 export interface AcceptRescheduleBodyDTO {
   scheduledDate: string;        // YYYY-MM-DD
-  timeSlotId: number;
+  startTime: string;            // HH:mm
+  endTime: string;              // HH:mm
   modalityId: number;
   estimatedDuration: string;    // HH:mm
   reason?: string;
-  workAreaId?: number;          // required when modalityId = 2 (presencial)
+  workAreaTypeId: number | null; // obligatorio cuando modalityId = 2 (presencial), null si no
 }
 
 // ─── Reject / Cancel body ─────────────────────────────────────────────────────
