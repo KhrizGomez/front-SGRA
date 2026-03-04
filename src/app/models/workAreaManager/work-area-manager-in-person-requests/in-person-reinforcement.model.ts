@@ -8,4 +8,5 @@ export interface InPersonReinforcement {
   pdocente: string;
   pparticipantesesperados: number;
   participantesconfirmados: number;
+  pidtipoareatrabajo: number;
 }

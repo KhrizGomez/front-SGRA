@@ -1,0 +1,13 @@
+.list-group-item.active {
+  background-color: rgba(25, 135, 84, 0.08) !important;
+  color: inherit !important;
+}
+
+.list-group-item:hover:not(.active) {
+  background-color: #f8f9fa;
+}
+
+.list-group-item {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}

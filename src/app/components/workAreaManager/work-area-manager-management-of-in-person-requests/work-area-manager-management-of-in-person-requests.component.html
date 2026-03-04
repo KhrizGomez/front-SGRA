@@ -83,6 +83,15 @@
                 </small>
               </div>
 
+              <!-- Botón Asignar Área de Trabajo -->
+              <div class="mt-3">
+                <button type="button"
+                        class="btn btn-outline-success w-100 rounded-3 fw-medium"
+                        (click)="openAssignModal(item)">
+                  <i class="bi bi-geo-alt me-2"></i>Asignar área de trabajo
+                </button>
+              </div>
+
             </div>
           </article>
         </div>
@@ -91,3 +100,10 @@
   }
 
 </div>
+
+<!-- Modal Asignar Área de Trabajo -->
+<app-work-area-assign-modal
+  [reinforcementId]="selectedReinforcementId"
+  [tipoAreaTrabajo]="selectedTipoAreaTrabajo"
+  (workAreaAssigned)="onWorkAreaAssigned()">
+</app-work-area-assign-modal>
