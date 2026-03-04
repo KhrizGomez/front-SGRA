@@ -1,0 +1,64 @@
+<section class="container-fluid" aria-label="Auditoría de accesos">
+
+  <header class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h3 class="mb-1">Auditoría de Accesos</h3>
+      <p class="text-muted mb-0">Registro de intentos de acceso al sistema</p>
+    </div>
+    <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2"
+            (click)="loadAuditRecords()" aria-label="Actualizar registros">
+      <i class="bi bi-arrow-clockwise"></i> Actualizar
+    </button>
+  </header>
+
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-12">
+          <label for="searchAudit" class="form-label mb-1">Buscar</label>
+          <input id="searchAudit" type="text" class="form-control"
+                placeholder="Buscar por usuario, IP, navegador o acción..."
+                [formControl]="searchControl">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <app-admin-audit-table
+        [records]="paginatedRecords"
+        [isLoading]="isLoading">
+      </app-admin-audit-table>
+    </div>
+
+    @if (!isLoading && filteredRecords.length > pageSize) {
+      <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-3 py-2">
+        <small class="text-muted">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredRecords.length ? filteredRecords.length : currentPage * pageSize }}
+          de {{ filteredRecords.length }} registros
+        </small>
+        <nav aria-label="Paginación de auditoría">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            @for (page of pages; track page) {
+              <li class="page-item" [class.active]="page === currentPage">
+                <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+              </li>
+            }
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    }
+  </div>
+
+</section>

@@ -1,0 +1,52 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" aria-label="Tabla de registros de auditoría">
+    <thead class="table-light">
+      <tr>
+        <th scope="col" class="py-3 ps-3">Usuario</th>
+        <th scope="col" class="py-3">Dirección IP</th>
+        <th scope="col" class="py-3">Navegador</th>
+        <th scope="col" class="py-3">Fecha de Acceso</th>
+        <th scope="col" class="py-3">Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading) {
+        <tr>
+          <td colspan="5" class="text-center py-5">
+            <div class="spinner-border text-success" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-muted mt-2 mb-0">Cargando registros...</p>
+          </td>
+        </tr>
+      } @else {
+        @for (record of records; track record.aidauditoriaacceso) {
+          <tr>
+            <td class="fw-medium ps-3">{{ record.ausuario || '—' }}</td>
+            <td>
+              <span class="badge bg-light text-dark border rounded-pill px-3">
+                <i class="bi bi-globe me-1"></i>{{ record.adireccionip }}
+              </span>
+            </td>
+            <td class="text-truncate" style="max-width: 200px;" [title]="record.anavegador">
+              {{ record.anavegador }}
+            </td>
+            <td class="text-muted">{{ record.afechaacceso | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+            <td>
+              <span class="badge bg-info-subtle text-info rounded-pill px-3">
+                {{ record.aaccion }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-shield-check fs-1 d-block mb-2 opacity-50"></i>
+              No se encontraron registros de auditoría.
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
