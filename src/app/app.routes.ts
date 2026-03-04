@@ -46,6 +46,10 @@ export const routes: Routes = [
         path: 'email-config',
         loadComponent: () => import('./components/administration/admin-email-config/admin-email-config.component').then(m => m.AdminEmailConfigComponent)
       },
+      {
+        path: 'audit',
+        loadComponent: () => import('./components/administration/admin-audit/admin-audit.component').then(m => m.AdminAuditComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
