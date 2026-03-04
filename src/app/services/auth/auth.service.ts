@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { LoginRequest, LoginResponse, ChangePasswordRequest, ChangePasswordResponse } from '../../models/auth.model';
+import { LoginRequest, LoginResponse, ChangePasswordRequest, ChangePasswordResponse, ForgotPasswordRequest, VerifyCodeRequest, ResetPasswordRequest, GenericResponse } from '../../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -112,6 +112,35 @@ export class AuthService {
     const user = this.currentUser();
     if (!user) return false;
     return user.roles.some((r: string) => r.toLowerCase() === role.toLowerCase());
+  }
+
+  // ─── Recuperación de contraseña ───
+
+  /**
+   * Paso 1: Solicita el envío de un código de recuperación al correo.
+   */
+  forgotPassword(request: ForgotPasswordRequest): Observable<GenericResponse> {
+    return this.http.post<GenericResponse>(`${this.apiUrl}/auth/forgot-password`, request, {
+      withCredentials: true
+    });
+  }
+
+  /**
+   * Paso 2: Verifica el código de 6 dígitos recibido por correo.
+   */
+  verifyCode(request: VerifyCodeRequest): Observable<GenericResponse> {
+    return this.http.post<GenericResponse>(`${this.apiUrl}/auth/verify-code`, request, {
+      withCredentials: true
+    });
+  }
+
+  /**
+   * Paso 3: Restablece la contraseña con el código verificado.
+   */
+  resetPassword(request: ResetPasswordRequest): Observable<GenericResponse> {
+    return this.http.post<GenericResponse>(`${this.apiUrl}/auth/reset-password`, request, {
+      withCredentials: true
+    });
   }
 }
 

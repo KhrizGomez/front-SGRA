@@ -9,7 +9,12 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    loadComponent: () => import('./components/auth/login.component').then(m => m.LoginComponent),
+    loadComponent: () => import('./components/auth/login/login.component').then(m => m.LoginComponent),
+    canActivate: [loginGuard]
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./components/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
     canActivate: [loginGuard]
   },
   {
@@ -77,7 +82,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./components/student/student-dashboard.component')
+        loadComponent: () => import('./components/student/student-dashboard/student-dashboard.component')
           .then(m => m.StudentDashboardComponent)
       },
       {
