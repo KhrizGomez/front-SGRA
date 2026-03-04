@@ -5,7 +5,6 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuditAccess } from '../../../models/administration/admin-audit/audit-access.model';
 import { AdminAuditService } from '../../../services/administration/admin-audit/admin-audit.service';
 import { AdminAuditTableComponent } from './admin-audit-table/admin-audit-table.component';
-
 @Component({
   selector: 'app-admin-audit',
   standalone: true,

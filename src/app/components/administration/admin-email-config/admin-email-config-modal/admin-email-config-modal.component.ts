@@ -22,6 +22,11 @@ export class AdminEmailConfigModalComponent {
   currentConfigId: number | null = null;
   showPassword = false;
 
+  readonly smtpPorts = [
+    { value: 587, label: '587' },
+    { value: 465, label: '465' },
+  ];
+
   private fb = inject(FormBuilder);
   private emailConfigService = inject(AdminEmailConfigService);
   private authService = inject(AuthService);
@@ -30,6 +35,10 @@ export class AdminEmailConfigModalComponent {
     this.emailForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       appPassword: ['', [Validators.required, Validators.minLength(8)]],
+      smtpServer: ['smtp.gmail.com', [Validators.required]],
+      smtpPort: [587, [Validators.required]],
+      ssl: [true],
+      senderName: ['', [Validators.required, Validators.minLength(2)]],
       status: ['activo'],
     });
   }
@@ -50,6 +59,10 @@ export class AdminEmailConfigModalComponent {
           this.emailForm.patchValue({
             email: data.correo,
             appPassword: data.contrasenaApp,
+            smtpServer: data.servidorSmtp || 'smtp.gmail.com',
+            smtpPort: data.puertoSmtp || 587,
+            ssl: data.ssl ?? true,
+            senderName: data.nombreRemitente || '',
             status: data.estado.toLowerCase() === 'activo' ? 'activo' : 'inactivo',
           });
         },
@@ -60,7 +73,12 @@ export class AdminEmailConfigModalComponent {
     } else {
       this.isEditing = false;
       this.currentConfigId = null;
-      this.emailForm.reset({ status: 'activo' });
+      this.emailForm.reset({
+        smtpServer: 'smtp.gmail.com',
+        smtpPort: 587,
+        ssl: true,
+        status: 'activo',
+      });
 
       passwordControl?.setValidators([Validators.required, Validators.minLength(8)]);
       passwordControl?.updateValueAndValidity();
@@ -86,6 +104,10 @@ export class AdminEmailConfigModalComponent {
       idusuario: currentUser?.userId ?? 0,
       pcorreoemisor: formValues.email,
       paplicacionsontrasena: formValues.appPassword,
+      pservidorsmtp: formValues.smtpServer,
+      ppuertosmtp: formValues.smtpPort,
+      pssl: formValues.ssl,
+      pnombreremitente: formValues.senderName,
     };
 
     const request$ = this.isEditing
@@ -100,7 +122,12 @@ export class AdminEmailConfigModalComponent {
           if (modalElement) {
             bootstrap.Modal.getInstance(modalElement)?.hide();
           }
-          this.emailForm.reset({ status: 'activo' });
+          this.emailForm.reset({
+            smtpServer: 'smtp.gmail.com',
+            smtpPort: 587,
+            ssl: true,
+            status: 'activo',
+          });
           this.emailConfigSaved.emit();
         } else {
           alert(response.message);
