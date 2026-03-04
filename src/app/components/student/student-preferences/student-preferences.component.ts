@@ -12,7 +12,8 @@ import {
   selector: 'app-student-preferences',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './student-preferences.component.html'
+  templateUrl: './student-preferences.component.html',
+  styleUrl: './student-preferences.component.css'
 })
 export class StudentPreferencesComponent implements AfterViewInit {
   private svc = inject(StudentPreferencesService);

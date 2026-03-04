@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, AfterViewInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
-import { StudentDashboardService, StudentDashboardData } from '../../services/student/student-dashboard.service';
+import { StudentDashboardService, StudentDashboardData } from '../../../services/student/student-dashboard.service';
 
 interface DashboardCard {
   key: keyof StudentDashboardData;
@@ -72,3 +72,4 @@ export class StudentDashboardComponent implements AfterViewInit {
     }
   }
 }
+
