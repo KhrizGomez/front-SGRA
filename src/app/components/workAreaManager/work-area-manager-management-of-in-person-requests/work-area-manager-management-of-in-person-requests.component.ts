@@ -46,8 +46,4 @@ export class WorkAreaManagerManagementOfInPersonRequestsComponent implements OnI
       },
     });
   }
-
-  getSessionBadgeClass(tipo: string): string {
-    return tipo === 'Grupal' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info';
-  }
 }
