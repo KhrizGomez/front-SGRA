@@ -28,3 +28,27 @@ export interface ChangePasswordResponse {
   success: boolean;
 }
 
+// ─── Forgot / Reset password ───
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyCodeRequest {
+  email: string;
+  code: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface GenericResponse {
+  message?: string;
+  error?: string;
+  success: boolean;
+}
+
