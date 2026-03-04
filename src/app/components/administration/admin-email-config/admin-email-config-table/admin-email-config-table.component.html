@@ -3,6 +3,10 @@
     <thead class="table-light">
       <tr>
         <th scope="col" class="py-3">Correo Electrónico</th>
+        <th scope="col" class="py-3">Servidor SMTP</th>
+        <th scope="col" class="py-3">Puerto</th>
+        <th scope="col" class="py-3">SSL</th>
+        <th scope="col" class="py-3">Remitente</th>
         <th scope="col" class="py-3">Fecha Creación</th>
         <th scope="col" class="py-3">Estado</th>
         <th scope="col" class="py-3 text-end">Acciones</th>
@@ -17,6 +21,24 @@
               {{ config.pcorreoemisor }}
             </div>
           </td>
+          <td class="text-muted">{{ config.pservidorsmtp }}</td>
+          <td>
+            <span class="badge bg-light text-dark border rounded-pill px-3">
+              {{ config.ppuertosmtp }}
+            </span>
+          </td>
+          <td>
+            @if (config.pssl) {
+              <span class="badge bg-success-subtle text-success rounded-pill">
+                <i class="bi bi-shield-lock-fill me-1"></i>Sí
+              </span>
+            } @else {
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill">
+                <i class="bi bi-shield-slash me-1"></i>No
+              </span>
+            }
+          </td>
+          <td>{{ config.pnombreremitente || '—' }}</td>
           <td class="text-muted">{{ config.pfechahoracreacion | date:'dd/MM/yyyy' }}</td>
           <td>
             <span class="badge rounded-pill"
@@ -40,7 +62,7 @@
       } @empty {
         @if (!isLoading) {
           <tr>
-            <td colspan="4" class="text-center py-5 text-muted">
+            <td colspan="8" class="text-center py-5 text-muted">
               <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
               No se encontraron configuraciones de correo.
             </td>
