@@ -84,26 +84,20 @@ export interface RegisterAttendanceBodyDTO {
   attendances: AttendanceEntryDTO[];
 }
 
-// ─── History ─────────────────────────────────────────────────────────────────
+// ─── Active Sessions ─────────────────────────────────────────────────────────
 
 export interface TeacherHistoryItemDTO {
   scheduledId: number;
   subjectName: string;
   scheduledDate: string;
+  startTime: string;
+  endTime: string;
   modality: string;
   estimatedDuration: string;
-  timeSlot: string;
   statusName: string;
   sessionType: string;
-  studentCount: number;
-}
-
-export interface TeacherHistoryPageDTO {
-  items: TeacherHistoryItemDTO[];
-  totalCount: number;
-  page: number;
-  size: number;
-  totalPages: number;
+  participantCount: number;
+  virtualLink: string | null;
 }
 
 // ─── Legacy / kept for auth-service compatibility ────────────────────────────

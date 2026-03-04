@@ -2,6 +2,56 @@
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* ── Request card ── */
+.req-card {
+  background: #fff;
+  border: 1px solid #e8ecef;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.req-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.req-student-icon { color: #1b7505; }
+
+/* ── Session badge ── */
+.req-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.req-badge--individual {
+  background-color: #e0f4f8;
+  color: #0891b2;
+  border: 1px solid #a5d8e8;
+}
+
+.req-badge--grupal {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+/* ── Card footer ── */
+.req-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+
 .header-icon {
   width: 48px;
   height: 48px;
@@ -68,15 +118,6 @@ td {
 
 .table tbody tr {
   border-bottom: 1px solid #f0f0f0;
-}
-
-.clickable-row {
-  cursor: pointer;
-  transition: background-color .15s;
-}
-
-.clickable-row:hover {
-  background-color: #edf7e8 !important;
 }
 
 /* ── Time picker ── */

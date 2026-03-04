@@ -4,16 +4,24 @@
   <!-- Header -->
   <div class="mb-4">
     <div class="d-flex align-items-center gap-3">
-      <div class="header-icon"><i class="bi bi-clock-history"></i></div>
+      <div class="header-icon"><i class="bi bi-camera-video-fill"></i></div>
       <div>
-        <h3 class="fw-bold text-dark mb-0">Historial de Sesiones</h3>
-        <p class="text-muted mb-0">Consulta el registro de todas tus sesiones de refuerzo realizadas</p>
+        <h3 class="fw-bold text-dark mb-0">Aula Virtual</h3>
+        <p class="text-muted mb-0">Gestiona tus sesiones: registra enlaces, asistencia y resultados</p>
       </div>
     </div>
   </div>
 
-  <!-- Alert -->
-  @if (errorMsg) {
+  <!-- Success alert -->
+  @if (successMsg) {
+    <div class="alert alert-success alert-dismissible fade show border" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMsg }}
+      <button type="button" class="btn-close" (click)="successMsg = null"></button>
+    </div>
+  }
+
+  <!-- Error alert -->
+  @if (errorMsg && activeModal === 'none') {
     <div class="alert alert-danger alert-dismissible fade show border" role="alert">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMsg }}
       <button type="button" class="btn-close" (click)="errorMsg = null"></button>
@@ -21,7 +29,7 @@
   }
 
   <!-- Summary chips -->
-  <div class="row g-2 mb-3">
+  <div class="row g-2 mb-4">
     <div class="col-6 col-lg-3">
       <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
         <div>
@@ -60,90 +68,274 @@
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="card border shadow-sm">
-    <div class="card-body">
-      @if (loading) {
-        <div class="text-center py-5">
-          <div class="spinner-border text-success" role="status"></div>
-          <p class="text-muted mt-2 mb-0">Cargando historial...</p>
-        </div>
-      } @else {
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>ID SESIÓN</th>
-                <th>ASIGNATURA</th>
-                <th>FECHA</th>
-                <th>MODALIDAD</th>
-                <th>FRANJA</th>
-                <th>DURACIÓN EST.</th>
-                <th>TIPO</th>
-                <th>ESTUDIANTES</th>
-                <th>ESTADO</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (rows.length === 0) {
-                <tr>
-                  <td colspan="9" class="text-center py-5 text-muted">
-                    <i class="bi bi-clock-history display-4 d-block mb-2 opacity-25"></i>
-                    No tienes sesiones registradas aún.
-                  </td>
-                </tr>
-              }
-              @for (r of rows; track r.scheduledId) {
-                <tr>
-                  <td class="fw-semibold text-muted">#{{ r.scheduledId }}</td>
-                  <td class="fw-semibold">{{ r.subjectName }}</td>
-                  <td class="text-nowrap">{{ r.scheduledDate | date:'dd/MM/yyyy' }}</td>
-                  <td>
-                    <span class="badge rounded-pill" [ngClass]="modalityBadge(r.modality)">
-                      <i class="bi me-1" [ngClass]="r.modality === 'Virtual' ? 'bi-camera-video' : 'bi-building'"></i>
-                      {{ r.modality }}
-                    </span>
-                  </td>
-                  <td>{{ r.timeSlot }}</td>
-                  <td>{{ r.estimatedDuration }}</td>
-                  <td><span class="badge bg-light text-dark border">{{ r.sessionType }}</span></td>
-                  <td class="text-center">{{ r.studentCount }}</td>
-                  <td>
-                    <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusName)">{{ r.statusName }}</span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-          <div class="text-muted small">
-            Página {{ page }} de {{ totalPages }} · Total: {{ totalCount }}
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm border"
-                    [disabled]="page <= 1" (click)="goTo(page - 1)">
-              <i class="bi bi-chevron-left"></i> Anterior
-            </button>
-            <button class="btn btn-outline-secondary btn-sm border"
-                    [disabled]="page >= totalPages" (click)="goTo(page + 1)">
-              Siguiente <i class="bi bi-chevron-right"></i>
-            </button>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <label class="text-muted small mb-0">Filas:</label>
-            <select class="form-select form-select-sm border" style="width:auto"
-                    [(ngModel)]="size" (change)="page = 1; load()">
-              <option [ngValue]="10">10</option>
-              <option [ngValue]="25">25</option>
-              <option [ngValue]="50">50</option>
-            </select>
-          </div>
-        </div>
-      }
+  <!-- Loading -->
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="text-muted mt-2 mb-0">Cargando sesiones...</p>
     </div>
-  </div>
+  } @else {
+
+    <!-- Card grid -->
+    @if (rows.length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-camera-video display-4 d-block mb-2 opacity-25"></i>
+        No tienes sesiones registradas aún.
+      </div>
+    } @else {
+      <!-- Layout toggle -->
+      <div class="d-flex justify-content-end gap-1 mb-3">
+        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                title="1 columna" (click)="colClass = 'col-12'">
+          <i class="bi bi-view-list"></i>
+        </button>
+        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+          <i class="bi bi-grid"></i>
+        </button>
+        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+      </div>
+
+      <div class="row g-3">
+        @for (r of rows; track r.scheduledId) {
+          <div [ngClass]="colClass">
+            <article class="sess-card h-100 d-flex flex-column" style="cursor:pointer" (click)="openDetail(r)">
+
+              <!-- Top row: session type + status -->
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge sess-badge" [ngClass]="sessionTypeBadge(r.sessionType)">
+                  <i class="bi me-1" [ngClass]="r.sessionType === 'Grupal' ? 'bi-people-fill' : 'bi-person-fill'"></i>
+                  {{ r.sessionType }}
+                </span>
+                <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusName)">{{ r.statusName }}</span>
+              </div>
+
+              <!-- Subject -->
+              <div class="fw-semibold text-dark mb-1 sess-subject">{{ r.subjectName }}</div>
+
+              <!-- Details -->
+              <div class="text-muted small flex-grow-1 d-flex flex-column gap-1 mb-2">
+                <div>
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ r.scheduledDate | date:'dd/MM/yyyy' }}
+                  &nbsp;<i class="bi bi-clock ms-2 me-1"></i>{{ r.startTime }} – {{ r.endTime }}
+                </div>
+                <div>
+                  <i class="bi me-1" [ngClass]="r.modality === 'Virtual' ? 'bi-camera-video' : 'bi-geo-alt'"></i>
+                  <span class="badge rounded-pill sess-badge-sm" [ngClass]="modalityBadge(r.modality)">{{ r.modality }}</span>
+                  &nbsp;<i class="bi bi-hourglass-split ms-2 me-1"></i>{{ r.estimatedDuration }}
+                </div>
+                <div>
+                  <i class="bi bi-person-lines-fill me-1 sess-student-icon"></i>
+                  {{ r.participantCount }} {{ r.participantCount === 1 ? 'estudiante' : 'estudiantes' }}
+                </div>
+              </div>
+
+              <!-- Footer: ref + actions -->
+              <div class="sess-footer mt-auto" (click)="$event.stopPropagation()">
+                <span class="text-muted small fw-semibold">#{{ r.scheduledId }}</span>
+                <div class="d-flex gap-1 flex-wrap">
+                  <button class="btn btn-outline-secondary btn-sm border" title="Ver detalle"
+                          (click)="openDetail(r)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  @if (r.statusName.toLowerCase().includes('finaliz')) {
+                    <button class="btn btn-outline-primary btn-sm border" title="Tomar lista"
+                            (click)="openDetail(r)">
+                      <i class="bi bi-person-check"></i>
+                    </button>
+                  }
+                </div>
+              </div>
+
+            </article>
+          </div>
+        }
+      </div>
+
+    }
+  }
 
 </div>
+
+<!-- MODAL: Detail (with inline action forms) -->
+@if (activeModal === 'detail' && selected) {
+  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Sesión #{{ selected.scheduledId }}</h5>
+          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
+        </div>
+        <div class="modal-body">
+
+          @if (errorMsg) {
+            <div class="alert alert-danger border small py-2 mb-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
+            </div>
+          }
+
+          <!-- Session info -->
+          <div class="row g-3 mb-3">
+            <div class="col-6"><span class="label">Asignatura</span><strong class="d-block">{{ selected.subjectName }}</strong></div>
+            <div class="col-6"><span class="label">Tipo de sesión</span><strong class="d-block">{{ selected.sessionType }}</strong></div>
+            <div class="col-6"><span class="label">Fecha</span><strong class="d-block">{{ selected.scheduledDate | date:'dd/MM/yyyy' }}</strong></div>
+            <div class="col-6"><span class="label">Franja horaria</span><strong class="d-block">{{ selected.startTime }} – {{ selected.endTime }}</strong></div>
+            <div class="col-6"><span class="label">Modalidad</span><strong class="d-block">{{ selected.modality }}</strong></div>
+            <div class="col-6"><span class="label">Duración estimada</span><strong class="d-block">{{ selected.estimatedDuration }}</strong></div>
+            <div class="col-6"><span class="label">Participantes</span><strong class="d-block">{{ selected.participantCount }}</strong></div>
+            <div class="col-6">
+              <span class="label">Estado</span>
+              <span class="badge rounded-pill" [ngClass]="statusBadge(selected.statusName)">{{ selected.statusName }}</span>
+            </div>
+          </div>
+
+          <!-- ── Aceptada / Espera espacio ────────────────────────────────── -->
+          @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+            <hr class="my-3">
+
+            <!-- Enlace virtual -->
+            <div class="mb-4">
+              <h6 class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1 text-info"></i>Enlace virtual</h6>
+              <label class="form-label small">URL de la reunión</label>
+              <div class="input-group">
+                <input type="url" class="form-control border" [(ngModel)]="virtualLinkUrl"
+                       placeholder="https://meet.google.com/..." />
+                <button class="btn btn-info text-white border" (click)="submitVirtualLink()"
+                        [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)"
+                        title="Guardar enlace">
+                  @if (busy) { <span class="spinner-border spinner-border-sm"></span> }
+                  @else { <i class="bi bi-floppy"></i> }
+                </button>
+              </div>
+              @if (virtualLinkUrl && !isValidUrl(virtualLinkUrl)) {
+                <div class="text-danger small mt-1">
+                  <i class="bi bi-exclamation-triangle me-1"></i>Ingresa una URL válida (debe comenzar con https://).
+                </div>
+              }
+            </div>
+
+          }
+
+          <!-- ── Finalizada ────────────────────────────────────────────────── -->
+          @if (selected.statusName.toLowerCase().includes('finaliz')) {
+            <hr class="my-3">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-person-check me-1 text-primary"></i>Tomar lista</h6>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small">ID sesión realizada (performedId) <span class="text-danger">*</span></label>
+                <input type="number" class="form-control border" min="1"
+                       [(ngModel)]="attendancePerformedId" placeholder="Ej: 12" />
+                <div class="form-text">Obtenido al registrar el resultado de la sesión.</div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-semibold small mb-0">Participantes</label>
+              <button type="button" class="btn btn-outline-success btn-sm border" (click)="addAttendanceRow()">
+                <i class="bi bi-plus me-1"></i>Agregar fila
+              </button>
+            </div>
+            @for (entry of attendanceList; track $index; let i = $index) {
+              <div class="row g-2 mb-2 align-items-center">
+                <div class="col-5">
+                  <input type="number" class="form-control border form-control-sm" min="1"
+                         [(ngModel)]="entry.participantId" placeholder="ID participante" />
+                </div>
+                <div class="col-5">
+                  <div class="form-check mt-1">
+                    <input class="form-check-input" type="checkbox" [id]="'att-' + i" [(ngModel)]="entry.attended" />
+                    <label class="form-check-label" [for]="'att-' + i">
+                      {{ entry.attended ? 'Asistió' : 'No asistió' }}
+                    </label>
+                  </div>
+                </div>
+                <div class="col-2 text-end">
+                  <button type="button" class="btn btn-outline-danger btn-sm border"
+                          (click)="removeAttendanceRow(i)" [disabled]="attendanceList.length === 1">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          }
+
+        </div>
+        <div class="modal-footer border-top">
+          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cerrar</button>
+          @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+            <button class="btn btn-success" (click)="openPerformed(selected)" [disabled]="busy">
+              <i class="bi bi-stop-circle me-1"></i>Finalizar aula virtual
+            </button>
+          }
+          @if (selected.statusName.toLowerCase().includes('finaliz')) {
+            <button class="btn btn-primary" (click)="submitAttendance()"
+                    [disabled]="busy || !attendancePerformedId || attendanceList.length === 0">
+              @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
+              <i class="bi bi-person-check me-1"></i>Registrar asistencia
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: Registrar resultado -->
+@if (activeModal === 'performed' && selected) {
+  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-journal-check me-2 text-success"></i>Registrar resultado &middot; Sesión #{{ selected.scheduledId }}
+          </h5>
+          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
+        </div>
+        <div class="modal-body">
+
+          @if (errorMsg) {
+            <div class="alert alert-danger border small py-2 mb-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
+            </div>
+          }
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Observaciones / Resultado <span class="text-danger">*</span></label>
+              <textarea class="form-control border" rows="4" [(ngModel)]="performedObservation"
+                        placeholder="Describe los temas abordados, resultados y cualquier observación relevante."></textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Duración real <span class="text-danger">*</span></label>
+              <input type="text" class="form-control border" [(ngModel)]="performedDuration"
+                     placeholder="HH:mm  (ej: 01:15)" />
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Recursos adjuntos <span class="text-muted fw-normal">(opcional)</span></label>
+              <input type="file" class="form-control border" multiple (change)="onFilesSelected($event)" />
+              @if (performedFiles.length > 0) {
+                <ul class="list-unstyled mt-2 mb-0">
+                  @for (f of performedFiles; track f.name) {
+                    <li class="small text-muted"><i class="bi bi-paperclip me-1"></i>{{ f.name }}</li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer border-top">
+          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
+          <button class="btn btn-success" (click)="submitPerformed()"
+                  [disabled]="busy || !performedObservation.trim() || !performedDuration.trim()">
+            @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            <i class="bi bi-journal-check me-1"></i>Guardar resultado
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

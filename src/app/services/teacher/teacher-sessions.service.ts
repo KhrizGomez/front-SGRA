@@ -7,7 +7,7 @@ import {
   VirtualLinkBodyDTO,
   RegisterAttendanceBodyDTO,
   ApiActionResponseDTO,
-  TeacherHistoryPageDTO,
+  TeacherHistoryItemDTO,
 } from '../../models/teacher/teacher-request.model';
 
 @Injectable({ providedIn: 'root' })
@@ -48,14 +48,11 @@ export class TeacherSessionsService {
     ).pipe(catchError(this.handleError));
   }
 
-  /** RF18 – Paginated session history */
-  getHistory(page = 1, size = 10): Observable<TeacherHistoryPageDTO> {
-    const params = new HttpParams()
-      .set('page', String(page))
-      .set('size', String(size));
-    return this.http.get<TeacherHistoryPageDTO>(
-      `${this.baseUrl}/teacher/history/sessions`,
-      { ...this.opts, params }
+  /** Get active (non-cancelled/rejected) sessions for the teacher */
+  getActiveSessions(): Observable<TeacherHistoryItemDTO[]> {
+    return this.http.get<TeacherHistoryItemDTO[]>(
+      `${this.baseUrl}/teacher/sessions/active`,
+      this.opts
     ).pipe(catchError(this.handleError));
   }
 
