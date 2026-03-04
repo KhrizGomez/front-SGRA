@@ -13,6 +13,11 @@ export const routes: Routes = [
     canActivate: [loginGuard]
   },
   {
+    path: 'forgot-password',
+    loadComponent: () => import('./components/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    canActivate: [loginGuard]
+  },
+  {
     path: 'change-password',
     loadComponent: () => import('./components/auth/change-password/change-password.component').then(m => m.ChangePasswordComponent),
     canActivate: [authGuard]
