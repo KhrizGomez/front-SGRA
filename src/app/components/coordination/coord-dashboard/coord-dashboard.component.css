@@ -28,7 +28,7 @@
 
 /* ── Chart containers ── */
 .chart-container-bar {
-  height: 240px;
+  height: 300px;
   position: relative;
 }
 
@@ -50,6 +50,30 @@
 .donut-center small {
   font-size: 0.65rem;
   letter-spacing: 0.05em;
+}
+
+/* ── Responsivo dashboard ── */
+@media (max-width: 991.98px) {
+  .chart-container-bar {
+    height: 260px;
+  }
+  .chart-container-donut {
+    height: 180px;
+    width: 180px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .chart-container-bar {
+    height: 220px;
+  }
+  .chart-container-donut {
+    height: 160px;
+    width: 160px;
+  }
+  .display-5 {
+    font-size: 1.75rem !important;
+  }
 }
 
 /* ══════════════ Botón Generar Reporte ══════════════ */

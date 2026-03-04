@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth/auth.service';
@@ -14,6 +14,7 @@ export class CoordLayoutComponent implements OnInit {
   private authService = inject(AuthService);
 
   isSidebarCollapsed = signal(false);
+  isMobile = signal(false);
   userName = signal('Coordinador');
   userRoleLabel = signal('Coordinador');
 
@@ -24,6 +25,11 @@ export class CoordLayoutComponent implements OnInit {
     return (first + second).toUpperCase();
   });
 
+  // true cuando el sidebar actúa como overlay (< 992 px) y está abierto
+  readonly isOverlayOpen = computed(
+    () => this.isMobile() && !this.isSidebarCollapsed()
+  );
+
   navItems = [
     { path: '/coordinator/dashboard', label: 'Dashboard',           icon: 'bi-speedometer2'          },
     { path: '/coordinator/dataload',  label: 'Carga de Información', icon: 'bi-cloud-arrow-up'         },
@@ -31,6 +37,7 @@ export class CoordLayoutComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.checkMobile();
     const user = this.authService.currentUser();
     if (user) {
       const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
@@ -39,8 +46,35 @@ export class CoordLayoutComponent implements OnInit {
     }
   }
 
+  @HostListener('window:resize')
+  onResize(): void {
+    this.checkMobile();
+  }
+
+  private checkMobile(): void {
+    const mobile = window.innerWidth < 992;
+    this.isMobile.set(mobile);
+    if (mobile) {
+      // en móvil el sidebar empieza cerrado
+      this.isSidebarCollapsed.set(true);
+    }
+  }
+
   toggleSidebar(): void {
     this.isSidebarCollapsed.update(v => !v);
+  }
+
+  closeOverlay(): void {
+    if (this.isMobile()) {
+      this.isSidebarCollapsed.set(true);
+    }
+  }
+
+  // Cierra el sidebar al navegar en móvil
+  onNavClick(): void {
+    if (this.isMobile()) {
+      this.isSidebarCollapsed.set(true);
+    }
   }
 
   logout(): void {

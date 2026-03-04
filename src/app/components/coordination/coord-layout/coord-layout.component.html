@@ -1,7 +1,14 @@
 <div class="d-flex vh-100 bg-light">
 
+  <!-- OVERLAY BACKDROP (solo móvil) -->
+  @if (isOverlayOpen()) {
+    <div class="sidebar-backdrop" (click)="closeOverlay()"></div>
+  }
+
   <!-- SIDEBAR -->
-  <aside class="coord-sidebar d-flex flex-column text-white shadow" [class.collapsed]="isSidebarCollapsed()">
+  <aside class="coord-sidebar d-flex flex-column text-white shadow"
+         [class.collapsed]="isSidebarCollapsed()"
+         [class.mobile-open]="isOverlayOpen()">
     <div class="sidebar-header text-center p-4 border-bottom border-light border-opacity-25">
       <i class="bi bi-mortarboard-fill display-6 mb-2"></i>
       <div class="brand-text">
@@ -13,7 +20,9 @@
     <ul class="nav nav-pills flex-column mb-auto p-3 gap-2">
       @for (item of navItems; track item.path) {
         <li class="nav-item">
-          <a [routerLink]="item.path" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center">
+          <a [routerLink]="item.path" routerLinkActive="active-link"
+             class="nav-link text-white d-flex align-items-center"
+             (click)="onNavClick()">
             <i class="bi {{ item.icon }} nav-icon"></i>
             <span class="nav-label">{{ item.label }}</span>
           </a>
@@ -39,11 +48,10 @@
           <i class="bi bi-list fs-5"></i>
         </button>
         <h5 class="m-0 text-secondary fw-semibold d-none d-md-block">SGRA | Sistema de Gestión de Refuerzos Académicos</h5>
+        <h6 class="m-0 text-secondary fw-semibold d-block d-md-none">SGRA</h6>
       </div>
 
-      <div class="d-flex align-items-center gap-3">
-
-
+      <div class="d-flex align-items-center gap-2">
         <div class="dropdown">
           <button type="button" class="btn btn-profile d-flex align-items-center gap-2 border-0" data-bs-toggle="dropdown" aria-expanded="false">
             <div class="user-avatar rounded-circle text-white d-flex justify-content-center align-items-center shadow-sm">
@@ -67,7 +75,7 @@
     </header>
 
     <!-- CONTENT -->
-    <main class="flex-grow-1 p-4 overflow-auto">
+    <main class="flex-grow-1 p-3 p-md-4 overflow-auto">
       <router-outlet></router-outlet>
     </main>
 

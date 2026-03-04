@@ -7,10 +7,13 @@
 .coord-sidebar {
   width: 17.5rem;
   background-color: var(--sgra-primary);
-  transition: width 0.3s ease-in-out;
+  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
   overflow: hidden;
+  flex-shrink: 0;
+  z-index: 1050;
 }
 
+/* ── Escritorio: colapso estrecho ── */
 .coord-sidebar.collapsed {
   width: 5rem;
 }
@@ -30,6 +33,51 @@
 
 .coord-sidebar.collapsed .sidebar-header {
   padding: 1rem !important;
+}
+
+/* ── Backdrop (overlay móvil) ── */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1040;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── MÓVIL (< 992 px): sidebar como drawer fijo ── */
+@media (max-width: 991.98px) {
+  .coord-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    width: 17.5rem !important; /* siempre ancho completo en móvil */
+    transform: translateX(-100%);
+  }
+
+  /* Cuando está abierto en móvil */
+  .coord-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* collapsed en móvil = oculto (ya lo gestiona transform) */
+  .coord-sidebar.collapsed .brand-text,
+  .coord-sidebar.collapsed .nav-label {
+    display: block; /* en móvil se muestran siempre */
+  }
+
+  .coord-sidebar.collapsed .nav-icon {
+    margin-right: 0.625rem;
+  }
+
+  .coord-sidebar.collapsed .sidebar-header {
+    padding: 1.5rem !important;
+  }
 }
 
 /* ── Nav icons & labels ── */
@@ -124,4 +172,11 @@
 
 .btn-profile:hover {
   background-color: #f8f9fa;
+}
+
+/* ── Responsive general ── */
+@media (max-width: 575.98px) {
+  .btn-profile {
+    padding: 0.3125rem;
+  }
 }

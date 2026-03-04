@@ -303,27 +303,40 @@ export class CoordDashboardComponent implements OnInit, AfterViewInit {
     const ctx = this.barChartRef?.nativeElement.getContext('2d');
     if (!ctx || !this.dashboard) return;
 
-    const labels = this.dashboard.solicitudesPorMateria.map(s => s.asignatura);
+    const rawLabels  = this.dashboard.solicitudesPorMateria.map(s => s.asignatura);
+    const shortLabels = rawLabels.map(l => this.shortenLabel(l));
     const gestionadas = this.dashboard.solicitudesPorMateria.map(s => s.gestionadas);
-    const pendientes = this.dashboard.solicitudesPorMateria.map(s => s.pendientes);
+    const pendientes  = this.dashboard.solicitudesPorMateria.map(s => s.pendientes);
+
+    // Paleta: 1 color distinto por materia
+    const PALETTE = [
+      '#1B7505', '#0d6efd', '#7c3aed', '#f97316', '#0891b2',
+      '#e11d48', '#16a34a', '#ca8a04', '#0e7490', '#7e22ce',
+    ];
+    const barColors   = rawLabels.map((_, i) => PALETTE[i % PALETTE.length]);
+    const barColorsLight = barColors.map(c => c + '55'); // versión translúcida para Pendientes
 
     new Chart(ctx, {
       type: 'bar',
       data: {
-        labels,
+        labels: shortLabels,
         datasets: [
           {
             label: 'Gestionadas',
             data: gestionadas,
-            backgroundColor: '#198754',
-            borderRadius: 4,
+            backgroundColor: barColors,
+            borderColor: barColors,
+            borderWidth: 0,
+            borderRadius: 5,
             borderSkipped: false,
           },
           {
             label: 'Pendientes',
             data: pendientes,
-            backgroundColor: '#f59e0b',
-            borderRadius: 4,
+            backgroundColor: barColorsLight,
+            borderColor: barColors,
+            borderWidth: 1.5,
+            borderRadius: 5,
             borderSkipped: false,
           },
         ],
@@ -336,14 +349,48 @@ export class CoordDashboardComponent implements OnInit, AfterViewInit {
             position: 'top',
             labels: { font: { size: 12 }, usePointStyle: true, pointStyleWidth: 10 },
           },
-          tooltip: { mode: 'index' },
+          tooltip: {
+            mode: 'index',
+            callbacks: {
+              // Muestra el nombre completo en el tooltip
+              title: (items) => rawLabels[items[0]?.dataIndex] ?? '',
+            },
+          },
         },
         scales: {
-          x: { stacked: true, grid: { display: false } },
-          y: { stacked: true, grid: { color: '#f0f0f0' }, ticks: { stepSize: 10 } },
+          x: {
+            stacked: true,
+            grid: { display: false },
+            ticks: {
+              font: { size: 11, weight: 'bold' },
+              color: '#495057',
+              maxRotation: 0,
+              autoSkip: false,
+            },
+          },
+          y: {
+            stacked: true,
+            grid: { color: '#f0f0f0' },
+            ticks: { stepSize: 5 },
+          },
         },
       },
     });
+  }
+
+  /**
+   * Abrevia un nombre de materia largo a sus iniciales mayúsculas.
+   * Si el nombre tiene 16 chars o menos, lo retorna tal cual.
+   */
+  private shortenLabel(name: string): string {
+    if (name.length <= 15) return name;
+    const stopWords = new Set(['de', 'del', 'y', 'e', 'la', 'el', 'en', 'a',
+                               'los', 'las', 'con', 'por', 'un', 'una', 'al']);
+    const words = name.trim().split(/\s+/);
+    const initials = words
+      .filter(w => !stopWords.has(w.toLowerCase()))
+      .map(w => w[0].toUpperCase());
+    return initials.join('');
   }
 
   private initDonutChart(): void {

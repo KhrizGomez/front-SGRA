@@ -189,29 +189,62 @@ export class CoordReportsComponent implements OnDestroy {
     const values = rows.slice(0, 10).map(r => Number(r[valueKey] ?? 0));
     const color = config.color;
 
+    // Colores multi-barra para BY_SUBJECT en barras, y siempre para PIE
+    const useMultiColor = chartType === 'PIE' || (chartType === 'BAR' && config.key === 'BY_SUBJECT');
+
     const datasets = [{
       label: config.columns.find(c => c.key === valueKey)?.label ?? config.label,
       data: values,
-      backgroundColor: chartType === 'PIE' || chartType === 'DOUGHNUT'
+      backgroundColor: useMultiColor
         ? labels.map((_, i) => PALETTE[i % PALETTE.length])
         : color + 'BB',
-      borderColor: color,
+      borderColor: useMultiColor
+        ? labels.map((_, i) => PALETTE[i % PALETTE.length])
+        : color,
       borderWidth: 2,
       fill: chartType === 'LINE',
       tension: 0.35,
     }];
 
-    const cfg: ChartConfiguration = {
-      type: chartType === 'BAR' ? 'bar' : chartType === 'LINE' ? 'line' : chartType === 'PIE' ? 'pie' : 'doughnut',
-      data: {
-        labels,
-        datasets,
+    // Plugin inline para mostrar porcentajes dentro del gráfico de pastel
+    const piePercentPlugin = {
+      id: 'piePercentLabels',
+      afterDatasetsDraw(chart: any) {
+        if (chart.config.type !== 'pie') return;
+        const { ctx } = chart;
+        chart.data.datasets.forEach((ds: any, di: number) => {
+          const meta = chart.getDatasetMeta(di);
+          const total = (ds.data as number[]).reduce((a: number, b: number) => a + b, 0);
+          meta.data.forEach((arc: any, i: number) => {
+            const val = (ds.data as number[])[i];
+            const pct = total > 0 ? Math.round(val / total * 100) : 0;
+            if (pct < 4) return;
+            const pos = arc.tooltipPosition();
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(`${pct}%`, pos.x, pos.y);
+            ctx.restore();
+          });
+        });
       },
+    };
+
+    const cfg: ChartConfiguration = {
+      type: chartType === 'BAR' ? 'bar' : chartType === 'LINE' ? 'line' : 'pie',
+      data: { labels, datasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' },
+          legend: {
+            position: chartType === 'PIE' ? 'right' : 'top',
+            labels: chartType === 'PIE' ? { boxWidth: 14, padding: 14 } : undefined,
+          },
           title: {
             display: true,
             text: `Vista previa – ${config.label}`,
@@ -224,7 +257,7 @@ export class CoordReportsComponent implements OnDestroy {
       },
     };
 
-    this.chartInstance = new Chart(canvas, cfg);
+    this.chartInstance = new Chart(canvas, { ...cfg, plugins: chartType === 'PIE' ? [piePercentPlugin] : [] } as any);
   }
 
   private destroyChart(): void {

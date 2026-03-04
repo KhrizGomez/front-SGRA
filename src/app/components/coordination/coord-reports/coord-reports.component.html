@@ -309,7 +309,7 @@
 
           <!-- Gráfico -->
           @if (showChart() && !isLoadingPreview()) {
-            <div class="chart-container mb-4">
+            <div class="chart-container mb-4" [class.chart-pie]="selectedChartType() === 'PIE'">
               <canvas #chartCanvas></canvas>
             </div>
           }
