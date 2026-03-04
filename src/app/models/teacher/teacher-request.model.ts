@@ -79,6 +79,13 @@ export interface AttendanceEntryDTO {
   attended: boolean;
 }
 
+export interface SessionParticipantDTO {
+  attendanceId: number;
+  participantId: number;
+  studentName: string;
+  attended: boolean;
+}
+
 export interface RegisterAttendanceBodyDTO {
   performedId: number;
   attendances: AttendanceEntryDTO[];

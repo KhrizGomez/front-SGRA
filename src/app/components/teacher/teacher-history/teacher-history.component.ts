@@ -1,10 +1,13 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { TeacherSessionsService } from '../../../services/teacher/teacher-sessions.service';
 import {
   TeacherHistoryItemDTO,
   AttendanceEntryDTO,
+  SessionParticipantDTO,
 } from '../../../models/teacher/teacher-request.model';
 
 type ActiveModal = 'none' | 'detail' | 'performed';
@@ -37,14 +40,19 @@ export class TeacherHistoryComponent implements OnInit {
   // Virtual Link form
   virtualLinkUrl = '';
 
-  // Attendance form
-  attendancePerformedId: number | null = null;
-  attendanceList: AttendanceEntryDTO[] = [{ participantId: 0, attended: true }];
+  // Attendance side panel
+  showAttendance       = false;
+  participants: SessionParticipantDTO[] = [];
+  loadingParticipants  = false;
+  participantsError: string | null = null;
+
+  // Attendance stats cache: scheduledId → { attended, total }
+  attendanceMap = new Map<number, { attended: number; total: number }>();
 
   // Performed form
   performedObservation = '';
   performedDuration    = '';
-  performedFiles: File[] = [];
+  perfDurationPresets: string[] = [];
 
   ngOnInit(): void { this.load(); }
 
@@ -57,6 +65,7 @@ export class TeacherHistoryComponent implements OnInit {
         this.totalCount = this.rows.length;
         this.loading    = false;
         this.cdr.detectChanges();
+        this.loadAllAttendance();
       },
       error: err => {
         this.errorMsg = err?.message || 'Error al cargar las sesiones';
@@ -66,7 +75,55 @@ export class TeacherHistoryComponent implements OnInit {
     });
   }
 
-  goTo(p: number): void { this.load(); }
+  private loadAllAttendance(): void {
+    if (this.rows.length === 0) return;
+    const calls = this.rows.map(r =>
+      this.sessSvc.getParticipants(r.scheduledId).pipe(catchError(() => of([])))
+    );
+    forkJoin(calls).subscribe(results => {
+      results.forEach((list, i) => {
+        const total    = list.length;
+        const attended = list.filter(p => p.attended).length;
+        this.attendanceMap.set(this.rows[i].scheduledId, { attended, total });
+      });
+      this.cdr.detectChanges();
+    });
+  }
+
+  attendancePct(scheduledId: number): number | null {
+    const s = this.attendanceMap.get(scheduledId);
+    if (!s || s.total === 0) return null;
+    return Math.round((s.attended / s.total) * 100);
+  }
+
+  pctColor(pct: number): string {
+    if (pct >= 75) return '#1B7505';
+    if (pct >= 50) return '#ed6c02';
+    return '#d32f2f';
+  }
+
+  private onPerfTimeChange(start: string, end: string): void {
+    this.perfDurationPresets = [];
+    this.performedDuration   = '';
+    const re = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (!re.test(start) || !re.test(end)) return;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const total = (eh * 60 + em) - (sh * 60 + sm);
+    if (total <= 0) return;
+    for (let min = 30; min <= total; min += 30) {
+      const hh = Math.floor(min / 60), mm = min % 60;
+      this.perfDurationPresets.push(`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`);
+    }
+    if (this.perfDurationPresets.length)
+      this.performedDuration = this.perfDurationPresets[this.perfDurationPresets.length - 1];
+  }
+  durationLabel(value: string): string {
+    const [h, m] = value.split(':').map(Number);
+    if (h === 0) return `${m} min`;
+    if (m === 0) return `${h} h`;
+    return `${h}h ${m}min`;
+  }
 
   countByModality(modality: string): number {
     return this.rows.filter(r => r.modality === modality).length;
@@ -77,8 +134,9 @@ export class TeacherHistoryComponent implements OnInit {
     this.selected              = row;
     this.errorMsg              = null;
     this.virtualLinkUrl        = row.virtualLink ?? '';
-    this.attendancePerformedId = null;
-    this.attendanceList        = [{ participantId: 0, attended: true }];
+    this.showAttendance        = false;
+    this.participants          = [];
+    this.participantsError     = null;
     this.activeModal           = 'detail';
   }
 
@@ -87,26 +145,63 @@ export class TeacherHistoryComponent implements OnInit {
     this.errorMsg             = null;
     this.performedObservation = '';
     this.performedDuration    = '';
-    this.performedFiles       = [];
+    this.onPerfTimeChange(row.startTime, row.endTime);
     this.activeModal          = 'performed';
   }
 
   closeModal(): void {
-    this.activeModal = 'none';
-    this.selected    = null;
-    this.errorMsg    = null;
-    this.busy        = false;
+    this.activeModal       = 'none';
+    this.selected          = null;
+    this.errorMsg          = null;
+    this.busy              = false;
+    this.showAttendance    = false;
+    this.participants      = [];
+    this.participantsError = null;
   }
 
-  // ── Attendance helpers ──────────────────────────────────────────────────────
-  addAttendanceRow(): void    { this.attendanceList.push({ participantId: 0, attended: true }); }
-  removeAttendanceRow(i: number): void { this.attendanceList.splice(i, 1); }
+  // ── Attendance side panel ───────────────────────────────────────────────────
+  openAttendance(): void {
+    if (!this.selected) return;
+    this.showAttendance    = true;
+    this.loadingParticipants = true;
+    this.participantsError = null;
+    this.sessSvc.getParticipants(this.selected.scheduledId).subscribe({
+      next: list => {
+        this.participants = list;
+        // refresh cache with latest data from server
+        const attended = list.filter(p => p.attended).length;
+        this.attendanceMap.set(this.selected!.scheduledId, { attended, total: list.length });
+        this.loadingParticipants = false;
+        this.cdr.detectChanges();
+      },
+      error: err  => { this.participantsError = err?.message || 'Error al cargar participantes'; this.loadingParticipants = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  closeAttendance(): void {
+    this.showAttendance    = false;
+    this.participants      = [];
+    this.participantsError = null;
+  }
+
+  saveAttendanceList(): void {
+    if (!this.selected) return;
+    this.busy = true;
+    const body = this.participants.map(p => ({ participantId: p.participantId, attended: p.attended }));
+    this.sessSvc.saveParticipants(this.selected.scheduledId, body).subscribe({
+      next: res => {
+        const attended = this.participants.filter(p => p.attended).length;
+        this.attendanceMap.set(this.selected!.scheduledId, { attended, total: this.participants.length });
+        this.busy = false;
+        this.showSuccess(`Asistencia guardada. ${res.message}`);
+        this.closeAttendance();
+        this.cdr.detectChanges();
+      },
+      error: err => { this.busy = false; this.participantsError = err?.message; this.cdr.detectChanges(); }
+    });
+  }
 
   // ── File selection ──────────────────────────────────────────────────────────
-  onFilesSelected(ev: Event): void {
-    const inp = ev.target as HTMLInputElement;
-    this.performedFiles = inp.files ? Array.from(inp.files) : [];
-  }
 
   // ── Submissions ─────────────────────────────────────────────────────────────
   submitVirtualLink(): void {
@@ -118,17 +213,6 @@ export class TeacherHistoryComponent implements OnInit {
     });
   }
 
-  submitAttendance(): void {
-    if (!this.selected || !this.attendancePerformedId) return;
-    this.busy = true;
-    this.sessSvc.registerAttendance(this.selected.scheduledId, {
-      performedId: this.attendancePerformedId,
-      attendances: this.attendanceList,
-    }).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Asistencia registrada. ${res.message}`); this.closeModal(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
-    });
-  }
 
   submitPerformed(): void {
     if (!this.selected) return;
@@ -137,7 +221,7 @@ export class TeacherHistoryComponent implements OnInit {
       this.selected.scheduledId,
       this.performedObservation,
       this.performedDuration,
-      this.performedFiles
+      []
     ).subscribe({
       next: res => { this.busy = false; this.showSuccess(`Resultado registrado. ${res.message}`); this.closeModal(); this.load(); },
       error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }

@@ -132,6 +132,24 @@
                   <i class="bi bi-person-lines-fill me-1 sess-student-icon"></i>
                   {{ r.participantCount }} {{ r.participantCount === 1 ? 'estudiante' : 'estudiantes' }}
                 </div>
+                @if (attendancePct(r.scheduledId) !== null) {
+                  <div class="mt-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small" style="font-size:.72rem">
+                        <i class="bi bi-bar-chart-fill me-1"></i>Asistencia
+                      </span>
+                      <span class="small fw-semibold" [style.color]="pctColor(attendancePct(r.scheduledId)!)">
+                        {{ attendancePct(r.scheduledId) }}%
+                      </span>
+                    </div>
+                    <div class="progress" style="height:4px;border-radius:2px">
+                      <div class="progress-bar"
+                           [style.width]="attendancePct(r.scheduledId) + '%'"
+                           [style.background-color]="pctColor(attendancePct(r.scheduledId)!)">
+                      </div>
+                    </div>
+                  </div>
+                }
               </div>
 
               <!-- Footer: ref + actions -->
@@ -161,16 +179,19 @@
 
 </div>
 
-<!-- MODAL: Detail (with inline action forms) -->
+<!-- MODAL: Detail -->
 @if (activeModal === 'detail' && selected) {
-  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border">
-        <div class="modal-header border-bottom">
+  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5);display:flex!important;align-items:center;justify-content:center;padding:1.5rem">
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-start;width:100%;max-width:1000px">
+
+      <!-- ── Detail panel ── -->
+      <div class="modal-content border d-flex flex-column"
+           style="max-width:580px;width:100%;max-height:80vh">
+        <div class="modal-header border-bottom flex-shrink-0">
           <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Sesión #{{ selected.scheduledId }}</h5>
           <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body flex-grow-1 overflow-auto">
 
           @if (errorMsg) {
             <div class="alert alert-danger border small py-2 mb-3">
@@ -188,6 +209,24 @@
             <div class="col-6"><span class="label">Duración estimada</span><strong class="d-block">{{ selected.estimatedDuration }}</strong></div>
             <div class="col-6"><span class="label">Participantes</span><strong class="d-block">{{ selected.participantCount }}</strong></div>
             <div class="col-6">
+              <span class="label">Asistencia</span>
+              @if (attendancePct(selected.scheduledId) !== null) {
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <div class="progress flex-grow-1" style="height:6px;border-radius:3px">
+                    <div class="progress-bar"
+                         [style.width]="attendancePct(selected.scheduledId) + '%'"
+                         [style.background-color]="pctColor(attendancePct(selected.scheduledId)!)">
+                    </div>
+                  </div>
+                  <strong [style.color]="pctColor(attendancePct(selected.scheduledId)!)">
+                    {{ attendancePct(selected.scheduledId) }}%
+                  </strong>
+                </div>
+              } @else {
+                <strong class="d-block text-muted">--</strong>
+              }
+            </div>
+            <div class="col-6">
               <span class="label">Estado</span>
               <span class="badge rounded-pill" [ngClass]="statusBadge(selected.statusName)">{{ selected.statusName }}</span>
             </div>
@@ -196,11 +235,8 @@
           <!-- ── Aceptada / Espera espacio ────────────────────────────────── -->
           @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
             <hr class="my-3">
-
-            <!-- Enlace virtual -->
-            <div class="mb-4">
+            <div class="mb-2">
               <h6 class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1 text-info"></i>Enlace virtual</h6>
-              <label class="form-label small">URL de la reunión</label>
               <div class="input-group">
                 <input type="url" class="form-control border" [(ngModel)]="virtualLinkUrl"
                        placeholder="https://meet.google.com/..." />
@@ -217,68 +253,76 @@
                 </div>
               }
             </div>
-
-          }
-
-          <!-- ── Finalizada ────────────────────────────────────────────────── -->
-          @if (selected.statusName.toLowerCase().includes('finaliz')) {
-            <hr class="my-3">
-            <h6 class="fw-semibold mb-3"><i class="bi bi-person-check me-1 text-primary"></i>Tomar lista</h6>
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <label class="form-label small">ID sesión realizada (performedId) <span class="text-danger">*</span></label>
-                <input type="number" class="form-control border" min="1"
-                       [(ngModel)]="attendancePerformedId" placeholder="Ej: 12" />
-                <div class="form-text">Obtenido al registrar el resultado de la sesión.</div>
-              </div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="form-label fw-semibold small mb-0">Participantes</label>
-              <button type="button" class="btn btn-outline-success btn-sm border" (click)="addAttendanceRow()">
-                <i class="bi bi-plus me-1"></i>Agregar fila
-              </button>
-            </div>
-            @for (entry of attendanceList; track $index; let i = $index) {
-              <div class="row g-2 mb-2 align-items-center">
-                <div class="col-5">
-                  <input type="number" class="form-control border form-control-sm" min="1"
-                         [(ngModel)]="entry.participantId" placeholder="ID participante" />
-                </div>
-                <div class="col-5">
-                  <div class="form-check mt-1">
-                    <input class="form-check-input" type="checkbox" [id]="'att-' + i" [(ngModel)]="entry.attended" />
-                    <label class="form-check-label" [for]="'att-' + i">
-                      {{ entry.attended ? 'Asistió' : 'No asistió' }}
-                    </label>
-                  </div>
-                </div>
-                <div class="col-2 text-end">
-                  <button type="button" class="btn btn-outline-danger btn-sm border"
-                          (click)="removeAttendanceRow(i)" [disabled]="attendanceList.length === 1">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </div>
-            }
           }
 
         </div>
-        <div class="modal-footer border-top">
+        <div class="modal-footer border-top flex-shrink-0">
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cerrar</button>
+          <button class="btn btn-outline-primary" (click)="openAttendance()" [disabled]="busy || showAttendance">
+            <i class="bi bi-person-check me-1"></i>Asistencia
+          </button>
           @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
             <button class="btn btn-success" (click)="openPerformed(selected)" [disabled]="busy">
               <i class="bi bi-stop-circle me-1"></i>Finalizar aula virtual
             </button>
           }
-          @if (selected.statusName.toLowerCase().includes('finaliz')) {
-            <button class="btn btn-primary" (click)="submitAttendance()"
-                    [disabled]="busy || !attendancePerformedId || attendanceList.length === 0">
-              @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-              <i class="bi bi-person-check me-1"></i>Registrar asistencia
-            </button>
-          }
         </div>
       </div>
+
+      <!-- ── Attendance side panel ── -->
+      @if (showAttendance) {
+        <div class="modal-content border d-flex flex-column"
+             style="max-width:380px;width:100%;max-height:80vh">
+          <div class="modal-header border-bottom flex-shrink-0" style="background:#f8f9fa">
+            <h6 class="modal-title fw-bold mb-0">
+              <i class="bi bi-person-check me-2 text-primary"></i>Asistencia · #{{ selected.scheduledId }}
+            </h6>
+            <button class="btn-close" (click)="closeAttendance()" [disabled]="busy"></button>
+          </div>
+          <div class="modal-body flex-grow-1 overflow-auto">
+
+            @if (participantsError) {
+              <div class="alert alert-danger border small py-2 mb-3">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ participantsError }}
+              </div>
+            }
+
+            @if (loadingParticipants) {
+              <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted small mt-2 mb-0">Cargando participantes...</p>
+              </div>
+            } @else {
+              @if (participants.length === 0) {
+                <p class="text-muted small text-center py-3 mb-0">
+                  <i class="bi bi-people d-block mb-1 fs-4 opacity-25"></i>
+                  Sin participantes registrados.
+                </p>
+              } @else {
+                <div class="list-group list-group-flush">
+                  @for (p of participants; track p.participantId) {
+                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                      <span class="small fw-semibold">{{ p.studentName }}</span>
+                      <input class="form-check-input ms-2" type="checkbox"
+                             [id]="'p-' + p.participantId" [(ngModel)]="p.attended" />
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+          </div>
+          <div class="modal-footer border-top flex-shrink-0">
+            <button class="btn btn-outline-secondary btn-sm" (click)="closeAttendance()" [disabled]="busy">Cancelar</button>
+            <button class="btn btn-primary btn-sm" (click)="saveAttendanceList()"
+                    [disabled]="busy || loadingParticipants || participants.length === 0">
+              @if (busy) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-floppy me-1"></i>Guardar
+            </button>
+          </div>
+        </div>
+      }
+
     </div>
   </div>
 }
@@ -308,21 +352,18 @@
               <textarea class="form-control border" rows="4" [(ngModel)]="performedObservation"
                         placeholder="Describe los temas abordados, resultados y cualquier observación relevante."></textarea>
             </div>
-            <div class="col-md-6">
-              <label class="form-label small fw-semibold">Duración real <span class="text-danger">*</span></label>
-              <input type="text" class="form-control border" [(ngModel)]="performedDuration"
-                     placeholder="HH:mm  (ej: 01:15)" />
-            </div>
             <div class="col-12">
-              <label class="form-label small fw-semibold">Recursos adjuntos <span class="text-muted fw-normal">(opcional)</span></label>
-              <input type="file" class="form-control border" multiple (change)="onFilesSelected($event)" />
-              @if (performedFiles.length > 0) {
-                <ul class="list-unstyled mt-2 mb-0">
-                  @for (f of performedFiles; track f.name) {
-                    <li class="small text-muted"><i class="bi bi-paperclip me-1"></i>{{ f.name }}</li>
-                  }
-                </ul>
-              }
+              <label class="form-label small fw-semibold">Duración real <span class="text-danger">*</span></label>
+              <div class="d-flex flex-wrap gap-2">
+                @for (opt of perfDurationPresets; track $index) {
+                  <button type="button" class="btn btn-sm rounded-pill"
+                          [class.btn-success]="performedDuration === opt"
+                          [class.btn-outline-secondary]="performedDuration !== opt"
+                          (click)="performedDuration = opt">
+                    {{ durationLabel(opt) }}
+                  </button>
+                }
+              </div>
             </div>
           </div>
 

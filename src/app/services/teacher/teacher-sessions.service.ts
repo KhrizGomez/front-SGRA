@@ -8,6 +8,7 @@ import {
   RegisterAttendanceBodyDTO,
   ApiActionResponseDTO,
   TeacherHistoryItemDTO,
+  SessionParticipantDTO,
 } from '../../models/teacher/teacher-request.model';
 
 @Injectable({ providedIn: 'root' })
@@ -52,6 +53,23 @@ export class TeacherSessionsService {
   getActiveSessions(): Observable<TeacherHistoryItemDTO[]> {
     return this.http.get<TeacherHistoryItemDTO[]>(
       `${this.baseUrl}/teacher/sessions/active`,
+      this.opts
+    ).pipe(catchError(this.handleError));
+  }
+
+  /** GET /api/teacher/sessions/{id}/participants */
+  getParticipants(scheduledId: number): Observable<SessionParticipantDTO[]> {
+    return this.http.get<SessionParticipantDTO[]>(
+      `${this.baseUrl}/teacher/sessions/${scheduledId}/participants`,
+      this.opts
+    ).pipe(catchError(this.handleError));
+  }
+
+  /** PUT /api/teacher/sessions/{id}/participants */
+  saveParticipants(scheduledId: number, body: { participantId: number; attended: boolean }[]): Observable<ApiActionResponseDTO> {
+    return this.http.put<ApiActionResponseDTO>(
+      `${this.baseUrl}/teacher/sessions/${scheduledId}/participants`,
+      body,
       this.opts
     ).pipe(catchError(this.handleError));
   }
