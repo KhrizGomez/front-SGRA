@@ -15,7 +15,8 @@ import { CreateRequestPayload } from '../../../models/student/request.model';
   selector: 'app-student-new-request',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './student-new-request.component.html'
+  templateUrl: './student-new-request.component.html',
+  styleUrl: './student-new-request.component.css'
 })
 export class StudentNewRequestComponent implements AfterViewInit {
   private svc = inject(StudentNewRequestService);

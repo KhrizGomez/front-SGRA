@@ -82,7 +82,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./components/student/student-dashboard.component')
+        loadComponent: () => import('./components/student/student-dashboard/student-dashboard.component')
           .then(m => m.StudentDashboardComponent)
       },
       {
