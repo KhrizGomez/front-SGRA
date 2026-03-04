@@ -1,6 +1,8 @@
-import { Component, ViewChild, ElementRef, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, ViewChild, ElementRef, ChangeDetectorRef, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { UploadResult, AIValidationResult } from '../../../models/coordination/coord-dataload';
 import { CoordDataloadService } from '../../../services/coordination/coord-dataload/coord-dataload.service';
 
@@ -14,8 +16,10 @@ export type UploadType = 'students' | 'registrations' | 'teachers';
   templateUrl: './coord-dataload.component.html',
   styleUrl: './coord-dataload.component.css',
 })
-export class CoordDataloadComponent {
+export class CoordDataloadComponent implements OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
+  private destroy$ = new Subject<void>();
 
   // Estado del dropdown
   dropdownOpen = false;
@@ -68,40 +72,42 @@ export class CoordDataloadComponent {
 
     const loadType = this.selectedUploadType;
 
-    this.dataloadService.validateExcelWithAI(this.selectedFile, loadType).subscribe({
-      next: (result: AIValidationResult) => {
-        this.aiValidationResult = result;
-        this.isValidating = false;
+    this.dataloadService.validateExcelWithAI(this.selectedFile, loadType)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result: AIValidationResult) => {
+          this.aiValidationResult = result;
+          this.isValidating = false;
 
-        if (result.recommendedAction === 'PROCEED') {
-          // Sin errores, proceder automáticamente con la subida
-          this.aiValidationPassed = true;
-          this.cdr.detectChanges();
-          this.proceedWithUpload();
-        } else if (result.recommendedAction === 'REVIEW') {
-          // Hay advertencias, mostrar modal y dejar que el usuario decida
-          this.showValidationModal = true;
-          this.cdr.detectChanges();
-        } else {
-          // Errores críticos, no permitir subir
+          if (result.recommendedAction === 'PROCEED') {
+            // Sin errores, proceder automáticamente con la subida
+            this.aiValidationPassed = true;
+            this.cdr.detectChanges();
+            this.proceedWithUpload();
+          } else if (result.recommendedAction === 'REVIEW') {
+            // Hay advertencias, mostrar modal y dejar que el usuario decida
+            this.showValidationModal = true;
+            this.cdr.detectChanges();
+          } else {
+            // Errores críticos, no permitir subir
+            this.showValidationModal = true;
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error: unknown) => {
+          console.error('Error en validación IA:', error);
+          this.isValidating = false;
+          // Si falla la validación IA, permitir continuar con advertencia
+          this.aiValidationResult = {
+            issues: [],
+            aiValidated: false,
+            recommendedAction: 'REVIEW',
+            summary: 'No se pudo conectar con el servicio de validación. ¿Desea continuar de todas formas?'
+          };
           this.showValidationModal = true;
           this.cdr.detectChanges();
         }
-      },
-      error: (error: unknown) => {
-        console.error('Error en validación IA:', error);
-        this.isValidating = false;
-        // Si falla la validación IA, permitir continuar con advertencia
-        this.aiValidationResult = {
-          issues: [],
-          aiValidated: false,
-          recommendedAction: 'REVIEW',
-          summary: 'No se pudo conectar con el servicio de validación. ¿Desea continuar de todas formas?'
-        };
-        this.showValidationModal = true;
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   // Método privado que ejecuta la subida real después de validación
@@ -126,7 +132,7 @@ export class CoordDataloadComponent {
         return;
     }
 
-    uploadObservable.subscribe({
+    uploadObservable.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: string[]) => {
         this.uploadResults = response.map((msg) => ({
           tipo: this.selectedOption.label as any,
@@ -146,8 +152,24 @@ export class CoordDataloadComponent {
         this.cdr.detectChanges();
       },
       error: () => {
-        alert('Hubo un error al procesar el archivo.');
+        this.uploadResults = [
+          {
+            tipo: this.selectedOption.label as any,
+            status: 'error' as const,
+            message: 'Hubo un error al procesar el archivo.',
+            timestamp: new Date(),
+          },
+        ];
+        this.updateCounters();
+        this.currentPage = 1;
+        this.filterResults();
         this.isLoading = false;
+        this.selectedFile = null;
+        this.resetValidationState();
+        if (this.fileInput) {
+          this.fileInput.nativeElement.value = '';
+        }
+        this.cdr.detectChanges();
       },
     });
   }
@@ -156,6 +178,11 @@ export class CoordDataloadComponent {
     private dataloadService: CoordDataloadService,
     private cdr: ChangeDetectorRef,
   ) {}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   // ===== NUEVO SISTEMA UNIFICADO =====
 
@@ -290,7 +317,7 @@ export class CoordDataloadComponent {
         this.isUploading = false;
         return;
     }
-    uploadObservable.subscribe({
+    uploadObservable.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: string[]) => {
         this.processUploadReport(response, this.selectedUploadLabel);
         this.isUploading = false;
@@ -492,30 +519,32 @@ export class CoordDataloadComponent {
     // Mapear tipo de upload a loadType para el backend
     const loadType = this.selectedUploadType;
 
-    this.dataloadService.validateExcelWithAI(this.selectedFile, loadType).subscribe({
-      next: (result: AIValidationResult) => {
-        this.aiValidationResult = result;
-        this.aiValidationPassed = result.recommendedAction === 'PROCEED';
-        this.isValidating = false;
-        this.cdr.detectChanges();
+    this.dataloadService.validateExcelWithAI(this.selectedFile, loadType)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result: AIValidationResult) => {
+          this.aiValidationResult = result;
+          this.aiValidationPassed = result.recommendedAction === 'PROCEED';
+          this.isValidating = false;
+          this.cdr.detectChanges();
 
-        // Si hay issues, mostrar el modal de detalles automáticamente
-        if (result.issues && result.issues.length > 0) {
-          this.showValidationModal = true;
+          // Si hay issues, mostrar el modal de detalles automáticamente
+          if (result.issues && result.issues.length > 0) {
+            this.showValidationModal = true;
+          }
+        },
+        error: (error: unknown) => {
+          console.error('Error en validación IA:', error);
+          this.isValidating = false;
+          this.aiValidationResult = {
+            issues: [],
+            aiValidated: false,
+            recommendedAction: 'REVIEW',
+            summary: 'No se pudo completar la validación. Puede continuar bajo su responsabilidad.'
+          };
+          this.cdr.detectChanges();
         }
-      },
-      error: (error: unknown) => {
-        console.error('Error en validación IA:', error);
-        this.isValidating = false;
-        this.aiValidationResult = {
-          issues: [],
-          aiValidated: false,
-          recommendedAction: 'REVIEW',
-          summary: 'No se pudo completar la validación. Puede continuar bajo su responsabilidad.'
-        };
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   /**

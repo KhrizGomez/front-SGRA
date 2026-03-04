@@ -70,10 +70,14 @@
       <!-- Botón de Subida (valida con IA automáticamente antes de subir) -->
       <button class="btn btn-success w-100 mt-4 py-3 fs-6 fw-semibold"
               (click)="uploadData()"
-              [disabled]="isLoading || !selectedFile">
-        <ng-container *ngIf="!isLoading">
+              [disabled]="isLoading || isValidating || !selectedFile">
+        <ng-container *ngIf="!isLoading && !isValidating">
           <i class="bi bi-cloud-arrow-up me-2"></i>
           Subir datos
+        </ng-container>
+        <ng-container *ngIf="isValidating">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Validando...
         </ng-container>
         <ng-container *ngIf="isLoading">
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
