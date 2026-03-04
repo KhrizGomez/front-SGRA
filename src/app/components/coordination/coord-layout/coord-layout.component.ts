@@ -25,8 +25,9 @@ export class CoordLayoutComponent implements OnInit {
   });
 
   navItems = [
-    { path: '/coordinator/dashboard', label: 'Dashboard', icon: 'bi-speedometer2' },
-    { path: '/coordinator/dataload', label: 'Carga de Información', icon: 'bi-cloud-arrow-up' },
+    { path: '/coordinator/dashboard', label: 'Dashboard',           icon: 'bi-speedometer2'          },
+    { path: '/coordinator/dataload',  label: 'Carga de Información', icon: 'bi-cloud-arrow-up'         },
+    { path: '/coordinator/reports',   label: 'Reportes',             icon: 'bi-file-earmark-bar-graph' },
   ];
 
   ngOnInit(): void {

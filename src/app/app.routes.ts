@@ -129,6 +129,10 @@ export const routes: Routes = [
         path: 'physicalspaces',
         loadComponent: () => import('./components/coordination/coord-physicalspaces/coord-physicalspaces.component').then(m => m.CoordPhysicalspacesComponent)
       },
+      {
+        path: 'reports',
+        loadComponent: () => import('./components/coordination/coord-reports/coord-reports.component').then(m => m.CoordReportsComponent)
+      },
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

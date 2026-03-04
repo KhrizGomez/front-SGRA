@@ -373,3 +373,145 @@
   color: #fff;
   transform: translateY(-1px);
 }
+
+/* ══════════════ Nuevos estilos para los 5 tipos de reporte ══════════════ */
+
+/* Chips de tipo de reporte */
+.report-type-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 9px;
+  border: 1.5px solid #dee2e6;
+  background-color: #fff;
+  color: #495057;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.report-type-chip:hover {
+  border-color: var(--chip-color, #1B7505);
+  background-color: color-mix(in srgb, var(--chip-color, #1B7505) 6%, white);
+  color: var(--chip-color, #1B7505);
+}
+
+.report-type-chip.active {
+  border-color: var(--chip-color, #1B7505);
+  background-color: color-mix(in srgb, var(--chip-color, #1B7505) 10%, white);
+  color: var(--chip-color, #1B7505);
+  font-weight: 600;
+}
+
+.report-type-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  background-color: var(--chip-color, #1B7505);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.badge-gender {
+  font-size: 0.65rem;
+  color: #7c3aed;
+  background: #f3e8ff;
+  border-radius: 4px;
+  padding: 1px 4px;
+  flex-shrink: 0;
+}
+
+.check-icon {
+  color: var(--chip-color, #1B7505);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* Chips de variables con color dinámico */
+.metric-chip.active-type {
+  background-color: color-mix(in srgb, var(--chip-color, #1B7505) 8%, white);
+  border-color: var(--chip-color, #1B7505);
+  color: color-mix(in srgb, var(--chip-color, #1B7505) 90%, black);
+}
+
+/* Info pill con selección activa */
+.report-info-pill.has-selection {
+  background-color: #e8f5e0;
+  border-color: #1B7505;
+  color: #1B7505;
+}
+
+/* Punto de color en encabezado de preview */
+.preview-type-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Selector de tipo de gráfico en modal */
+.chart-type-row {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.chart-mini-btn {
+  background: #f8f9fa;
+  border: 1.5px solid #dee2e6;
+  border-radius: 7px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
+}
+
+.chart-mini-btn:hover {
+  border-color: #1B7505;
+  color: #1B7505;
+  background: #f0faf0;
+}
+
+.chart-mini-btn.active {
+  border-color: #1B7505;
+  background: #1B7505;
+  color: #fff;
+}
+
+/* Tabla de vista previa */
+.preview-table-wrap {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+}
+
+.preview-table-wrap thead th {
+  background-color: #f0faf0;
+  color: #155e04;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  border-bottom: 2px solid #c3e6c3;
+}
+
+.preview-table-wrap tbody td {
+  font-size: 0.82rem;
+}
+
+/* Badges género */
+.gender-male   { background-color: #dbeafe; color: #1d4ed8; }
+.gender-female { background-color: #fce7f3; color: #9d174d; }
+
+/* Línea style para gráfico de línea */
+.gradient-bars.line-style .g-bar::before {
+  border-radius: 0;
+}
