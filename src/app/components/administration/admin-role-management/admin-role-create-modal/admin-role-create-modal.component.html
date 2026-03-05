@@ -31,16 +31,18 @@
             @if (f['description'].invalid && f['description'].touched) { <div class="text-danger mt-1 small">La descripción es obligatoria.</div> }
           </div>
 
-          <div>
-            <div class="form-floating">
-              <select class="form-select" id="status" formControlName="status"
-                      [ngClass]="{'is-invalid': f['status'].invalid && f['status'].touched}">
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
-              <label for="status" class="text-muted">Estado Inicial *</label>
+          @if (isEditing) {
+            <div>
+              <div class="form-floating">
+                <select class="form-select" id="status" formControlName="status"
+                        [ngClass]="{'is-invalid': f['status'].invalid && f['status'].touched}">
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+                <label for="status" class="text-muted">Estado Inicial *</label>
+              </div>
             </div>
-          </div>
+          }
 
         </form>
       </div>

@@ -1,34 +1,31 @@
 <div class="modal fade" id="emailConfigModal" tabindex="-1"
-     aria-labelledby="emailConfigModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+    aria-labelledby="emailConfigModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content rounded-3 border-0 shadow-lg">
 
-      <!-- Header -->
       <header class="modal-header border-bottom-0 pt-4 pb-2 px-4">
         <div>
           <h5 class="modal-title fw-bold fs-4 text-dark mb-1" id="emailConfigModalLabel">
             {{ isEditing ? 'Editar Correo' : 'Nuevo Correo' }}
           </h5>
           <p class="text-muted small mb-0">
-            Ingrese el correo electrónico y su contraseña de aplicación.
+            Configure el correo electrónico, servidor SMTP y credenciales de aplicación.
           </p>
         </div>
         <button type="button" class="btn-close mb-auto"
                 data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </header>
 
-      <!-- Body -->
       <div class="modal-body px-4 py-3">
         <form [formGroup]="emailForm" (ngSubmit)="onSubmit()"
               class="d-flex flex-column gap-3" autocomplete="off">
 
-          <!-- Correo electrónico -->
           <div>
             <div class="form-floating">
               <input type="email" class="form-control" id="emailInput"
-                     formControlName="email"
-                     placeholder="correo&#64;ejemplo.com"
-                     [ngClass]="{'is-invalid': f['email'].invalid && (f['email'].dirty || f['email'].touched)}">
+                    formControlName="email"
+                    placeholder="correo&#64;ejemplo.com"
+                    [ngClass]="{'is-invalid': f['email'].invalid && (f['email'].dirty || f['email'].touched)}">
               <label for="emailInput" class="text-muted">
                 <i class="bi bi-envelope me-1"></i>Correo electrónico
               </label>
@@ -41,15 +38,14 @@
             }
           </div>
 
-          <!-- Contraseña de aplicación -->
           <div>
             <div class="input-group">
               <div class="form-floating flex-grow-1">
                 <input [type]="showPassword ? 'text' : 'password'"
-                       class="form-control" id="appPasswordInput"
-                       formControlName="appPassword"
-                       placeholder="contraseña de aplicación"
-                       [ngClass]="{'is-invalid': f['appPassword'].invalid && (f['appPassword'].dirty || f['appPassword'].touched)}">
+                      class="form-control" id="appPasswordInput"
+                      formControlName="appPassword"
+                      placeholder="contraseña de aplicación"
+                      [ngClass]="{'is-invalid': f['appPassword'].invalid && (f['appPassword'].dirty || f['appPassword'].touched)}">
                 <label for="appPasswordInput" class="text-muted">
                   <i class="bi bi-key me-1"></i>Contraseña de aplicación
                 </label>
@@ -68,22 +64,82 @@
             }
           </div>
 
-          <!-- Estado -->
-          <div>
-            <div class="form-floating">
-              <select class="form-select" id="emailStatus" formControlName="status"
-                      [ngClass]="{'is-invalid': f['status'].invalid && f['status'].touched}">
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
-              <label for="emailStatus" class="text-muted">Estado</label>
+          <div class="row g-3">
+            <div class="col-12 col-md-8">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="smtpServerInput"
+                      formControlName="smtpServer"
+                      placeholder="smtp.gmail.com"
+                      [ngClass]="{'is-invalid': f['smtpServer'].invalid && (f['smtpServer'].dirty || f['smtpServer'].touched)}">
+                <label for="smtpServerInput" class="text-muted">
+                  <i class="bi bi-hdd-network me-1"></i>Servidor SMTP
+                </label>
+              </div>
+              @if (f['smtpServer'].hasError('required') && f['smtpServer'].touched) {
+                <div class="text-danger mt-1 small">El servidor SMTP es obligatorio.</div>
+              }
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="smtpPortInput"
+                      formControlName="smtpPort"
+                      placeholder="587"
+                      [ngClass]="{'is-invalid': f['smtpPort'].invalid && (f['smtpPort'].dirty || f['smtpPort'].touched)}">
+                <label for="smtpPortInput" class="text-muted">
+                  <i class="bi bi-plug me-1"></i>Puerto SMTP
+                </label>
+              </div>
+              @if (f['smtpPort'].hasError('required') && f['smtpPort'].touched) {
+                <div class="text-danger mt-1 small">El puerto SMTP es obligatorio.</div>
+              }
             </div>
           </div>
+
+          <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-8">
+              <div class="form-floating">
+                <input type="text" class="form-control" id="senderNameInput"
+                      formControlName="senderName"
+                      placeholder="Sistema SGRA"
+                      [ngClass]="{'is-invalid': f['senderName'].invalid && (f['senderName'].dirty || f['senderName'].touched)}">
+                <label for="senderNameInput" class="text-muted">
+                  <i class="bi bi-person-badge me-1"></i>Nombre del remitente
+                </label>
+              </div>
+              @if (f['senderName'].hasError('required') && f['senderName'].touched) {
+                <div class="text-danger mt-1 small">El nombre del remitente es obligatorio.</div>
+              }
+              @if (f['senderName'].hasError('minlength') && f['senderName'].touched) {
+                <div class="text-danger mt-1 small">Mínimo 2 caracteres.</div>
+              }
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="form-check form-switch ps-0 d-flex align-items-center gap-2 py-3">
+                <input class="form-check-input ms-0" type="checkbox" role="switch"
+                      id="sslSwitch" formControlName="ssl">
+                <label class="form-check-label text-muted" for="sslSwitch">
+                  <i class="bi bi-shield-lock me-1"></i>SSL/TLS
+                </label>
+              </div>
+            </div>
+          </div>
+
+          @if (isEditing) {
+            <div>
+              <div class="form-floating">
+                <select class="form-select" id="emailStatus" formControlName="status"
+                        [ngClass]="{'is-invalid': f['status'].invalid && f['status'].touched}">
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+                <label for="emailStatus" class="text-muted">Estado</label>
+              </div>
+            </div>
+          }
 
         </form>
       </div>
 
-      <!-- Footer -->
       <footer class="modal-footer border-top-0 px-4 pb-4 pt-1 justify-content-end gap-2">
         <button type="button" class="btn btn-light rounded-3 px-4 fw-medium text-secondary"
                 data-bs-dismiss="modal">

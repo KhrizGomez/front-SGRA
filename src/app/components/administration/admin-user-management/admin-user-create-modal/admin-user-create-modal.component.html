@@ -34,16 +34,18 @@
             }
           </div>
 
-          <div>
-            <div class="form-floating">
-              <select class="form-select" id="status" formControlName="status"
-                      [ngClass]="{'is-invalid': f['status'].invalid && f['status'].touched}">
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
-              <label for="status" class="text-muted">Estado Inicial *</label>
+          @if (isEditing) {
+            <div>
+              <div class="form-floating">
+                <select class="form-select" id="status" formControlName="status"
+                        [ngClass]="{'is-invalid': f['status'].invalid && f['status'].touched}">
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+                <label for="status" class="text-muted">Estado Inicial *</label>
+              </div>
             </div>
-          </div>
+          }
 
           <div class="mt-2">
             <label class="text-muted fw-medium small mb-2">Roles Asignados *</label>
