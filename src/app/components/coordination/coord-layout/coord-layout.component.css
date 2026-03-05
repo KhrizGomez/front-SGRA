@@ -168,10 +168,51 @@
   transition: background-color 0.2s;
   border-radius: 3.125rem;
   padding: 0.3125rem 0.9375rem 0.3125rem 0.3125rem;
+  border: 1px solid #e0e0e0;
 }
 
 .btn-profile:hover {
   background-color: #f8f9fa;
+}
+
+/* ── Profile Dropdown ── */
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 260px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 1050;
+}
+
+.profile-dropdown .dropdown-header p {
+  font-size: 1rem;
+}
+
+.profile-dropdown .dropdown-header span {
+  font-size: 0.9rem;
+}
+
+.profile-dropdown .dropdown-item {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.profile-dropdown .dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
 }
 
 /* ── Responsive general ── */

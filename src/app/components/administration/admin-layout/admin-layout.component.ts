@@ -2,11 +2,12 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth.service';
+import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css',
 })
@@ -14,6 +15,8 @@ export class AdminLayoutComponent implements OnInit {
   private authService = inject(AuthService);
 
   isSidebarCollapsed = signal(false);
+  showChangePasswordModal = false;
+  showDropdown = false;
   userName = signal('Administrador');
   userRoleLabel = signal('Administrador');
 
@@ -45,6 +48,23 @@ export class AdminLayoutComponent implements OnInit {
 
   toggleSidebar(): void {
     this.isSidebarCollapsed.update(v => !v);
+  }
+
+  toggleDropdown(): void {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  closeDropdown(): void {
+    this.showDropdown = false;
+  }
+
+  openChangePasswordModal(): void {
+    this.showDropdown = false;
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal = false;
   }
 
   logout(): void {

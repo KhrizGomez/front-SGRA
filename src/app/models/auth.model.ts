@@ -28,6 +28,12 @@ export interface ChangePasswordResponse {
   success: boolean;
 }
 
+export interface VoluntaryChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 // ─── Forgot / Reset password ───
 
 export interface ForgotPasswordRequest {

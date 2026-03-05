@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
-import { LoginRequest, LoginResponse, ChangePasswordRequest, ChangePasswordResponse, ForgotPasswordRequest, VerifyCodeRequest, ResetPasswordRequest, GenericResponse } from '../../models/auth.model';
+import { LoginRequest, LoginResponse, ChangePasswordRequest, ChangePasswordResponse, ForgotPasswordRequest, VerifyCodeRequest, ResetPasswordRequest, GenericResponse, VoluntaryChangePasswordRequest } from '../../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
@@ -106,6 +106,16 @@ export class AuthService {
         this.currentUser.set(null);
       })
     );
+  }
+
+  /**
+   * Cambio voluntario de contraseña para usuarios activos (estado='A').
+   * No invalida la sesión al éxito.
+   */
+  voluntaryChangePassword(request: VoluntaryChangePasswordRequest): Observable<ChangePasswordResponse> {
+    return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/auth/voluntary-change-password`, request, {
+      withCredentials: true
+    });
   }
 
   hasRole(role: string): boolean {
