@@ -6,6 +6,7 @@ import {
   HistoryRequestItemDTO,
   HistorySessionItemDTO
 } from '../../../services/student/student-history.service';
+import { ToastService } from '../../../services/shared/toast.service';
 
 type TabType = 'requests' | 'sessions';
 
@@ -19,9 +20,9 @@ type TabType = 'requests' | 'sessions';
 export class StudentHistoryComponent implements AfterViewInit {
   private svc = inject(StudentHistoryService);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   activeTab: TabType = 'requests';
-  errorMessage: string | null = null;
 
   // Requests
   requests: HistoryRequestItemDTO[] = [];
@@ -58,7 +59,6 @@ export class StudentHistoryComponent implements AfterViewInit {
 
   loadRequests(): void {
     this.loadingRequests = true;
-    this.errorMessage = null;
 
     this.svc.getHistoryRequests({
       statusId: this.requestFilters.statusId ?? undefined,
@@ -73,7 +73,7 @@ export class StudentHistoryComponent implements AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Error al cargar historial';
+        this.toast.show(false, err?.message || 'Error al cargar historial');
         this.loadingRequests = false;
         this.cdr.detectChanges();
       }
@@ -82,7 +82,6 @@ export class StudentHistoryComponent implements AfterViewInit {
 
   loadSessions(): void {
     this.loadingSessions = true;
-    this.errorMessage = null;
 
     this.svc.getHistorySessions({
       onlyAttended: this.sessionFilters.onlyAttended,
@@ -97,7 +96,7 @@ export class StudentHistoryComponent implements AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Error al cargar sesiones';
+        this.toast.show(false, err?.message || 'Error al cargar sesiones');
         this.loadingSessions = false;
         this.cdr.detectChanges();
       }

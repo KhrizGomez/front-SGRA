@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, AfterViewInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { StudentDashboardService, StudentDashboardData } from '../../../services/student/student-dashboard.service';
+import { ToastService } from '../../../services/shared/toast.service';
 
 interface DashboardCard {
   key: keyof StudentDashboardData;
@@ -22,8 +23,7 @@ export class StudentDashboardComponent implements AfterViewInit {
   private dashboardService = inject(StudentDashboardService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-
-  errorMessage: string | null = null;
+  private toast = inject(ToastService);
 
   dashboardData: StudentDashboardData = { pending: 0, accepted: 0, upcoming: 0, completed: 0, cancelled: 0, groupInvitations: 0 };
 
@@ -43,15 +43,13 @@ export class StudentDashboardComponent implements AfterViewInit {
   }
 
   loadDashboard(): void {
-    this.errorMessage = null;
-
     this.dashboardService.getDashboard().subscribe({
       next: (data) => {
         this.dashboardData = data ?? { pending: 0, accepted: 0, upcoming: 0, completed: 0, cancelled: 0, groupInvitations: 0 };
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Error al cargar los datos';
+        this.toast.show(false, err?.message || 'Error al cargar los datos');
         this.dashboardData = { pending: 0, accepted: 0, upcoming: 0, completed: 0, cancelled: 0, groupInvitations: 0 };
         this.cdr.detectChanges();
       }

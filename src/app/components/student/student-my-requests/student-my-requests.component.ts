@@ -10,6 +10,7 @@ import {
 import { StudentNewRequestService } from '../../../services/student/student-new-request.service';
 import { StudentInvitationsService } from '../../../services/student/student-invitations.service';
 import { InvitationItem, InvitationHistoryItem } from '../../../models/student/invitation.model';
+import { ToastService } from '../../../services/shared/toast.service';
 
 type Option = { value: number | null; label: string };
 type TabType = 'requests' | 'invitations';
@@ -27,10 +28,10 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   private invitationsSvc = inject(StudentInvitationsService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
+  private toast = inject(ToastService);
 
   activeTab: TabType = 'requests';
   loading = false;
-  errorMessage: string | null = null;
 
   rows: MyRequestRowDTO[] = [];
   totalCount = 0;
@@ -148,7 +149,6 @@ export class StudentMyRequestsComponent implements AfterViewInit {
 
   load(): void {
     this.loading = true;
-    this.errorMessage = null;
 
     this.svc.getMyRequests({
       periodId: this.filters.periodId ?? undefined,
@@ -171,7 +171,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Error al cargar solicitudes';
+        this.toast.show(false, err?.message || 'Error al cargar solicitudes');
         this.rows = [];
         this.totalCount = 0;
         this.totalPages = 1;
@@ -207,7 +207,6 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   showCancelModal = false;
   selectedRequest: MyRequestRowDTO | null = null;
   cancelling = false;
-  successMessage: string | null = null;
   activeDropdown: number | null = null;
 
   toggleDropdown(requestId: number): void {
@@ -247,27 +246,20 @@ export class StudentMyRequestsComponent implements AfterViewInit {
     if (!this.selectedRequest) return;
 
     this.cancelling = true;
-    this.errorMessage = null;
 
     this.svc.cancelRequest(this.selectedRequest.requestId).subscribe({
       next: (response) => {
         this.cancelling = false;
         this.closeCancelModal();
-        this.successMessage = response.message || 'Solicitud cancelada exitosamente';
+        this.toast.show(true, response.message || 'Solicitud cancelada exitosamente');
         this.load();
         this.loadSummary();
         this.cdr.detectChanges();
-
-        // Auto-hide success message after 5 seconds
-        setTimeout(() => {
-          this.successMessage = null;
-          this.cdr.detectChanges();
-        }, 5000);
       },
       error: (err) => {
         this.cancelling = false;
         this.closeCancelModal();
-        this.errorMessage = err?.message || 'Error al cancelar la solicitud';
+        this.toast.show(false, err?.message || 'Error al cancelar la solicitud');
         this.cdr.detectChanges();
       }
     });
@@ -311,7 +303,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
       error: (err) => {
         this.invitations = [];
         this.loadingInvitations = false;
-        this.errorMessage = err?.message || 'Error al cargar invitaciones';
+        this.toast.show(false, err?.message || 'Error al cargar invitaciones');
         this.cdr.detectChanges();
       }
     });
@@ -337,24 +329,18 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   respondInvitation(participantId: number, accept: boolean): void {
     this.respondingInvId = participantId;
     this.respondingAccept = accept;
-    this.errorMessage = null;
 
     this.invitationsSvc.respondInvitation(participantId, accept).subscribe({
       next: (response) => {
         this.respondingInvId = null;
-        this.successMessage = response.message || (accept ? 'Invitación aceptada' : 'Invitación rechazada');
+        this.toast.show(true, response.message || (accept ? 'Invitación aceptada' : 'Invitación rechazada'));
         this.loadInvitations();
         this.loadInvitationHistory();
         this.cdr.detectChanges();
-
-        setTimeout(() => {
-          this.successMessage = null;
-          this.cdr.detectChanges();
-        }, 5000);
       },
       error: (err) => {
         this.respondingInvId = null;
-        this.errorMessage = err?.message || 'Error al responder la invitación';
+        this.toast.show(false, err?.message || 'Error al responder la invitación');
         this.cdr.detectChanges();
       }
     });
