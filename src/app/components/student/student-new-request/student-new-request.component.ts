@@ -10,6 +10,7 @@ import {
   ClassmateItem
 } from '../../../models/student/catalog.model';
 import { CreateRequestPayload } from '../../../models/student/request.model';
+import { ToastService } from '../../../services/shared/toast.service';
 
 @Component({
   selector: 'app-student-new-request',
@@ -22,6 +23,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
   private svc = inject(StudentNewRequestService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   // Catálogos
   subjects: SubjectItem[] = [];
@@ -47,9 +49,6 @@ export class StudentNewRequestComponent implements AfterViewInit {
   loadingCatalogs = false;
   submitting = false;
 
-  // Mensajes
-  errorMessage: string | null = null;
-  successMessage: string | null = null;
 
   // Modelo del formulario (simplificado)
   form: {
@@ -72,7 +71,6 @@ export class StudentNewRequestComponent implements AfterViewInit {
 
   loadCatalogs(): void {
     this.loadingCatalogs = true;
-    this.errorMessage = null;
 
     Promise.all([
       this.svc.getSubjects().toPromise(),
@@ -83,7 +81,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
       this.loadingCatalogs = false;
       this.cdr.detectChanges();
     }).catch(err => {
-      this.errorMessage = err?.message || 'Error al cargar los catálogos';
+      this.toast.show(false, err?.message || 'Error al cargar los catálogos');
       this.loadingCatalogs = false;
       this.cdr.detectChanges();
     });
@@ -128,7 +126,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
       error: (err) => {
         this.loadingTeacher = false;
         this.teacherInfo = null;
-        this.errorMessage = err?.message || 'Error al cargar el docente';
+        this.toast.show(false, err?.message || 'Error al cargar el docente');
         this.cdr.detectChanges();
       }
     });
@@ -151,7 +149,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
 
   openClassmatesModal(): void {
     if (!this.form.subjectId) {
-      this.errorMessage = 'Selecciona una asignatura primero para ver los compañeros';
+      this.toast.show(false, 'Selecciona una asignatura primero para ver los compañeros');
       return;
     }
 
@@ -169,7 +167,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Error al cargar compañeros';
+        this.toast.show(false, err?.message || 'Error al cargar compañeros');
         this.loadingClassmates = false;
         this.cdr.detectChanges();
       }
@@ -235,7 +233,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
       const maxSize = 10 * 1024 * 1024; // 10MB
       for (const file of newFiles) {
         if (file.size > maxSize) {
-          this.errorMessage = `El archivo "${file.name}" excede el tamaño máximo de 10MB`;
+          this.toast.show(false, `El archivo "${file.name}" excede el tamaño máximo de 10MB`);
           return;
         }
       }
@@ -265,12 +263,11 @@ export class StudentNewRequestComponent implements AfterViewInit {
 
   onSubmit(): void {
     if (!this.isFormValid()) {
-      this.errorMessage = 'Por favor completa todos los campos obligatorios';
+      this.toast.show(false, 'Por favor completa todos los campos obligatorios');
       return;
     }
 
     this.submitting = true;
-    this.errorMessage = null;
 
     const payload: CreateRequestPayload = {
       subjectId: this.form.subjectId!,
@@ -282,7 +279,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
     this.svc.createRequest(payload, this.selectedFiles).subscribe({
       next: (response) => {
         this.submitting = false;
-        this.successMessage = `Solicitud #${response.requestId} creada exitosamente`;
+        this.toast.show(true, `Solicitud #${response.requestId} creada exitosamente`);
         this.cdr.detectChanges();
 
         setTimeout(() => {
@@ -290,7 +287,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
         }, 1500);
       },
       error: (err) => {
-        this.errorMessage = err?.message || 'Error al crear la solicitud';
+        this.toast.show(false, err?.message || 'Error al crear la solicitud');
         this.submitting = false;
         this.cdr.detectChanges();
       }
