@@ -2,11 +2,12 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth/auth.service';
+import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-student-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
   templateUrl: './student-layout.component.html',
   styleUrls: ['./student-layout.component.css']
 })
@@ -14,6 +15,8 @@ export class StudentLayoutComponent implements OnInit {
   private authService = inject(AuthService);
 
   isSidebarCollapsed = signal(false);
+  showChangePasswordModal = false;
+  showDropdown = false;
   userName = signal('Estudiante');
   userRoleLabel = signal('Estudiante');
 
@@ -43,6 +46,23 @@ export class StudentLayoutComponent implements OnInit {
 
   toggleSidebar(): void {
     this.isSidebarCollapsed.update(v => !v);
+  }
+
+  toggleDropdown(): void {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  closeDropdown(): void {
+    this.showDropdown = false;
+  }
+
+  openChangePasswordModal(): void {
+    this.showDropdown = false;
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal = false;
   }
 
   logout(): void {

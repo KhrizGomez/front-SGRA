@@ -2,11 +2,12 @@ import { Component, computed, HostListener, inject, OnInit, signal } from '@angu
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth/auth.service';
+import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-coord-layout',
   standalone: true,
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, ChangePasswordModalComponent],
   templateUrl: './coord-layout.component.html',
   styleUrls: ['./coord-layout.component.css']
 })
@@ -15,6 +16,8 @@ export class CoordLayoutComponent implements OnInit {
 
   isSidebarCollapsed = signal(false);
   isMobile = signal(false);
+  showChangePasswordModal = false;
+  showDropdown = false;
   userName = signal('Coordinador');
   userRoleLabel = signal('Coordinador');
 
@@ -75,6 +78,23 @@ export class CoordLayoutComponent implements OnInit {
     if (this.isMobile()) {
       this.isSidebarCollapsed.set(true);
     }
+  }
+
+  toggleDropdown(): void {
+    this.showDropdown = !this.showDropdown;
+  }
+
+  closeDropdown(): void {
+    this.showDropdown = false;
+  }
+
+  openChangePasswordModal(): void {
+    this.showDropdown = false;
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal = false;
   }
 
   logout(): void {

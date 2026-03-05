@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth.service';
+import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
 
 @Component({
   selector: 'app-teacher-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
   templateUrl: './teacher-layout.component.html',
   styleUrl: './teacher-layout.component.css',
 })
@@ -14,6 +15,7 @@ export class TeacherLayoutComponent {
   public authService = inject(AuthService);
 
   showDropdown = false;
+  showChangePasswordModal = false;
 
   get userName(): string {
     const user = this.authService.currentUser();
@@ -36,6 +38,15 @@ export class TeacherLayoutComponent {
 
   closeDropdown(): void {
     this.showDropdown = false;
+  }
+
+  openChangePasswordModal(): void {
+    this.showDropdown = false;
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal = false;
   }
 
   logout(): void {
