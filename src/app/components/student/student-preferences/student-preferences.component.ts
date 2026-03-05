@@ -7,6 +7,7 @@ import {
   StudentPreferenceDTO,
   StudentPreferenceUpsertRequestDTO
 } from '../../../services/student/student-preferences.service';
+import { ToastService } from '../../../services/shared/toast.service';
 
 @Component({
   selector: 'app-student-preferences',
@@ -18,13 +19,12 @@ import {
 export class StudentPreferencesComponent implements AfterViewInit {
   private svc = inject(StudentPreferencesService);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   // State
   loading = true;
   saving = false;
   isNewUser = false;
-  errorMessage: string | null = null;
-  successMessage: string | null = null;
 
   // Data
   channels: NotificationChannelDTO[] = [];
@@ -44,7 +44,6 @@ export class StudentPreferencesComponent implements AfterViewInit {
 
   loadData(): void {
     this.loading = true;
-    this.errorMessage = null;
 
     // Load channels and current preference in parallel
     Promise.all([
@@ -73,7 +72,7 @@ export class StudentPreferencesComponent implements AfterViewInit {
       this.loading = false;
       this.cdr.detectChanges();
     }).catch(err => {
-      this.errorMessage = err?.message || 'Error al cargar datos';
+      this.toast.show(false, err?.message || 'Error al cargar datos');
       this.loading = false;
       this.cdr.detectChanges();
     });
@@ -91,25 +90,21 @@ export class StudentPreferencesComponent implements AfterViewInit {
       this.form.channelId = this.channels[0].channelId;
       this.form.reminderAnticipation = 30;
     }
-    this.successMessage = null;
-    this.errorMessage = null;
   }
 
   onSave(): void {
     if (!this.form.channelId || this.form.reminderAnticipation < 0) {
-      this.errorMessage = 'Por favor completa todos los campos correctamente';
+      this.toast.show(false, 'Por favor completa todos los campos correctamente');
       return;
     }
 
     this.saving = true;
-    this.errorMessage = null;
-    this.successMessage = null;
 
     this.svc.saveMyPreference(this.form).subscribe({
       next: (response) => {
         this.saving = false;
         this.isNewUser = false;
-        this.successMessage = response.message || 'Preferencias guardadas exitosamente';
+        this.toast.show(true, response.message || 'Preferencias guardadas exitosamente');
 
         // Update current preference to reflect saved values
         const selectedChannel = this.channels.find(c => c.channelId === this.form.channelId);
@@ -122,16 +117,10 @@ export class StudentPreferencesComponent implements AfterViewInit {
         };
 
         this.cdr.detectChanges();
-
-        // Auto-hide success message after 5 seconds
-        setTimeout(() => {
-          this.successMessage = null;
-          this.cdr.detectChanges();
-        }, 5000);
       },
       error: (err) => {
         this.saving = false;
-        this.errorMessage = err?.message || 'Error al guardar preferencias';
+        this.toast.show(false, err?.message || 'Error al guardar preferencias');
         this.cdr.detectChanges();
       }
     });

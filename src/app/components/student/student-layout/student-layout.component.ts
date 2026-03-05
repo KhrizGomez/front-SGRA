@@ -3,11 +3,12 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
+import { ToastComponent } from '../../shared/toast/toast.component';
 
 @Component({
   selector: 'app-student-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent, ToastComponent],
   templateUrl: './student-layout.component.html',
   styleUrls: ['./student-layout.component.css']
 })
