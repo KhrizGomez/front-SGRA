@@ -11,8 +11,6 @@ import {
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 import {
   ChartTypeKey,
@@ -26,7 +24,6 @@ import {
   CoordReportService,
   REPORT_CONFIGS,
 } from '../../../services/coordination/coord-report/coord-report.service';
-import { CoordDashboardService } from '../../../services/coordination/coord-dashboard/coord-dashboard.service';
 
 Chart.register(...registerables);
 
@@ -41,7 +38,6 @@ export class CoordReportsComponent implements OnDestroy {
   @ViewChild('chartCanvas') chartCanvasRef!: ElementRef<HTMLCanvasElement>;
 
   private readonly reportService = inject(CoordReportService);
-  private readonly dashboardService = inject(CoordDashboardService);
   private chartInstance: Chart | null = null;
 
   // ── Estado de configuración ──────────────────────────────────────────
