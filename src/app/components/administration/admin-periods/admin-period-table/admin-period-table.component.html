@@ -1,0 +1,46 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th scope="col" class="py-3">Periodo</th>
+        <th scope="col" class="py-3">Fecha Inicio</th>
+        <th scope="col" class="py-3">Fecha Fin</th>
+        <th scope="col" class="py-3">Estado</th>
+        <th scope="col" class="py-3 text-end">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (period of periods; track period.idperiodo) {
+        <tr>
+          <td class="fw-medium">{{ period.periodo }}</td>
+          <td class="text-muted small">{{ period.fechainicio | date:'dd/MM/yyyy' }}</td>
+          <td class="text-muted small">{{ period.fechafin | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <span class="badge rounded-pill"
+                  [ngClass]="{
+                    'bg-success-subtle text-success': period.estado,
+                    'bg-danger-subtle text-danger': !period.estado
+                  }">
+              {{ period.estado ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-success" title="Editar"
+                    (click)="onEditClick(period)" aria-label="Editar periodo">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </td>
+        </tr>
+      } @empty {
+        @if (!isLoading) {
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-calendar-x fs-1 d-block mb-2 opacity-50"></i>
+              No hay periodos registrados.
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>

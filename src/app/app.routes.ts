@@ -48,7 +48,7 @@ export const routes: Routes = [
         loadComponent: () => import('./components/administration/admin-role-management/admin-role-management.component').then(m => m.AdminRoleManagementComponent)
       },
       {
-        path: 'email-config',
+        path: 'config',
         loadComponent: () => import('./components/administration/admin-email-config/admin-email-config.component').then(m => m.AdminEmailConfigComponent)
       },
       {

@@ -1,53 +1,126 @@
-<section class="container-fluid" aria-label="Configuración de correo electrónico">
+<div class="container-fluid">
 
-  <!-- Encabezado -->
-  <header class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
-      <h3 class="mb-1">Configuración de Correo</h3>
-      <p class="text-muted mb-0">Administra los correos electrónicos y sus contraseñas de aplicación.</p>
+      <h3 class="mb-1">Configuración</h3>
+      <p class="text-muted mb-0">Administra la configuración de correo electrónico y periodos académicos.</p>
     </div>
-    <button type="button" class="btn btn-success d-flex align-items-center gap-2"
-            (click)="prepareCreate()">
-      <i class="bi bi-plus-lg"></i> Nuevo Correo
-    </button>
-  </header>
+  </div>
 
-  <!-- Filtros -->
-  <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtros de búsqueda">
-    <div class="card-body">
-      <div class="row g-2 align-items-end">
-        <div class="col-12 col-md-8">
-          <label for="emailSearchInput" class="form-label mb-1">Buscar</label>
-          <input type="text" class="form-control" id="emailSearchInput"
-                 placeholder="Buscar por correo..." [formControl]="searchControl">
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="configTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="email-tab" data-bs-toggle="pill"
+              data-bs-target="#email-config" type="button" role="tab"
+              aria-controls="email-config" aria-selected="true">
+        <i class="bi bi-envelope-at me-2"></i>Correo
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="periods-tab" data-bs-toggle="pill"
+              data-bs-target="#periods-config" type="button" role="tab"
+              aria-controls="periods-config" aria-selected="false">
+        <i class="bi bi-calendar-range me-2"></i>Periodos
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="configTabContent">
+
+    <!-- Tab: Correo -->
+    <div class="tab-pane fade show active" id="email-config" role="tabpanel" aria-labelledby="email-tab">
+
+      <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-success d-flex align-items-center gap-2"
+                (click)="prepareCreate()">
+          <i class="bi bi-plus-lg"></i> Nuevo Correo
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtros de búsqueda">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-8">
+              <label for="emailSearchInput" class="form-label mb-1">Buscar</label>
+              <input type="text" class="form-control" id="emailSearchInput"
+                    placeholder="Buscar por correo..." [formControl]="searchControl">
+            </div>
+            <div class="col-12 col-md-4">
+              <label for="emailStatusFilter" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="emailStatusFilter" [formControl]="statusControl">
+                <option value="">Todos</option>
+                <option value="true">Activos</option>
+                <option value="false">Inactivos</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="col-12 col-md-4">
-          <label for="emailStatusFilter" class="form-label mb-1">Estado</label>
-          <select class="form-select" id="emailStatusFilter" [formControl]="statusControl">
-            <option value="">Todos</option>
-            <option value="true">Activos</option>
-            <option value="false">Inactivos</option>
-          </select>
+      </div>
+
+      <!-- Tabla -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <app-admin-email-config-table
+            [emailConfigs]="emailConfigs"
+            [isLoading]="isLoadingEmail"
+            (editEmailConfig)="prepareEdit($event)">
+          </app-admin-email-config-table>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Tabla -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-body">
-      <app-admin-email-config-table
-        [emailConfigs]="emailConfigs"
-        [isLoading]="isLoading"
-        (editEmailConfig)="prepareEdit($event)">
-      </app-admin-email-config-table>
+    <!-- Tab: Periodos -->
+    <div class="tab-pane fade" id="periods-config" role="tabpanel" aria-labelledby="periods-tab">
+
+      <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-success d-flex align-items-center gap-2"
+                (click)="prepareCreatePeriod()">
+          <i class="bi bi-plus-lg"></i> Nuevo Periodo
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-8">
+              <label class="form-label mb-1">Buscar</label>
+              <input type="text" class="form-control"
+                    placeholder="Buscar por periodo..." [formControl]="searchPeriodControl">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label mb-1">Estado</label>
+              <select class="form-select" [formControl]="statusPeriodControl">
+                <option value="">Todos</option>
+                <option value="true">Activos</option>
+                <option value="false">Inactivos</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <app-admin-period-table [periods]="periods" [isLoading]="isLoadingPeriods"
+            (editPeriod)="prepareEditPeriod($event)"></app-admin-period-table>
+        </div>
+      </div>
     </div>
+
   </div>
+</div>
 
-  <!-- Modal -->
-  <app-admin-email-config-modal
-    [configIdToEdit]="selectedConfigId"
-    (emailConfigSaved)="loadEmailConfigs()">
-  </app-admin-email-config-modal>
+<!-- Modal Correo -->
+<app-admin-email-config-modal
+  [configIdToEdit]="selectedConfigId"
+  (emailConfigSaved)="loadEmailConfigs()">
+</app-admin-email-config-modal>
 
-</section>
+<!-- Modal Periodos -->
+<app-admin-period-create-modal
+  (periodSaved)="loadPeriods()"
+  [periodToEdit]="selectedPeriodToEdit">
+</app-admin-period-create-modal>
