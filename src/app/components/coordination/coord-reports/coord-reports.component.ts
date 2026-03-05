@@ -111,40 +111,26 @@ export class CoordReportsComponent implements OnDestroy {
   }
   // ── Carga de datos del servidor ────────────────────────────────
   loadPreview(): void {
-    // BY_SUBJECT: usa GET /api/coordination/dashboard que ya funciona
-    if (this.selectedTypeKey() === 'BY_SUBJECT') {
-      this.isLoadingPreview.set(true);
-      this.previewError.set('');
-      this.dashboardService.getDashboard().subscribe({
-        next: data => {
-          if (data?.solicitudesPorMateria?.length) {
-            this.serverRows.set(
-              data.solicitudesPorMateria.map(m => ({
-                asignatura:   m.asignatura,
-                totalMateria: m.totalMateria,
-                pendientes:   m.pendientes,
-                gestionadas:  m.gestionadas,
-              }))
-            );
-          } else {
-            this.serverRows.set([]);
-          }
-          this.isLoadingPreview.set(false);
-          setTimeout(() => this.renderChart(), 60);
-        },
-        error: () => {
-          this.serverRows.set([]);
-          this.isLoadingPreview.set(false);
-          setTimeout(() => this.renderChart(), 60);
-        },
-      });
-    } else {
-      // Otros tipos: sin endpoint aún, usa datos de muestra
-      this.serverRows.set([]);
-      this.isLoadingPreview.set(false);
-      this.previewError.set('');
-      setTimeout(() => this.renderChart(), 60);
-    }
+    this.isLoadingPreview.set(true);
+    this.previewError.set('');
+
+    this.reportService.getReportPreview({
+      type: this.selectedTypeKey(),
+      dateFrom: this.dateFrom() || undefined,
+      dateTo:   this.dateTo()   || undefined,
+    }).subscribe({
+      next: rows => {
+        this.serverRows.set(rows?.length ? rows : []);
+        this.isLoadingPreview.set(false);
+        setTimeout(() => this.renderChart(), 60);
+      },
+      error: () => {
+        // Si el servidor falla, caemos en los datos de muestra locales
+        this.serverRows.set([]);
+        this.isLoadingPreview.set(false);
+        setTimeout(() => this.renderChart(), 60);
+      },
+    });
   }
   // ── Selección de tipo de reporte ─────────────────────────────────────────
   selectType(key: ReportTypeKey): void {
@@ -275,55 +261,32 @@ export class CoordReportsComponent implements OnDestroy {
   }
 
   exportPDF(): void {
-    if (this.isDownloading()) return;
     this.isDownloading.set(true);
     this.downloadFormat.set('PDF');
     this.downloadError.set('');
-
-    const cfg = this.activeConfig();
-    const doc = new jsPDF();
-    let y = 20;
-
-    doc.setFontSize(18);
-    doc.setTextColor(27, 117, 5);
-    doc.text(`Reporte – ${cfg.label}`, 14, y);
-    y += 8;
-
-    doc.setFontSize(10);
-    doc.setTextColor(108, 117, 125);
-    const today = new Date();
-    const dateStr = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
-    doc.text(`Generado el ${dateStr}`, 14, y);
-    y += 10;
-
-    doc.setDrawColor(27, 117, 5);
-    doc.setLineWidth(0.5);
-    doc.line(14, y, 196, y);
-    y += 10;
-
-    const cols = this.visibleColumns();
-    const headers = cols.map(c => c.label);
-    const rows = this.previewRows().map(row => cols.map(c => String(row[c.key] ?? '')));
-
-    autoTable(doc, {
-      startY: y,
-      head: [headers],
-      body: rows,
-      theme: 'grid',
-      headStyles: { fillColor: [27, 117, 5], textColor: 255, fontStyle: 'bold' },
-      styles: { fontSize: 10, cellPadding: 4 },
-      alternateRowStyles: { fillColor: [245, 250, 245] },
-    });
-
-    if (cfg.hasGenderBreakdown) {
-      const finalY = (doc as any).lastAutoTable.finalY + 8;
-      doc.setFontSize(9);
-      doc.setTextColor(108, 117, 125);
-      doc.text('* El reporte incluye desglose por género (Masculino / Femenino).', 14, finalY);
-    }
-
-    doc.save(`reporte-${cfg.key.toLowerCase()}.pdf`);
-    this.isDownloading.set(false);
+    this.reportService
+      .downloadReport({
+        type: this.selectedTypeKey(),
+        format: 'PDF',
+        dateFrom: this.dateFrom() || undefined,
+        dateTo: this.dateTo() || undefined,
+        columns: this.selectedColumnKeys(),
+      })
+      .subscribe({
+        next: blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `reporte-${this.selectedTypeKey().toLowerCase()}.pdf`;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.isDownloading.set(false);
+        },
+        error: () => {
+          this.isDownloading.set(false);
+          this.downloadError.set('No se pudo generar el PDF. Intente de nuevo.');
+        },
+      });
   }
 
   exportExcel(): void {

@@ -3,8 +3,8 @@ export type ReportTypeKey =
   | 'BY_SUBJECT'
   | 'BY_TEACHER'
   | 'BY_PARALLEL'
-  | 'BY_GRADE'
-  | 'BY_STUDENT_REQUESTS';
+  | 'BY_GRADE';
+  // | 'BY_STUDENT_REQUESTS'; // comentado temporalmente
 
 export type ChartTypeKey = 'BAR' | 'PIE' | 'DOUGHNUT' | 'LINE';
 export type ReportFormat = 'PDF' | 'EXCEL';
