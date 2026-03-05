@@ -31,7 +31,7 @@ export class StudentDashboardComponent implements AfterViewInit {
     { key: 'pending',          title: 'Pendientes',          subtitle: 'Esperando aprobación',        icon: 'bi-hourglass',      colorClass: 'bg-pending' },
     { key: 'accepted',         title: 'Aceptadas',           subtitle: 'Solicitudes aprobadas',       icon: 'bi-check2',         colorClass: 'bg-accepted' },
     { key: 'upcoming',         title: 'Próximas',            subtitle: 'Sesiones programadas',        icon: 'bi-calendar-event', colorClass: 'bg-upcoming' },
-    { key: 'completed',        title: 'Realizadas',          subtitle: 'Sesiones completadas',        icon: 'bi-flag',           colorClass: 'bg-finished' },
+    { key: 'completed',        title: 'Completadas',          subtitle: 'Sesiones completadas',        icon: 'bi-flag',           colorClass: 'bg-finished' },
     { key: 'cancelled',        title: 'Canceladas',          subtitle: 'Solicitudes canceladas',      icon: 'bi-x-circle',       colorClass: 'bg-cancelled' },
     { key: 'groupInvitations', title: 'Tutorías Grupales',   subtitle: 'Invitaciones pendientes',     icon: 'bi-people-fill',    colorClass: 'bg-invitation' },
   ];

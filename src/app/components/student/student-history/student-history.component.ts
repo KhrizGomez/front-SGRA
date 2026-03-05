@@ -130,7 +130,7 @@ export class StudentHistoryComponent implements AfterViewInit {
       case 2: return 'bg-success';            // Aceptada
       case 3: return 'bg-danger';             // Rechazada
       case 4: return 'bg-secondary';          // Cancelada
-      case 5: return 'bg-dark';               // Finalizada
+      case 5: return 'bg-dark';               // Completada
       default: return 'bg-light text-dark';
     }
   }
