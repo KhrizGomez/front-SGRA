@@ -3,11 +3,14 @@ import { CommonModule } from '@angular/common';
 import { InPersonReinforcement } from '../../../models/workAreaManager/work-area-manager-in-person-requests';
 import { WamInPersonRequestsService } from '../../../services/workAreaManager/work-area-manager-in-person-requests/wam-in-person-requests.service';
 import { AuthService } from '../../../services/auth/auth.service';
+import { WorkAreaAssignModalComponent } from './work-area-assign-modal/work-area-assign-modal.component';
+
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-work-area-manager-management-of-in-person-requests',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, WorkAreaAssignModalComponent],
   templateUrl: './work-area-manager-management-of-in-person-requests.component.html',
   styleUrl: './work-area-manager-management-of-in-person-requests.component.css',
 })
@@ -19,6 +22,9 @@ export class WorkAreaManagerManagementOfInPersonRequestsComponent implements OnI
   reinforcements: InPersonReinforcement[] = [];
   isLoading = true;
   errorMessage: string | null = null;
+
+  selectedReinforcementId: number | null = null;
+  selectedTipoAreaTrabajo: number | null = null;
 
   ngOnInit(): void {
     this.loadReinforcements();
@@ -49,5 +55,20 @@ export class WorkAreaManagerManagementOfInPersonRequestsComponent implements OnI
 
   getSessionBadgeClass(tipo: string): string {
     return tipo === 'Grupal' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info';
+  }
+
+  openAssignModal(item: InPersonReinforcement): void {
+    this.selectedReinforcementId = item.pidrefuerzopresencial;
+    this.selectedTipoAreaTrabajo = item.pidtipoareatrabajo;
+    this.cdr.detectChanges();
+
+    const modalEl = document.getElementById('assignWorkAreaModal');
+    if (modalEl) {
+      new bootstrap.Modal(modalEl).show();
+    }
+  }
+
+  onWorkAreaAssigned(): void {
+    this.loadReinforcements();
   }
 }
