@@ -55,14 +55,14 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   };
 
   // ✅ Estados reales de tu BD:
-  // 1 Pendiente, 2 Aceptada, 3 Rechazada, 4 Cancelada, 5 Finalizada
+  // 1 Pendiente, 2 Aceptada, 3 Rechazada, 4 Cancelada, 5 Completada
   statusOptions: Option[] = [
     { value: null, label: 'Todos' },
     { value: 1, label: 'Pendiente' },
     { value: 2, label: 'Aceptada' },
     { value: 3, label: 'Rechazada' },
     { value: 4, label: 'Cancelada' },
-    { value: 5, label: 'Finalizada' },
+    { value: 5, label: 'Completada' },
   ];
 
   sessionTypeOptions: Option[] = [
@@ -80,7 +80,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
     { label: 'Pendientes', value: 0 },
     { label: 'Aceptadas', value: 0 },
     { label: 'Canceladas', value: 0 },
-    { label: 'Finalizadas', value: 0 },
+    { label: 'Completadas', value: 0 },
   ];
 
   ngAfterViewInit(): void {
@@ -191,7 +191,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
           { label: 'Pendientes',  value: map.get(1) ?? 0 },
           { label: 'Aceptadas',   value: map.get(2) ?? 0 },
           { label: 'Canceladas',  value: map.get(4) ?? 0 },
-          { label: 'Finalizadas', value: map.get(5) ?? 0 },
+          { label: 'Completadas', value: map.get(5) ?? 0 },
         ];
 
         this.cdr.detectChanges();
