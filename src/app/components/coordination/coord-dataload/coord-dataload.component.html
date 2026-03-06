@@ -86,22 +86,47 @@
       </button>
 
       <!-- Indicador de validación en progreso -->
-      <div *ngIf="isValidating" class="alert alert-info d-flex align-items-center mt-3 mb-0" role="alert">
-        <div class="spinner-border spinner-border-sm text-info me-2" role="status">
+      <div *ngIf="isValidating" class="d-flex align-items-center gap-2 mt-3 p-3 rounded-3" style="background: #cff4fc;">
+        <div class="spinner-border spinner-border-sm text-info" role="status">
           <span class="visually-hidden">Validando...</span>
         </div>
-        <span>Validando archivo con IA...</span>
+        <span class="text-dark small fw-medium">Analizando el archivo con inteligencia artificial...</span>
       </div>
 
       <!-- Mensaje de estado de validación (solo se muestra si hay resultado y no está cargando) -->
       <div *ngIf="aiValidationResult && !isLoading && !isValidating" class="mt-3">
+        <!-- PROCEED: todo bien -->
         <div *ngIf="aiValidationResult.recommendedAction === 'PROCEED'"
-             class="alert alert-success d-flex align-items-center mb-0" role="alert">
-          <i class="bi bi-check-circle-fill me-2"></i>
-          <div>
-            <strong>✅ Validación exitosa.</strong> {{ aiValidationResult.summary }}
-            <span *ngIf="aiValidationResult.aiValidated" class="badge bg-primary ms-2">IA</span>
+             class="d-flex align-items-center gap-2 p-3 rounded-3" style="background: #d1e7dd;">
+          <i class="bi bi-check-circle-fill text-success"></i>
+          <div class="flex-grow-1">
+            <span class="text-dark small fw-medium">{{ aiValidationResult.summary }}</span>
+            <span *ngIf="aiValidationResult.aiValidated" class="badge ms-2" style="background: #1B7505; color: white; font-size: 0.65rem;">
+              <i class="bi bi-stars me-1"></i>IA
+            </span>
           </div>
+        </div>
+        <!-- REVIEW: tiene warnings -->
+        <div *ngIf="aiValidationResult.recommendedAction === 'REVIEW'"
+             class="d-flex align-items-center gap-2 p-3 rounded-3" style="background: #fff3cd;">
+          <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+          <div class="flex-grow-1">
+            <span class="text-dark small fw-medium">{{ aiValidationResult.summary }}</span>
+          </div>
+          <button class="btn btn-sm btn-outline-dark rounded-pill px-3" (click)="showValidationDetails()">
+            <i class="bi bi-eye me-1"></i>Ver detalles
+          </button>
+        </div>
+        <!-- REJECT: tiene errores críticos -->
+        <div *ngIf="aiValidationResult.recommendedAction === 'REJECT'"
+             class="d-flex align-items-center gap-2 p-3 rounded-3" style="background: #f8d7da;">
+          <i class="bi bi-x-circle-fill text-danger"></i>
+          <div class="flex-grow-1">
+            <span class="text-dark small fw-medium">{{ aiValidationResult.summary }}</span>
+          </div>
+          <button class="btn btn-sm btn-outline-danger rounded-pill px-3" (click)="showValidationDetails()">
+            <i class="bi bi-eye me-1"></i>Ver errores
+          </button>
         </div>
       </div>
     </div>
@@ -263,113 +288,153 @@
 <div *ngIf="showValidationModal && aiValidationResult"
      class="modal fade show d-block"
      tabindex="-1"
-     style="background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1050;">
-  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-header"
-           [class.bg-success]="aiValidationResult.recommendedAction === 'PROCEED'"
-           [class.bg-warning]="aiValidationResult.recommendedAction === 'REVIEW'"
-           [class.bg-danger]="aiValidationResult.recommendedAction === 'REJECT'"
-           [class.text-white]="aiValidationResult.recommendedAction !== 'REVIEW'">
-        <h5 class="modal-title d-flex align-items-center gap-2">
+     style="background: rgba(0,0,0,0.4); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1050;">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+    <div class="modal-content border-0 rounded-4 shadow overflow-hidden">
+
+      <!-- Header -->
+      <div class="modal-header border-0 py-3 px-4"
+           [style.background]="aiValidationResult.recommendedAction === 'PROCEED' ? '#1B7505' :
+                               aiValidationResult.recommendedAction === 'REVIEW' ? '#e8a317' : '#dc3545'"
+           style="color: white;">
+        <h5 class="modal-title d-flex align-items-center gap-2 mb-0 fw-bold">
           <i class="bi"
              [class.bi-check-circle-fill]="aiValidationResult.recommendedAction === 'PROCEED'"
              [class.bi-exclamation-triangle-fill]="aiValidationResult.recommendedAction === 'REVIEW'"
              [class.bi-x-circle-fill]="aiValidationResult.recommendedAction === 'REJECT'"></i>
           Resultado de Validación
-          <span *ngIf="aiValidationResult.aiValidated" class="badge bg-light text-primary small">Validado por IA</span>
-          <span *ngIf="!aiValidationResult.aiValidated" class="badge bg-light text-secondary small">Validación Local</span>
         </h5>
-        <button type="button" class="btn-close"
-                [class.btn-close-white]="aiValidationResult.recommendedAction !== 'REVIEW'"
-                (click)="closeValidationModal()"></button>
+        <div class="d-flex align-items-center gap-2">
+          <span *ngIf="aiValidationResult.aiValidated" class="badge bg-white bg-opacity-25 text-white small">
+            <i class="bi bi-stars me-1"></i>Validado por IA
+          </span>
+          <span *ngIf="!aiValidationResult.aiValidated" class="badge bg-white bg-opacity-25 text-white small">
+            <i class="bi bi-shield-check me-1"></i>Validación local
+          </span>
+          <button type="button" class="btn-close btn-close-white ms-2" (click)="closeValidationModal()"></button>
+        </div>
       </div>
-      <div class="modal-body">
+
+      <div class="modal-body px-4 py-4" style="max-height: 65vh; overflow-y: auto;">
+
         <!-- Resumen -->
-        <div class="alert"
-             [class.alert-success]="aiValidationResult.recommendedAction === 'PROCEED'"
-             [class.alert-warning]="aiValidationResult.recommendedAction === 'REVIEW'"
-             [class.alert-danger]="aiValidationResult.recommendedAction === 'REJECT'">
-          <p class="mb-1"><strong>Resumen:</strong> {{ aiValidationResult.summary }}</p>
-          <small class="text-muted" *ngIf="aiValidationResult.validationTimeMs">
-            Tiempo de validación: {{ aiValidationResult.validationTimeMs }}ms
-          </small>
-        </div>
-
-        <!-- Estadísticas de issues -->
-        <div class="d-flex gap-3 mb-4" *ngIf="aiValidationResult.issues && aiValidationResult.issues.length > 0">
-          <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
-            <i class="bi bi-x-circle me-1"></i>{{ getIssueCount('ERROR') }} Errores
-          </span>
-          <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">
-            <i class="bi bi-exclamation-triangle me-1"></i>{{ getIssueCount('WARNING') }} Advertencias
-          </span>
-          <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2">
-            <i class="bi bi-info-circle me-1"></i>{{ getIssueCount('INFO') }} Sugerencias
-          </span>
-        </div>
-
-        <!-- Lista de Issues -->
-        <div *ngIf="aiValidationResult.issues && aiValidationResult.issues.length > 0" class="issues-list">
-          <h6 class="fw-bold text-muted mb-3">
-            <i class="bi bi-list-check me-2"></i>Problemas Detectados ({{ aiValidationResult.issues.length }})
-          </h6>
-
-          <div class="accordion" id="issuesAccordion">
-            <div *ngFor="let issue of aiValidationResult.issues; let i = index"
-                 class="accordion-item border-0 mb-2 rounded overflow-hidden"
-                 [class.border-start]="true"
-                 [class.border-danger]="issue.severity === 'ERROR'"
-                 [class.border-warning]="issue.severity === 'WARNING'"
-                 [class.border-info]="issue.severity === 'INFO'"
-                 style="border-left-width: 4px !important;">
-              <h2 class="accordion-header">
-                <button class="accordion-button collapsed py-2 bg-light"
-                        type="button"
-                        [attr.data-bs-toggle]="'collapse'"
-                        [attr.data-bs-target]="'#issue' + i">
-                  <span class="badge me-2"
-                        [class.bg-danger]="issue.severity === 'ERROR'"
-                        [class.bg-warning]="issue.severity === 'WARNING'"
-                        [class.bg-info]="issue.severity === 'INFO'">
-                    {{ issue.severity }}
-                  </span>
-                  <span class="badge bg-secondary me-2">Fila {{ issue.row }}</span>
-                  <span class="badge bg-light text-dark me-2">{{ issue.field }}</span>
-                  <span class="text-truncate small">{{ issue.message }}</span>
-                </button>
-              </h2>
-              <div [id]="'issue' + i" class="accordion-collapse collapse" data-bs-parent="#issuesAccordion">
-                <div class="accordion-body small bg-white">
-                  <p class="mb-2"><strong>Problema:</strong> {{ issue.message }}</p>
-                  <p *ngIf="issue.suggestion" class="mb-1 text-success">
-                    <i class="bi bi-lightbulb me-1"></i><strong>Sugerencia:</strong> {{ issue.suggestion }}
-                  </p>
-                  <p class="mb-0 text-muted small">
-                    <i class="bi bi-geo-alt me-1"></i>Ubicación: Fila {{ issue.row }}, Campo "{{ issue.field }}"
-                  </p>
-                </div>
-              </div>
+        <div class="rounded-3 p-3 mb-4"
+             [style.background]="aiValidationResult.recommendedAction === 'PROCEED' ? '#d1e7dd' :
+                                 aiValidationResult.recommendedAction === 'REVIEW' ? '#fff3cd' : '#f8d7da'">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi fs-5 mt-1"
+               [class.bi-check-circle-fill]="aiValidationResult.recommendedAction === 'PROCEED'"
+               [class.text-success]="aiValidationResult.recommendedAction === 'PROCEED'"
+               [class.bi-exclamation-triangle-fill]="aiValidationResult.recommendedAction === 'REVIEW'"
+               [class.text-warning]="aiValidationResult.recommendedAction === 'REVIEW'"
+               [class.bi-x-circle-fill]="aiValidationResult.recommendedAction === 'REJECT'"
+               [class.text-danger]="aiValidationResult.recommendedAction === 'REJECT'"></i>
+            <div>
+              <p class="mb-1 fw-semibold text-dark">{{ aiValidationResult.summary }}</p>
+              <small class="text-muted" *ngIf="aiValidationResult.validationTimeMs">
+                Análisis completado en {{ aiValidationResult.validationTimeMs }}ms
+              </small>
             </div>
           </div>
         </div>
 
+        <!-- Estadísticas de issues -->
+        <div class="d-flex gap-2 mb-4 flex-wrap" *ngIf="aiValidationResult.issues && aiValidationResult.issues.length > 0">
+          <span class="badge rounded-pill px-3 py-2" style="background: #f8d7da; color: #842029;">
+            <i class="bi bi-x-circle me-1"></i>{{ getIssueCount('ERROR') }} Errores
+          </span>
+          <span class="badge rounded-pill px-3 py-2" style="background: #fff3cd; color: #664d03;">
+            <i class="bi bi-exclamation-triangle me-1"></i>{{ getIssueCount('WARNING') }} Advertencias
+          </span>
+          <span class="badge rounded-pill px-3 py-2" style="background: #cff4fc; color: #055160;">
+            <i class="bi bi-info-circle me-1"></i>{{ getIssueCount('INFO') }} Sugerencias
+          </span>
+          <span class="badge rounded-pill px-3 py-2 bg-light text-muted ms-auto">
+            <i class="bi bi-list-ol me-1"></i>{{ aiValidationResult.issues.length }} total
+          </span>
+        </div>
+
+        <!-- Tabla de Issues -->
+        <div *ngIf="aiValidationResult.issues && aiValidationResult.issues.length > 0">
+          <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-clipboard2-pulse text-muted"></i> Detalle de observaciones
+          </h6>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.875rem;">
+              <thead class="bg-transparent text-secondary small text-uppercase">
+                <tr>
+                  <th scope="col" class="py-2 border-bottom border-2 text-center" style="width: 50px;">Tipo</th>
+                  <th scope="col" class="py-2 border-bottom border-2 text-center" style="width: 65px;">Fila</th>
+                  <th scope="col" class="py-2 border-bottom border-2" style="width: 120px;">Campo</th>
+                  <th scope="col" class="py-2 border-bottom border-2">Problema</th>
+                  <th scope="col" class="py-2 border-bottom border-2" style="width: 30%;">Sugerencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let issue of aiValidationResult.issues"
+                    [class.table-danger]="issue.severity === 'ERROR'"
+                    [class.table-warning]="issue.severity === 'WARNING'">
+                  <td class="text-center">
+                    <span class="badge rounded-pill"
+                          [class.bg-danger]="issue.severity === 'ERROR'"
+                          [class.bg-warning]="issue.severity === 'WARNING'"
+                          [class.text-dark]="issue.severity === 'WARNING'"
+                          [class.bg-info]="issue.severity === 'INFO'"
+                          style="font-size: 0.7rem;">
+                      <i class="bi"
+                         [class.bi-x-circle-fill]="issue.severity === 'ERROR'"
+                         [class.bi-exclamation-triangle-fill]="issue.severity === 'WARNING'"
+                         [class.bi-info-circle-fill]="issue.severity === 'INFO'"></i>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-light text-dark border fw-semibold">{{ issue.row }}</span>
+                  </td>
+                  <td>
+                    <code class="text-dark bg-light px-2 py-1 rounded small">{{ issue.field }}</code>
+                  </td>
+                  <td class="text-dark">{{ issue.message }}</td>
+                  <td>
+                    <span *ngIf="issue.suggestion" class="text-muted small">
+                      <i class="bi bi-lightbulb text-success me-1"></i>{{ issue.suggestion }}
+                    </span>
+                    <span *ngIf="!issue.suggestion" class="text-muted small fst-italic">—</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Sin Issues -->
-        <div *ngIf="!aiValidationResult.issues || aiValidationResult.issues.length === 0" class="text-center py-4">
-          <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
-          <h5 class="text-success mt-3">¡Todo en orden!</h5>
-          <p class="text-muted">No se detectaron problemas en el archivo. Puede proceder con la carga.</p>
+        <div *ngIf="!aiValidationResult.issues || aiValidationResult.issues.length === 0" class="text-center py-5">
+          <i class="bi bi-check-circle text-success" style="font-size: 3.5rem;"></i>
+          <h5 class="fw-bold mt-3" style="color: #1B7505;">¡Todo en orden!</h5>
+          <p class="text-muted mb-0">No se detectaron problemas en el archivo. Puede proceder con la carga.</p>
         </div>
       </div>
-      <div class="modal-footer bg-light">
-        <button type="button" class="btn btn-secondary" (click)="closeValidationModal()">Cerrar</button>
-        <button *ngIf="aiValidationResult.recommendedAction !== 'REJECT'"
+
+      <!-- Footer -->
+      <div class="modal-footer border-0 bg-light px-4 py-3">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" (click)="closeValidationModal()">
+          Cerrar
+        </button>
+        <button *ngIf="aiValidationResult.recommendedAction === 'REVIEW'"
                 type="button"
-                class="btn btn-success"
+                class="btn rounded-pill px-4 fw-semibold"
+                style="background: #e8a317; color: white;"
+                (click)="proceedAfterValidation()">
+          <i class="bi bi-exclamation-triangle me-1"></i>Continuar de todos modos
+        </button>
+        <button *ngIf="aiValidationResult.recommendedAction === 'PROCEED'"
+                type="button"
+                class="btn btn-success rounded-pill px-4 fw-semibold"
                 (click)="proceedAfterValidation()">
           <i class="bi bi-cloud-arrow-up me-1"></i>Proceder con la carga
         </button>
       </div>
+
     </div>
   </div>
 </div>

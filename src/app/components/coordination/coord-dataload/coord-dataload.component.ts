@@ -134,15 +134,7 @@ export class CoordDataloadComponent implements OnDestroy {
 
     uploadObservable.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: string[]) => {
-        this.uploadResults = response.map((msg) => ({
-          tipo: this.selectedOption.label as any,
-          status: msg.toLowerCase().includes('error') ? 'error' : 'success',
-          message: msg,
-          timestamp: new Date(),
-        }));
-        this.updateCounters();
-        this.currentPage = 1;
-        this.filterResults();
+        this.processUploadReport(response, this.selectedOption.label);
         this.isLoading = false;
         this.selectedFile = null;
         this.resetValidationState();
@@ -151,12 +143,13 @@ export class CoordDataloadComponent implements OnDestroy {
         }
         this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err: any) => {
+        console.error('Error en la carga:', err);
         this.uploadResults = [
           {
             tipo: this.selectedOption.label as any,
             status: 'error' as const,
-            message: 'Hubo un error al procesar el archivo.',
+            message: 'Hubo un error al procesar el archivo. Intente nuevamente o contacte al administrador.',
             timestamp: new Date(),
           },
         ];
@@ -330,11 +323,12 @@ export class CoordDataloadComponent implements OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error: any) => {
+        console.error('Error en la carga:', error);
         this.uploadResults = [
           {
             tipo: this.selectedUploadLabel as any,
             status: 'error',
-            message: error.message || `Error al cargar el archivo de ${this.selectedUploadLabel}.`,
+            message: `Hubo un error al procesar el archivo de ${this.selectedUploadLabel}. Intente nuevamente o contacte al administrador.`,
             timestamp: new Date(),
           },
         ];
@@ -354,47 +348,31 @@ export class CoordDataloadComponent implements OnDestroy {
 
   private processUploadReport(reporte: string[], tipo: string): void {
     this.uploadResults = [];
+
+    // Keywords para detectar mensajes de error/advertencia del backend
+    // Los mensajes técnicos ya no llegan aquí, solo mensajes amigables
     const errorKeywords = [
-      'error',
-      'falló',
-      'fallo',
-      'failure',
-      'exception',
-      '500',
-      'invalid',
-      'not found',
-      'no encontrado',
-      'incorrecto',
-      'incorrect',
-      'missing',
-      'faltante',
-      'null',
-      'nulo',
-      'parse',
-      'parsing',
-      'format',
-      'formato',
-      'denied',
-      'denegado',
-      'unauthorized',
-      'no autorizado',
-      'forbidden',
-      'prohibido',
-      'timeout',
-      'tiempo',
-      'expired',
-      'expirado',
-      'duplicate',
-      'duplicado',
-      'conflict',
-      'conflicto',
+      'no se pudo',
+      'no se encontró',
+      'contacte al administrador',
+      'ya existe',
+      'verifique',
+      'problema',
+      'advertencia',
     ];
+
     reporte.forEach((mensaje: string) => {
       const texto = mensaje.toLowerCase();
       const isError = errorKeywords.some((keyword) => texto.includes(keyword));
+
+      // Si el mensaje contiene ✓ es un éxito aunque tenga "verifique" u otra keyword
+      const isSuccess = texto.includes('✓') || texto.includes('registrado correctamente')
+        || texto.includes('actualizado') || texto.includes('credenciales de acceso')
+        || texto.startsWith('resumen:');
+
       const result: UploadResult = {
         tipo: tipo as any,
-        status: isError ? 'error' : 'success',
+        status: (isError && !isSuccess) ? 'error' : 'success',
         message: mensaje,
         timestamp: new Date(),
       };
