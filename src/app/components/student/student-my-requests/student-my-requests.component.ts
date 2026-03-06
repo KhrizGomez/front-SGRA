@@ -282,7 +282,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   isAccepted(status: string): boolean { return this.norm(status).includes('acept'); }
   isRejected(status: string): boolean { return this.norm(status).includes('rech'); }
   isCancelled(status: string): boolean { return this.norm(status).includes('cancel'); }
-  isFinished(status: string): boolean { return this.norm(status).includes('final'); }
+  isFinished(status: string): boolean { const s = this.norm(status); return s.includes('complet') || s.includes('final'); }
 
   // ==================== INVITACIONES GRUPALES ====================
   invitations: InvitationItem[] = [];
