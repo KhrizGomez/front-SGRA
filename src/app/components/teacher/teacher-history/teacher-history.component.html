@@ -4,16 +4,24 @@
   <!-- Header -->
   <div class="mb-4">
     <div class="d-flex align-items-center gap-3">
-      <div class="header-icon"><i class="bi bi-clock-history"></i></div>
+      <div class="header-icon"><i class="bi bi-camera-video-fill"></i></div>
       <div>
-        <h3 class="fw-bold text-dark mb-0">Historial de Sesiones</h3>
-        <p class="text-muted mb-0">Consulta el registro de todas tus sesiones de refuerzo realizadas</p>
+        <h3 class="fw-bold text-dark mb-0">Aula Virtual</h3>
+        <p class="text-muted mb-0">Gestiona tus sesiones: registra enlaces, asistencia y resultados</p>
       </div>
     </div>
   </div>
 
-  <!-- Alert -->
-  @if (errorMsg) {
+  <!-- Success alert -->
+  @if (successMsg) {
+    <div class="alert alert-success alert-dismissible fade show border" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMsg }}
+      <button type="button" class="btn-close" (click)="successMsg = null"></button>
+    </div>
+  }
+
+  <!-- Error alert -->
+  @if (errorMsg && activeModal === 'none') {
     <div class="alert alert-danger alert-dismissible fade show border" role="alert">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMsg }}
       <button type="button" class="btn-close" (click)="errorMsg = null"></button>
@@ -21,7 +29,7 @@
   }
 
   <!-- Summary chips -->
-  <div class="row g-2 mb-3">
+  <div class="row g-2 mb-4">
     <div class="col-6 col-lg-3">
       <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
         <div>
@@ -60,90 +68,315 @@
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="card border shadow-sm">
-    <div class="card-body">
-      @if (loading) {
-        <div class="text-center py-5">
-          <div class="spinner-border text-success" role="status"></div>
-          <p class="text-muted mt-2 mb-0">Cargando historial...</p>
-        </div>
-      } @else {
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>ID SESIÓN</th>
-                <th>ASIGNATURA</th>
-                <th>FECHA</th>
-                <th>MODALIDAD</th>
-                <th>FRANJA</th>
-                <th>DURACIÓN EST.</th>
-                <th>TIPO</th>
-                <th>ESTUDIANTES</th>
-                <th>ESTADO</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (rows.length === 0) {
-                <tr>
-                  <td colspan="9" class="text-center py-5 text-muted">
-                    <i class="bi bi-clock-history display-4 d-block mb-2 opacity-25"></i>
-                    No tienes sesiones registradas aún.
-                  </td>
-                </tr>
-              }
-              @for (r of rows; track r.scheduledId) {
-                <tr>
-                  <td class="fw-semibold text-muted">#{{ r.scheduledId }}</td>
-                  <td class="fw-semibold">{{ r.subjectName }}</td>
-                  <td class="text-nowrap">{{ r.scheduledDate | date:'dd/MM/yyyy' }}</td>
-                  <td>
-                    <span class="badge rounded-pill" [ngClass]="modalityBadge(r.modality)">
-                      <i class="bi me-1" [ngClass]="r.modality === 'Virtual' ? 'bi-camera-video' : 'bi-building'"></i>
-                      {{ r.modality }}
-                    </span>
-                  </td>
-                  <td>{{ r.timeSlot }}</td>
-                  <td>{{ r.estimatedDuration }}</td>
-                  <td><span class="badge bg-light text-dark border">{{ r.sessionType }}</span></td>
-                  <td class="text-center">{{ r.studentCount }}</td>
-                  <td>
-                    <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusName)">{{ r.statusName }}</span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+  <!-- Loading -->
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="text-muted mt-2 mb-0">Cargando sesiones...</p>
+    </div>
+  } @else {
 
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-          <div class="text-muted small">
-            Página {{ page }} de {{ totalPages }} · Total: {{ totalCount }}
+    <!-- Card grid -->
+    @if (rows.length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-camera-video display-4 d-block mb-2 opacity-25"></i>
+        No tienes sesiones registradas aún.
+      </div>
+    } @else {
+      <!-- Layout toggle -->
+      <div class="d-flex justify-content-end gap-1 mb-3">
+        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                title="1 columna" (click)="colClass = 'col-12'">
+          <i class="bi bi-view-list"></i>
+        </button>
+        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+          <i class="bi bi-grid"></i>
+        </button>
+        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+      </div>
+
+      <div class="row g-3">
+        @for (r of rows; track r.scheduledId) {
+          <div [ngClass]="colClass">
+            <article class="sess-card h-100 d-flex flex-column" style="cursor:pointer" (click)="openDetail(r)">
+
+              <!-- Top row: session type + status -->
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge sess-badge" [ngClass]="sessionTypeBadge(r.sessionType)">
+                  <i class="bi me-1" [ngClass]="r.sessionType === 'Grupal' ? 'bi-people-fill' : 'bi-person-fill'"></i>
+                  {{ r.sessionType }}
+                </span>
+                <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusName)">{{ r.statusName }}</span>
+              </div>
+
+              <!-- Subject -->
+              <div class="fw-semibold text-dark mb-1 sess-subject">{{ r.subjectName }}</div>
+
+              <!-- Details -->
+              <div class="text-muted small flex-grow-1 d-flex flex-column gap-1 mb-2">
+                <div>
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ r.scheduledDate | date:'dd/MM/yyyy' }}
+                  &nbsp;<i class="bi bi-clock ms-2 me-1"></i>{{ r.startTime }} – {{ r.endTime }}
+                </div>
+                <div>
+                  <i class="bi me-1" [ngClass]="r.modality === 'Virtual' ? 'bi-camera-video' : 'bi-geo-alt'"></i>
+                  <span class="badge rounded-pill sess-badge-sm" [ngClass]="modalityBadge(r.modality)">{{ r.modality }}</span>
+                  &nbsp;<i class="bi bi-hourglass-split ms-2 me-1"></i>{{ r.estimatedDuration }}
+                </div>
+                <div>
+                  <i class="bi bi-person-lines-fill me-1 sess-student-icon"></i>
+                  {{ r.participantCount }} {{ r.participantCount === 1 ? 'estudiante' : 'estudiantes' }}
+                </div>
+                @if (attendancePct(r.scheduledId) !== null) {
+                  <div class="mt-1">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <span class="small" style="font-size:.72rem">
+                        <i class="bi bi-bar-chart-fill me-1"></i>Asistencia
+                      </span>
+                      <span class="small fw-semibold" [style.color]="pctColor(attendancePct(r.scheduledId)!)">
+                        {{ attendancePct(r.scheduledId) }}%
+                      </span>
+                    </div>
+                    <div class="progress" style="height:4px;border-radius:2px">
+                      <div class="progress-bar"
+                           [style.width]="attendancePct(r.scheduledId) + '%'"
+                           [style.background-color]="pctColor(attendancePct(r.scheduledId)!)">
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <!-- Footer: ref + actions -->
+              <div class="sess-footer mt-auto" (click)="$event.stopPropagation()">
+                <span class="text-muted small fw-semibold">#{{ r.scheduledId }}</span>
+                <div class="d-flex gap-1 flex-wrap">
+                  <button class="btn btn-outline-secondary btn-sm border" title="Ver detalle"
+                          (click)="openDetail(r)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  @if (r.statusName.toLowerCase().includes('finaliz')) {
+                    <button class="btn btn-outline-primary btn-sm border" title="Tomar lista"
+                            (click)="openDetail(r)">
+                      <i class="bi bi-person-check"></i>
+                    </button>
+                  }
+                </div>
+              </div>
+
+            </article>
           </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm border"
-                    [disabled]="page <= 1" (click)="goTo(page - 1)">
-              <i class="bi bi-chevron-left"></i> Anterior
-            </button>
-            <button class="btn btn-outline-secondary btn-sm border"
-                    [disabled]="page >= totalPages" (click)="goTo(page + 1)">
-              Siguiente <i class="bi bi-chevron-right"></i>
-            </button>
+        }
+      </div>
+
+    }
+  }
+
+</div>
+
+<!-- MODAL: Detail -->
+@if (activeModal === 'detail' && selected) {
+  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5);display:flex!important;align-items:center;justify-content:center;padding:1.5rem">
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-start;width:100%;max-width:1000px">
+
+      <!-- ── Detail panel ── -->
+      <div class="modal-content border d-flex flex-column"
+           style="max-width:580px;width:100%;max-height:80vh">
+        <div class="modal-header border-bottom flex-shrink-0">
+          <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Sesión #{{ selected.scheduledId }}</h5>
+          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
+        </div>
+        <div class="modal-body flex-grow-1 overflow-auto">
+
+          @if (errorMsg) {
+            <div class="alert alert-danger border small py-2 mb-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
+            </div>
+          }
+
+          <!-- Session info -->
+          <div class="row g-3 mb-3">
+            <div class="col-6"><span class="label">Asignatura</span><strong class="d-block">{{ selected.subjectName }}</strong></div>
+            <div class="col-6"><span class="label">Tipo de sesión</span><strong class="d-block">{{ selected.sessionType }}</strong></div>
+            <div class="col-6"><span class="label">Fecha</span><strong class="d-block">{{ selected.scheduledDate | date:'dd/MM/yyyy' }}</strong></div>
+            <div class="col-6"><span class="label">Franja horaria</span><strong class="d-block">{{ selected.startTime }} – {{ selected.endTime }}</strong></div>
+            <div class="col-6"><span class="label">Modalidad</span><strong class="d-block">{{ selected.modality }}</strong></div>
+            <div class="col-6"><span class="label">Duración estimada</span><strong class="d-block">{{ selected.estimatedDuration }}</strong></div>
+            <div class="col-6"><span class="label">Participantes</span><strong class="d-block">{{ selected.participantCount }}</strong></div>
+            <div class="col-6">
+              <span class="label">Asistencia</span>
+              @if (attendancePct(selected.scheduledId) !== null) {
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <div class="progress flex-grow-1" style="height:6px;border-radius:3px">
+                    <div class="progress-bar"
+                         [style.width]="attendancePct(selected.scheduledId) + '%'"
+                         [style.background-color]="pctColor(attendancePct(selected.scheduledId)!)">
+                    </div>
+                  </div>
+                  <strong [style.color]="pctColor(attendancePct(selected.scheduledId)!)">
+                    {{ attendancePct(selected.scheduledId) }}%
+                  </strong>
+                </div>
+              } @else {
+                <strong class="d-block text-muted">--</strong>
+              }
+            </div>
+            <div class="col-6">
+              <span class="label">Estado</span>
+              <span class="badge rounded-pill" [ngClass]="statusBadge(selected.statusName)">{{ selected.statusName }}</span>
+            </div>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <label class="text-muted small mb-0">Filas:</label>
-            <select class="form-select form-select-sm border" style="width:auto"
-                    [(ngModel)]="size" (change)="page = 1; load()">
-              <option [ngValue]="10">10</option>
-              <option [ngValue]="25">25</option>
-              <option [ngValue]="50">50</option>
-            </select>
+
+          <!-- ── Aceptada / Espera espacio ────────────────────────────────── -->
+          @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+            <hr class="my-3">
+            <div class="mb-2">
+              <h6 class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1 text-info"></i>Enlace virtual</h6>
+              <div class="input-group">
+                <input type="url" class="form-control border" [(ngModel)]="virtualLinkUrl"
+                       placeholder="https://meet.google.com/..." />
+                <button class="btn btn-info text-white border" (click)="submitVirtualLink()"
+                        [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)"
+                        title="Guardar enlace">
+                  @if (busy) { <span class="spinner-border spinner-border-sm"></span> }
+                  @else { <i class="bi bi-floppy"></i> }
+                </button>
+              </div>
+              @if (virtualLinkUrl && !isValidUrl(virtualLinkUrl)) {
+                <div class="text-danger small mt-1">
+                  <i class="bi bi-exclamation-triangle me-1"></i>Ingresa una URL válida (debe comenzar con https://).
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+        <div class="modal-footer border-top flex-shrink-0">
+          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cerrar</button>
+          <button class="btn btn-outline-primary" (click)="openAttendance()" [disabled]="busy || showAttendance">
+            <i class="bi bi-person-check me-1"></i>Asistencia
+          </button>
+          @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+            <button class="btn btn-success" (click)="openPerformed(selected)" [disabled]="busy">
+              <i class="bi bi-stop-circle me-1"></i>Finalizar aula virtual
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- ── Attendance side panel ── -->
+      @if (showAttendance) {
+        <div class="modal-content border d-flex flex-column"
+             style="max-width:380px;width:100%;max-height:80vh">
+          <div class="modal-header border-bottom flex-shrink-0" style="background:#f8f9fa">
+            <h6 class="modal-title fw-bold mb-0">
+              <i class="bi bi-person-check me-2 text-primary"></i>Asistencia · #{{ selected.scheduledId }}
+            </h6>
+            <button class="btn-close" (click)="closeAttendance()" [disabled]="busy"></button>
+          </div>
+          <div class="modal-body flex-grow-1 overflow-auto">
+
+            @if (participantsError) {
+              <div class="alert alert-danger border small py-2 mb-3">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ participantsError }}
+              </div>
+            }
+
+            @if (loadingParticipants) {
+              <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted small mt-2 mb-0">Cargando participantes...</p>
+              </div>
+            } @else {
+              @if (participants.length === 0) {
+                <p class="text-muted small text-center py-3 mb-0">
+                  <i class="bi bi-people d-block mb-1 fs-4 opacity-25"></i>
+                  Sin participantes registrados.
+                </p>
+              } @else {
+                <div class="list-group list-group-flush">
+                  @for (p of participants; track p.participantId) {
+                    <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                      <span class="small fw-semibold">{{ p.studentName }}</span>
+                      <input class="form-check-input ms-2" type="checkbox"
+                             [id]="'p-' + p.participantId" [(ngModel)]="p.attended" />
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+          </div>
+          <div class="modal-footer border-top flex-shrink-0">
+            <button class="btn btn-outline-secondary btn-sm" (click)="closeAttendance()" [disabled]="busy">Cancelar</button>
+            <button class="btn btn-primary btn-sm" (click)="saveAttendanceList()"
+                    [disabled]="busy || loadingParticipants || participants.length === 0">
+              @if (busy) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              <i class="bi bi-floppy me-1"></i>Guardar
+            </button>
           </div>
         </div>
       }
+
     </div>
   </div>
+}
 
-</div>
+<!-- MODAL: Registrar resultado -->
+@if (activeModal === 'performed' && selected) {
+  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-journal-check me-2 text-success"></i>Registrar resultado &middot; Sesión #{{ selected.scheduledId }}
+          </h5>
+          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
+        </div>
+        <div class="modal-body">
+
+          @if (errorMsg) {
+            <div class="alert alert-danger border small py-2 mb-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
+            </div>
+          }
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Observaciones / Resultado <span class="text-danger">*</span></label>
+              <textarea class="form-control border" rows="4" [(ngModel)]="performedObservation"
+                        placeholder="Describe los temas abordados, resultados y cualquier observación relevante."></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Duración real <span class="text-danger">*</span></label>
+              <div class="d-flex flex-wrap gap-2">
+                @for (opt of perfDurationPresets; track $index) {
+                  <button type="button" class="btn btn-sm rounded-pill"
+                          [class.btn-success]="performedDuration === opt"
+                          [class.btn-outline-secondary]="performedDuration !== opt"
+                          (click)="performedDuration = opt">
+                    {{ durationLabel(opt) }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer border-top">
+          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
+          <button class="btn btn-success" (click)="submitPerformed()"
+                  [disabled]="busy || !performedObservation.trim() || !performedDuration.trim()">
+            @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            <i class="bi bi-journal-check me-1"></i>Guardar resultado
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -2,16 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TeacherRequestsService } from '../../../services/teacher/teacher-requests.service';
-import { TeacherSessionsService } from '../../../services/teacher/teacher-sessions.service';
 import {
   TeacherRequestItemDTO,
   AcceptRescheduleBodyDTO,
-  AttendanceEntryDTO,
   WorkAreaTypeDTO,
   ModalityDTO,
 } from '../../../models/teacher/teacher-request.model';
 
-type ModalMode = 'none' | 'detail' | 'accept' | 'reject' | 'reschedule' | 'cancel' | 'virtualLink' | 'attendance' | 'performed';
+type ModalMode = 'none' | 'detail' | 'accept' | 'reject' | 'reschedule' | 'cancel';
 
 const STATUS_ID = { PENDING: 1, ACCEPTED: 2, REJECTED: 3, CANCELLED: 4, COMPLETED: 5 } as const;
 
@@ -32,7 +30,6 @@ const STATUS_META: Record<number, { badge: string }> = {
 })
 export class TeacherRequestsComponent implements OnInit {
   private reqSvc  = inject(TeacherRequestsService);
-  private sessSvc = inject(TeacherSessionsService);
   private cdr     = inject(ChangeDetectorRef);
 
   loading  = false;
@@ -47,6 +44,7 @@ export class TeacherRequestsComponent implements OnInit {
   totalPages = 1;
 
   filters: { statusId: number | null } = { statusId: null };
+  colClass = 'col-12 col-md-4';
 
   summaryChips = [
     { label: 'Pendientes', value: 0, icon: 'bi-clock-history', color: '#ed6c02', bg: '#fff3e0' },
@@ -132,18 +130,6 @@ export class TeacherRequestsComponent implements OnInit {
   // Reject/Cancel
   reasonText = '';
 
-  // Virtual link
-  virtualLinkUrl = '';
-
-  // Attendance
-  attendancePerformedId: number | null = null;
-  attendanceList: AttendanceEntryDTO[] = [{ participantId: 0, attended: true }];
-
-  // Performed
-  performedObservation = '';
-  performedDuration    = '';
-  performedFiles: File[] = [];
-
   ngOnInit(): void {
     this.load();
     this.loadModalities();
@@ -193,8 +179,6 @@ export class TeacherRequestsComponent implements OnInit {
   openDetail(r: TeacherRequestItemDTO):      void { this.selected = r; this.activeModal = 'detail'; }
   openReject(r: TeacherRequestItemDTO):      void { this.selected = r; this.reasonText = ''; this.activeModal = 'reject'; }
   openCancel(r: TeacherRequestItemDTO):      void { this.selected = r; this.reasonText = ''; this.activeModal = 'cancel'; }
-  openVirtualLink(r: TeacherRequestItemDTO): void { this.selected = r; this.virtualLinkUrl = ''; this.activeModal = 'virtualLink'; }
-
   openAccept(r: TeacherRequestItemDTO): void {
     this.selected = r;
     const defaultModality = this.modalities[0]?.idModality ?? 1;
@@ -202,6 +186,7 @@ export class TeacherRequestsComponent implements OnInit {
     this.durationPresets = [];
     this.startHour = null; this.startMin = '00'; this.startMinNum = null;
     this.endHour = null;   this.endMin   = '00'; this.endMinNum   = null;
+    this.loadWorkAreaTypes();
     this.activeModal = 'accept';
   }
 
@@ -212,22 +197,8 @@ export class TeacherRequestsComponent implements OnInit {
     this.durationPresets = [];
     this.startHour = null; this.startMin = '00'; this.startMinNum = null;
     this.endHour = null;   this.endMin   = '00'; this.endMinNum   = null;
+    this.loadWorkAreaTypes();
     this.activeModal = 'reschedule';
-  }
-
-  openAttendance(r: TeacherRequestItemDTO): void {
-    this.selected = r;
-    this.attendancePerformedId = null;
-    this.attendanceList = Array.from({ length: r.participantCount || 1 }, () => ({ participantId: 0, attended: true }));
-    this.activeModal = 'attendance';
-  }
-
-  openPerformed(r: TeacherRequestItemDTO): void {
-    this.selected = r;
-    this.performedObservation = '';
-    this.performedDuration    = '';
-    this.performedFiles       = [];
-    this.activeModal = 'performed';
   }
 
   closeModal(): void { this.activeModal = 'none'; this.selected = null; }
@@ -247,7 +218,7 @@ export class TeacherRequestsComponent implements OnInit {
   }
 
   private loadWorkAreaTypes(): void {
-    if (this.workAreaTypes.length > 0) return; // already loaded
+    if (this.workAreaTypes.length > 0 && !this.workAreaTypesError) return; // already loaded OK
     this.loadingWorkAreaTypes = true;
     this.workAreaTypesError = false;
     this.reqSvc.getWorkAreaTypes().subscribe({
@@ -269,18 +240,6 @@ export class TeacherRequestsComponent implements OnInit {
     const base = !!f.scheduledDate && !!f.startTime && !!f.endTime && f.modalityId > 0 && !!f.estimatedDuration.trim();
     const pres = this.scheduleForm.modalityId !== this.presencialId || (!!f.workAreaTypeId && f.workAreaTypeId > 0);
     return base && pres;
-  }
-
-  isValidUrl(url: string): boolean {
-    try { return new URL(url).protocol.startsWith('https'); } catch { return false; }
-  }
-
-  addAttendanceRow():        void { this.attendanceList.push({ participantId: 0, attended: true }); }
-  removeAttendanceRow(i: number): void { this.attendanceList.splice(i, 1); }
-
-  onFilesSelected(ev: Event): void {
-    const inp = ev.target as HTMLInputElement;
-    this.performedFiles = inp.files ? Array.from(inp.files) : [];
   }
 
   // Submit: Accept/Reschedule (RF10, RF11)
@@ -315,39 +274,6 @@ export class TeacherRequestsComponent implements OnInit {
     this.busy = true;
     this.reqSvc.cancelRequest(this.selected.requestId, { reason: this.reasonText || undefined }).subscribe({
       next: res => { this.busy = false; this.showSuccess(`Sesión cancelada. ${res.message}`); this.closeModal(); this.load(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
-    });
-  }
-
-  // Submit: Virtual link (RF13)
-  submitVirtualLink(): void {
-    if (!this.selected) return;
-    this.busy = true;
-    this.sessSvc.setVirtualLink(this.selected.requestId, { url: this.virtualLinkUrl }).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Enlace virtual registrado. ${res.message}`); this.closeModal(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
-    });
-  }
-
-  // Submit: Attendance (RF16)
-  submitAttendance(): void {
-    if (!this.selected || !this.attendancePerformedId) return;
-    this.busy = true;
-    this.sessSvc.registerAttendance(this.selected.requestId, {
-      performedId: this.attendancePerformedId,
-      attendances: this.attendanceList,
-    }).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Asistencia registrada. ${res.message}`); this.closeModal(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
-    });
-  }
-
-  // Submit: Performed (RF17)
-  submitPerformed(): void {
-    if (!this.selected) return;
-    this.busy = true;
-    this.sessSvc.registerPerformed(this.selected.requestId, this.performedObservation, this.performedDuration, this.performedFiles).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Resultado registrado. ${res.message}`); this.closeModal(); this.load(); },
       error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
     });
   }

@@ -77,41 +77,81 @@
           <p class="text-muted mt-2 mb-0">Cargando solicitudes...</p>
         </div>
       } @else {
-        <div class="table-responsive">
-          <table class="table align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>ID</th><th>ESTUDIANTE</th><th>ASIGNATURA</th><th>TIPO</th>
-                <th>MOTIVO</th><th>FECHA</th><th>ESTADO</th>
-                <th class="text-end">ACCIONES</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (rows.length === 0) {
-                <tr>
-                  <td colspan="8" class="text-center py-5 text-muted">
-                    <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
-                    Sin solicitudes para mostrar.
-                  </td>
-                </tr>
-              }
-              @for (r of rows; track r.requestId) {
-                <tr class="clickable-row" (click)="openDetail(r)">
-                  <td class="fw-semibold text-muted">#{{ r.requestId }}</td>
-                  <td>{{ r.studentName }}</td>
-                  <td>{{ r.subjectName }}</td>
-                  <td><span class="badge bg-light text-dark border">{{ r.sessionType }}</span></td>
-                  <td class="text-truncate" style="max-width:160px">{{ r.reason }}</td>
-                  <td class="text-nowrap">{{ r.createdAt | date:'dd/MM/yyyy' }}</td>
-                  <td>
-                    <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusId)">{{ r.statusName }}</span>
-                  </td>
-                  <td class="text-end" (click)="$event.stopPropagation()">
-                    <button class="btn btn-sm btn-outline-success border me-1" title="Ver detalle" (click)="openDetail(r)">
+        <!-- Layout toggle -->
+        <div class="d-flex justify-content-end gap-1 mb-3">
+          <button class="btn btn-sm border" [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                  title="1 columna" (click)="colClass = 'col-12'">
+            <i class="bi bi-view-list"></i>
+          </button>
+          <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                  title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+            <i class="bi bi-grid"></i>
+          </button>
+          <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                  title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+        </div>
+
+        <!-- Cards grid -->
+        @if (rows.length === 0) {
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4 d-block mb-2 opacity-25"></i>
+            Sin solicitudes para mostrar.
+          </div>
+        }
+        <div class="row g-3">
+          @for (r of rows; track r.requestId) {
+            <div [ngClass]="colClass">
+              <article class="req-card" (click)="openDetail(r)">
+
+                <!-- Cabecera: tipo + fecha -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <span class="req-badge req-badge--{{ r.isGroupal ? 'grupal' : 'individual' }}">
+                    <i class="bi bi-{{ r.isGroupal ? 'people-fill' : 'person-fill' }} me-1"></i>{{ r.sessionType }}
+                  </span>
+                  <small class="text-muted">
+                    <i class="bi bi-calendar3 me-1"></i>{{ r.createdAt | date:'yyyy-MM-dd' }}
+                  </small>
+                </div>
+
+                <!-- Estudiante -->
+                <h6 class="fw-bold text-dark mb-1">
+                  <i class="bi bi-person-badge-fill me-2 req-student-icon"></i>{{ r.studentName }}
+                </h6>
+
+                <!-- Asignatura -->
+                <div class="text-muted small mb-3">
+                  <i class="bi bi-book me-2"></i>{{ r.subjectName }}
+                </div>
+
+                <!-- Motivo -->
+                @if (r.reason) {
+                  <div class="text-muted small mb-3 text-truncate">
+                    <i class="bi bi-chat-left-text me-2"></i>{{ r.reason }}
+                  </div>
+                }
+
+                <!-- Estado + participantes -->
+                <div class="d-flex align-items-center justify-content-between">
+                  <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusId)">{{ r.statusName }}</span>
+                  <small class="text-muted">
+                    <i class="bi bi-people me-1"></i>
+                    {{ r.participantCount }} {{ r.isGroupal ? 'participantes' : 'participante' }}
+                  </small>
+                </div>
+
+                <!-- Pie: ref + acciones -->
+                <div class="req-footer" (click)="$event.stopPropagation()">
+                  <small class="text-muted">
+                    <i class="bi bi-hash me-1"></i>Ref. #{{ r.requestId }}
+                  </small>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm btn-outline-secondary border" title="Ver detalle" (click)="openDetail(r)">
                       <i class="bi bi-eye"></i>
                     </button>
                     @if (r.statusId === 1) {
-                      <button class="btn btn-sm btn-success me-1" title="Aceptar" (click)="openAccept(r)">
+                      <button class="btn btn-sm btn-success" title="Aceptar" (click)="openAccept(r)">
                         <i class="bi bi-check-circle"></i>
                       </button>
                       <button class="btn btn-sm btn-outline-danger border" title="Rechazar" (click)="openReject(r)">
@@ -119,28 +159,21 @@
                       </button>
                     }
                     @if (r.statusId === 2) {
-                      <button class="btn btn-sm btn-outline-warning border me-1" title="Reprogramar" (click)="openReschedule(r)">
+                      <button class="btn btn-sm btn-outline-warning border" title="Reprogramar" (click)="openReschedule(r)">
                         <i class="bi bi-calendar2-event"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-danger border me-1" title="Cancelar" (click)="openCancel(r)">
+                      <button class="btn btn-sm btn-outline-danger border" title="Cancelar" (click)="openCancel(r)">
                         <i class="bi bi-slash-circle"></i>
                       </button>
-                      <button class="btn btn-sm btn-outline-info border me-1" title="Enlace virtual" (click)="openVirtualLink(r)">
-                        <i class="bi bi-camera-video"></i>
-                      </button>
-                      <button class="btn btn-sm btn-outline-success border me-1" title="Registrar resultado" (click)="openPerformed(r)">
-                        <i class="bi bi-journal-check"></i>
-                      </button>
-                      <button class="btn btn-sm btn-outline-primary border" title="Marcar asistencia" (click)="openAttendance(r)">
-                        <i class="bi bi-person-check"></i>
-                      </button>
                     }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                  </div>
+                </div>
+
+              </article>
+            </div>
+          }
         </div>
+
         <!-- Pagination -->
         <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
           <div class="text-muted small">Página {{ page }} de {{ totalPages }} · Total: {{ totalCount }}</div>
@@ -189,9 +222,6 @@
           @if (selected.statusId === 2) {
             <button class="btn btn-outline-danger me-auto" (click)="openCancel(selected)"><i class="bi bi-slash-circle me-1"></i>Cancelar</button>
             <button class="btn btn-outline-warning" (click)="openReschedule(selected)"><i class="bi bi-calendar2-event me-1"></i>Reprogramar</button>
-            <button class="btn btn-outline-info" (click)="openVirtualLink(selected)"><i class="bi bi-camera-video me-1"></i>Enlace virtual</button>
-            <button class="btn btn-outline-success" (click)="openPerformed(selected)"><i class="bi bi-journal-check me-1"></i>Resultado</button>
-            <button class="btn btn-outline-primary" (click)="openAttendance(selected)"><i class="bi bi-person-check me-1"></i>Asistencia</button>
           }
           @if (selected.statusId !== 1 && selected.statusId !== 2) {
             <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
@@ -400,148 +430,3 @@
   </div>
 }
 
-<!-- MODAL: Virtual Link (RF13) -->
-@if (activeModal === 'virtualLink' && selected) {
-  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border">
-        <div class="modal-header border-bottom">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-info-subtle text-info"><i class="bi bi-camera-video"></i></div>
-            <h5 class="modal-title fw-bold mb-0">Enlace virtual <span class="text-muted fw-normal fs-6 ms-2">#{{ selected.requestId }}</span></h5>
-          </div>
-          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted small mb-3">Registra o actualiza el enlace de la reunión virtual para esta sesión.</p>
-          <label class="form-label fw-semibold small">URL de la reunión <span class="text-danger">*</span></label>
-          <input type="url" class="form-control border" [(ngModel)]="virtualLinkUrl"
-                 placeholder="https://meet.google.com/..." />
-          @if (virtualLinkUrl && !isValidUrl(virtualLinkUrl)) {
-            <div class="text-danger small mt-1">
-              <i class="bi bi-exclamation-triangle me-1"></i>Ingresa una URL válida (debe comenzar con https://).
-            </div>
-          }
-        </div>
-        <div class="modal-footer border-top">
-          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
-          <button class="btn btn-info text-white" (click)="submitVirtualLink()"
-                  [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)">
-            @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            <i class="bi bi-link-45deg me-1"></i>Guardar enlace
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- MODAL: Attendance (RF16) -->
-@if (activeModal === 'attendance' && selected) {
-  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border">
-        <div class="modal-header border-bottom">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-primary-subtle text-primary"><i class="bi bi-person-check"></i></div>
-            <h5 class="modal-title fw-bold mb-0">Marcar asistencia <span class="text-muted fw-normal fs-6 ms-2">#{{ selected.requestId }}</span></h5>
-          </div>
-          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold small">ID Sesión realizada (performedId) <span class="text-danger">*</span></label>
-              <input type="number" class="form-control border" min="1" [(ngModel)]="attendancePerformedId" placeholder="Ej: 12" />
-              <div class="form-text">Obtenido al registrar el resultado de la sesión.</div>
-            </div>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label fw-semibold small mb-0">Participantes</label>
-            <button type="button" class="btn btn-outline-success btn-sm border" (click)="addAttendanceRow()">
-              <i class="bi bi-plus me-1"></i>Agregar fila
-            </button>
-          </div>
-          @for (entry of attendanceList; track $index; let i = $index) {
-            <div class="row g-2 mb-2 align-items-center">
-              <div class="col-5">
-                <input type="number" class="form-control border form-control-sm" min="1"
-                       [(ngModel)]="entry.participantId" placeholder="ID participante" />
-              </div>
-              <div class="col-5">
-                <div class="form-check mt-1">
-                  <input class="form-check-input" type="checkbox" [id]="'att-' + i" [(ngModel)]="entry.attended" />
-                  <label class="form-check-label" [for]="'att-' + i">{{ entry.attended ? 'Asistió' : 'No asistió' }}</label>
-                </div>
-              </div>
-              <div class="col-2 text-end">
-                <button type="button" class="btn btn-outline-danger btn-sm border"
-                        (click)="removeAttendanceRow(i)" [disabled]="attendanceList.length === 1">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-        <div class="modal-footer border-top">
-          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
-          <button class="btn btn-primary" (click)="submitAttendance()"
-                  [disabled]="busy || !attendancePerformedId || attendanceList.length === 0">
-            @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            <i class="bi bi-person-check me-1"></i>Registrar asistencia
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- MODAL: Register Performed (RF17) -->
-@if (activeModal === 'performed' && selected) {
-  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5)">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content border">
-        <div class="modal-header border-bottom">
-          <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-success-subtle text-success"><i class="bi bi-journal-check"></i></div>
-            <h5 class="modal-title fw-bold mb-0">Registrar resultado <span class="text-muted fw-normal fs-6 ms-2">#{{ selected.requestId }}</span></h5>
-          </div>
-          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label fw-semibold small">Observaciones / Resultado <span class="text-danger">*</span></label>
-              <textarea class="form-control border" rows="4" [(ngModel)]="performedObservation"
-                        placeholder="Describe los temas abordados, resultados y cualquier observación relevante."></textarea>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold small">Duración real <span class="text-danger">*</span></label>
-              <input type="text" class="form-control border" [(ngModel)]="performedDuration"
-                     placeholder="HH:mm  (ej: 01:15)" />
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold small">Recursos adjuntos <span class="text-muted fw-normal">(opcional)</span></label>
-              <input type="file" class="form-control border" multiple (change)="onFilesSelected($event)" />
-              @if (performedFiles.length > 0) {
-                <ul class="list-unstyled mt-2 mb-0">
-                  @for (f of performedFiles; track f.name) {
-                    <li class="small text-muted"><i class="bi bi-paperclip me-1"></i>{{ f.name }}</li>
-                  }
-                </ul>
-              }
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer border-top">
-          <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
-          <button class="btn btn-success" (click)="submitPerformed()"
-                  [disabled]="busy || !performedObservation.trim() || !performedDuration.trim()">
-            @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            <i class="bi bi-journal-check me-1"></i>Registrar resultado
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-}

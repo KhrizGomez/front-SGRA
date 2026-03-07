@@ -1,24 +1,14 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth/auth.service';
-import { TeacherClassScheduleService } from '../../../services/teacher';
-import { ClassScheduleDetail } from '../../../models/teacher';
+import { TeacherRequestsService } from '../../../services/teacher/teacher-requests.service';
+import { TeacherSessionsService } from '../../../services/teacher/teacher-sessions.service';
+import { TeacherHistoryItemDTO } from '../../../models/teacher/teacher-request.model';
 
-interface DashboardCard {
-  title: string;
-  description: string;
-  icon: string;
-  route: string;
-}
-
-interface StatCard {
-  label: string;
-  value: number | string;
-  icon: string;
-  subtitle: string;
-}
+const STATUS_ID = { PENDING: 1, ACCEPTED: 2, REJECTED: 3 } as const;
 
 @Component({
   selector: 'app-teacher-dashboard',
@@ -29,106 +19,57 @@ interface StatCard {
 })
 export class TeacherDashboardComponent implements OnInit {
   public authService = inject(AuthService);
-  private router = inject(Router);
-  private scheduleSvc = inject(TeacherClassScheduleService);
-  private cdr = inject(ChangeDetectorRef);
+  private router     = inject(Router);
+  private reqSvc     = inject(TeacherRequestsService);
+  private sessSvc    = inject(TeacherSessionsService);
+  private cdr        = inject(ChangeDetectorRef);
 
   loading = true;
 
-  // Stats
-  stats: StatCard[] = [];
-  schedules: ClassScheduleDetail[] = [];
+  // Stat counters
+  pendingCount  = 0;
+  acceptedCount = 0;
+  rejectedCount = 0;
+  activeCount   = 0;
 
-  // Quick access cards
-  readonly cards: DashboardCard[] = [
-    {
-      title: 'Disponibilidad Horaria',
-      description: 'Gestiona tus bloques horarios disponibles para refuerzos.',
-      icon: 'bi-calendar2-week',
-      route: '/teacher/availability'
-    },
-    {
-      title: 'Mi Horario de Clases',
-      description: 'Consulta tu horario asignado del periodo actual.',
-      icon: 'bi-table',
-      route: '/teacher/availability'
-    },
-    {
-      title: 'Solicitudes de Refuerzo',
-      description: 'Revisa y responde solicitudes de estudiantes.',
-      icon: 'bi-inbox',
-      route: '/teacher/requests'
-    }
+  // Today's sessions
+  todaySessions: TeacherHistoryItemDTO[] = [];
+  readonly today = (() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  })();
+
+  readonly quickLinks = [
+    { label: 'Mis Solicitudes', icon: 'bi-inbox-fill',        route: '/teacher/requests', accent: '#1B7505' },
+    { label: 'Aula Virtual',    icon: 'bi-camera-video-fill', route: '/teacher/history',  accent: '#1565C0' }
   ];
 
-  ngOnInit(): void {
-    this.loadDashboardData();
-  }
+  ngOnInit(): void { this.load(); }
 
-  private loadDashboardData(): void {
-    const userId = this.authService.currentUser()?.userId;
-    if (!userId) {
-      this.loading = false;
-      return;
-    }
-
+  private load(): void {
+    this.loading = true;
     forkJoin({
-      schedules: this.scheduleSvc.getSchedulesByTeacherId(userId)
-    }).subscribe({
-      next: ({ schedules }) => {
-        this.schedules = schedules;
-        this.buildStats();
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.stats = this.defaultStats();
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
+      requests: this.reqSvc.getRequests({ page: 1, size: 200 }).pipe(catchError(() => of({ items: [], totalCount: 0, page: 1, size: 200, totalPages: 0 }))),
+      sessions: this.sessSvc.getActiveSessions().pipe(catchError(() => of([])))
+    }).subscribe(({ requests, sessions }) => {
+      const items = requests.items ?? [];
+      this.pendingCount  = items.filter(r => r.statusId === STATUS_ID.PENDING).length;
+      this.acceptedCount = items.filter(r => r.statusId === STATUS_ID.ACCEPTED).length;
+      this.rejectedCount = items.filter(r => r.statusId === STATUS_ID.REJECTED).length;
+      this.activeCount   = sessions.length;
+      this.todaySessions = sessions.filter(s => (s.scheduledDate ?? '').split('T')[0] === this.today);
+      this.loading = false;
+      this.cdr.detectChanges();
     });
   }
 
-  private buildStats(): void {
-    const active = this.schedules.filter(s => s.active);
-    const subjects = new Set(active.map(s => s.subjectName));
-    const period = active[0]?.period ?? '—';
+  navigateTo(route: string): void { this.router.navigate([route]); }
 
-    // Count unique days with classes
-    const classDays = new Set(active.map(s => s.day));
-
-    this.stats = [
-      {
-        label: 'Clases Asignadas',
-        value: active.length,
-        icon: 'bi-easel',
-        subtitle: `en ${classDays.size} día(s) de la semana`
-      },
-      {
-        label: 'Materias Activas',
-        value: subjects.size,
-        icon: 'bi-journals',
-        subtitle: Array.from(subjects).slice(0, 2).join(', ') || '—'
-      },
-      {
-        label: 'Periodo Académico',
-        value: period,
-        icon: 'bi-mortarboard',
-        subtitle: active[0] ? `${active[0].periodStartDate} — ${active[0].periodEndDate}` : '—'
-      }
-    ];
-  }
-
-  private defaultStats(): StatCard[] {
-    return [
-      { label: 'Clases Asignadas', value: 0, icon: 'bi-easel', subtitle: 'Sin datos' },
-      { label: 'Materias Activas', value: 0, icon: 'bi-journals', subtitle: '—' },
-      { label: 'Bloques Disponibles', value: 0, icon: 'bi-calendar2-check', subtitle: '—' },
-      { label: 'Periodo Académico', value: '—', icon: 'bi-mortarboard', subtitle: '—' }
-    ];
-  }
-
-  navigateTo(route: string): void {
-    this.router.navigate([route]);
+  timeRange(s: TeacherHistoryItemDTO): string {
+    return `${s.startTime} – ${s.endTime}`;
   }
 }
+
