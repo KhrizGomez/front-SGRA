@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminEmailConfigService } from '../../../../services/administration/admin-email-config/admin-email-config.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 
 declare var bootstrap: any;
 
@@ -25,6 +26,7 @@ export class AdminEmailConfigModalComponent {
   private fb = inject(FormBuilder);
   private emailConfigService = inject(AdminEmailConfigService);
   private authService = inject(AuthService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.emailForm = this.fb.group({
@@ -49,6 +51,8 @@ export class AdminEmailConfigModalComponent {
       passwordControl?.setValidators([Validators.minLength(8)]);
       passwordControl?.updateValueAndValidity();
 
+      console.log(this.currentConfigId);
+
       this.emailConfigService.getEmailConfigById(id).subscribe({
         next: (data) => {
           this.emailForm.patchValue({
@@ -62,7 +66,7 @@ export class AdminEmailConfigModalComponent {
           });
         },
         error: () => {
-          alert('No se pudo cargar la información del correo.');
+          this.toastService.show(false, 'No se pudo cargar la información del correo.');
         },
       });
     } else {
@@ -109,7 +113,7 @@ export class AdminEmailConfigModalComponent {
     request$.subscribe({
       next: (response) => {
         if (response.success) {
-          alert(response.message);
+          this.toastService.show(true, response.message);
           const modalElement = document.getElementById('emailConfigModal');
           if (modalElement) {
             bootstrap.Modal.getInstance(modalElement)?.hide();
@@ -122,13 +126,13 @@ export class AdminEmailConfigModalComponent {
           });
           this.emailConfigSaved.emit();
         } else {
-          alert(response.message);
+          this.toastService.show(false, response.message);
         }
         this.isSubmitting = false;
       },
       error: () => {
         this.isSubmitting = false;
-        alert(this.isEditing ? 'Error al actualizar la configuración' : 'Error al crear la configuración');
+        this.toastService.show(false, this.isEditing ? 'Error al actualizar la configuración' : 'Error al crear la configuración');
       },
     });
   }

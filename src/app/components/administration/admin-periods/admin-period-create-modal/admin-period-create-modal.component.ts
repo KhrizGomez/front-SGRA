@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminPeriodsService } from '../../../../services/administration/admin-periods/admin-periods.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 import { GPeriod } from '../../../../models/administration/admin-periods/GPeriod.model';
 
 declare var bootstrap: any;
@@ -23,6 +24,7 @@ export class AdminPeriodCreateModalComponent {
 
   private fb = inject(FormBuilder);
   private periodService = inject(AdminPeriodsService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.periodForm = this.fb.group({
@@ -47,7 +49,7 @@ export class AdminPeriodCreateModalComponent {
       period: formValues.period,
       startDate: formValues.startDate,
       endDate: formValues.endDate,
-      state: formValues.status === 'activo',
+      state: (formValues.status === 'activo') ? true : false,
     };
 
     console.log(requestPayload);
@@ -59,7 +61,7 @@ export class AdminPeriodCreateModalComponent {
     request$.subscribe({
       next: (response) => {
         if (response.success) {
-          alert(response.message);
+          this.toastService.show(true, response.message);
 
           const modalElement = document.getElementById('createPeriodModal');
           if (modalElement) {
@@ -68,14 +70,14 @@ export class AdminPeriodCreateModalComponent {
           this.periodForm.reset({ status: 'activo' });
           this.periodSaved.emit();
         } else {
-          alert(response.message);
+          this.toastService.show(false, response.message);
         }
         this.isSubmitting = false;
       },
       error: (error) => {
         console.error('Error en periodo:', error);
         this.isSubmitting = false;
-        alert(this.isEditing ? 'Error al actualizar el periodo' : 'Error al crear el periodo');
+        this.toastService.show(false, this.isEditing ? 'Error al actualizar el periodo' : 'Error al crear el periodo');
       },
     });
   }

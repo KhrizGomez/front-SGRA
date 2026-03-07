@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { GRoleSimple } from '../../../../models/administration/admin-permission-management/GRoleSimple';
 import { GRoleServer, GRoleApp, GRolesAppServerCUD } from '../../../../models/administration/admin-role-management/GAppRoleServers';
 import { AdminRoleManagementService } from '../../../../services/administration/admin-role-management/admin-role-management.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 
 @Component({
   selector: 'app-admin-role-management-server-connection',
@@ -15,6 +16,7 @@ export class AdminRoleManagementServerConnectionComponent {
   matrixData: GRoleApp[] = [];
 
   private roleService = inject(AdminRoleManagementService);
+  private toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.loadData();
@@ -51,14 +53,14 @@ export class AdminRoleManagementServerConnectionComponent {
     this.roleService.updateServerMappings(payload).subscribe({
       next: (response) => {
         if (response.success) {
-          alert('Conexiones guardadas exitosamente.');
+          this.toastService.show(true, 'Conexiones guardadas exitosamente.');
         } else {
-          alert(response.message);
+          this.toastService.show(false, response.message);
         }
       },
       error: (err) => {
         console.error(err);
-        alert('Error al guardar las conexiones.');
+        this.toastService.show(false, 'Error al guardar las conexiones.');
       }
     });
   }

@@ -2,6 +2,7 @@ import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminMasterTablesService } from '../../../../services/administration/admin-master-tables/admin-master-tables.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 import { GCatalogRecordCUD } from './../../../../models/administration/admin-master-tables/GCatalogRecord';
 import { GCatalogRecord } from '../../../../models/administration/admin-master-tables/GCatalogRecord';
 
@@ -25,6 +26,7 @@ export class AdminMasterCreateModalComponent {
 
   private fb = inject(FormBuilder);
   private masterService = inject(AdminMasterTablesService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.masterForm = this.fb.group({
@@ -73,20 +75,20 @@ export class AdminMasterCreateModalComponent {
     request$.subscribe({
       next: (response: any) => {
         if (response.success) {
-          alert(response.message);
+          this.toastService.show(true, response.message);
           const modalElement = document.getElementById('createMasterModal');
           if (modalElement) bootstrap.Modal.getInstance(modalElement)?.hide();
 
           this.masterForm.reset({ status: 'activo' });
           this.recordSaved.emit();
         } else {
-          alert(response.message);
+          this.toastService.show(false, response.message);
         }
         this.isSubmitting = false;
       },
       error: (err) => {
         this.isSubmitting = false;
-        alert('Error al guardar el registro.');
+        this.toastService.show(false, 'Error al guardar el registro.');
       }
     });
   }

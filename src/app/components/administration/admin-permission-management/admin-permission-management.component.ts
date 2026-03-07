@@ -5,6 +5,7 @@ import { GSchemaPermission } from '../../../models/administration/admin-permissi
 import { GPermissionMetrics } from '../../../models/administration/admin-permission-management/GPermissionMetrics';
 import { GRoleSimple } from '../../../models/administration/admin-permission-management/GRoleSimple';
 import { AdminPermissionManagement } from '../../../services/administration/admin-permission-management/admin-permission-management.service';
+import { ToastService } from '../../../services/shared/toast.service';
 import { AdminPermissionKpisComponent } from './admin-permission-kpis/admin-permission-kpis.component';
 import { AdminPermissionMatrixComponent } from './admin-permission-matrix/admin-permission-matrix.component';
 
@@ -27,6 +28,7 @@ export class AdminPermissionManagementComponent implements OnInit{
 
   private cdr = inject(ChangeDetectorRef);
   private permissionService = inject(AdminPermissionManagement);
+  private toastService = inject(ToastService);
 
   ngOnInit(): void {
     this.permissionService.getRolesForSelect().subscribe(roles => {
@@ -91,11 +93,11 @@ export class AdminPermissionManagementComponent implements OnInit{
 
     this.permissionService.savePermissions(this.selectedRoleId, this.schemas).subscribe({
       next: () => {
-        alert('Permisos guardados con éxito');
+        this.toastService.show(true, 'Permisos guardados con éxito');
         this.cdr.detectChanges();
       },
       error: () => {
-        alert('Error al guardar los permisos.');
+        this.toastService.show(false, 'Error al guardar los permisos.');
         this.cdr.detectChanges();
       }
     });

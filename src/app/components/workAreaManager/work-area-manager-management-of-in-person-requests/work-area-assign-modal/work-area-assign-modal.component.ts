@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { WorkArea } from '../../../../models/workAreaManager/work-area-manager-in-person-requests';
 import { WamInPersonRequestsService } from '../../../../services/workAreaManager/work-area-manager-in-person-requests/wam-in-person-requests.service';
 import { AuthService } from '../../../../services/auth/auth.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 
 declare var bootstrap: any;
 
@@ -27,6 +28,7 @@ export class WorkAreaAssignModalComponent {
   private inPersonService = inject(WamInPersonRequestsService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+  private toastService = inject(ToastService);
 
   workAreas: WorkArea[] = [];
   filteredWorkAreas: WorkArea[] = [];
@@ -57,9 +59,11 @@ export class WorkAreaAssignModalComponent {
     this.errorMessage = null;
 
     const userId = this.authService.currentUser()?.userId;
-    if (!userId || !this.currentTipoAreaTrabajo) return;
+    if (!userId || !this.currentTipoAreaTrabajo || !this.currentReinforcementId) return;
 
-    this.inPersonService.getWorkAreas(userId, this.currentTipoAreaTrabajo).subscribe({
+    console.log(userId, this.currentTipoAreaTrabajo, this.currentReinforcementId);
+
+    this.inPersonService.getWorkAreas(userId, this.currentTipoAreaTrabajo, this.currentReinforcementId).subscribe({
       next: (data) => {
         this.workAreas = data;
         this.filteredWorkAreas = data;
@@ -107,20 +111,20 @@ export class WorkAreaAssignModalComponent {
         next: (response) => {
           this.isAssigning = false;
           if (response.success) {
-            alert(response.message);
+            this.toastService.show(true, response.message);
             const modalEl = document.getElementById('assignWorkAreaModal');
             if (modalEl) {
               bootstrap.Modal.getInstance(modalEl)?.hide();
             }
             this.workAreaAssigned.emit();
           } else {
-            alert(response.message);
+            this.toastService.show(false, response.message);
           }
           this.cdr.detectChanges();
         },
         error: () => {
           this.isAssigning = false;
-          alert('Error al asignar el área de trabajo.');
+          this.toastService.show(false, 'Error al asignar el área de trabajo.');
           this.cdr.detectChanges();
         },
       });

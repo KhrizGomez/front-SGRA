@@ -25,10 +25,11 @@ export class WamInPersonRequestsService {
     );
   }
 
-  getWorkAreas(userId: number, workAreaTypeId: number): Observable<WorkArea[]> {
+  getWorkAreas(userId: number, workAreaTypeId: number, programmedId: number): Observable<WorkArea[]> {
     let params = new HttpParams();
     params = params.set('userId', userId);
     params = params.set('workAreaTypeId', workAreaTypeId);
+    params = params.set('reinforcementId', programmedId);
     return this.http.get<WorkArea[]>(
       `${this.apiUrl}/reinforcement/work-areas/list-workAreas`,
       { params },

@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminRoleManagementService } from '../../../../services/administration/admin-role-management/admin-role-management.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 import { GRole } from '../../../../models/administration/admin-role-management/GRole.model';
 
 declare var bootstrap: any;
@@ -23,6 +24,7 @@ export class AdminRoleCreateModalComponent {
 
   private fb = inject(FormBuilder);
   private roleService = inject(AdminRoleManagementService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.createRoleForm = this.fb.group({
@@ -55,7 +57,7 @@ export class AdminRoleCreateModalComponent {
     request$.subscribe({
       next: (response) => {
         if (response.success) {
-          alert(response.message);
+          this.toastService.show(true, response.message);
 
           const modalElement = document.getElementById('createRoleModal');
           if (modalElement) {
@@ -64,14 +66,14 @@ export class AdminRoleCreateModalComponent {
           this.createRoleForm.reset({ status: 'activo' });
           this.roleCreated.emit();
         } else {
-          alert(response.message);
+          this.toastService.show(false, response.message);
         }
         this.isSubmitting = false;
       },
       error: (error) => {
         console.error('Error creando rol:', error);
         this.isSubmitting = false;
-        alert(this.isEditing ? 'Error al actualizar el rol' : 'Error al crear el rol');
+        this.toastService.show(false, this.isEditing ? 'Error al actualizar el rol' : 'Error al crear el rol');
       },
     });
   }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup,FormArray, FormControl, Validators} from '@angular/forms';
 import { GRoleSimple } from './../../../../models/administration/admin-permission-management/GRoleSimple';
 import { AdminUserManagementService } from '../../../../services/administration/admin-user-management/admin-user-management.service';
+import { ToastService } from '../../../../services/shared/toast.service';
 
 declare var bootstrap: any;
 
@@ -25,6 +26,7 @@ export class AdminUserCreateModalComponent implements OnInit{
 
   private fb = inject(FormBuilder);
   private userService = inject(AdminUserManagementService);
+  private toastService = inject(ToastService);
 
   constructor() {
     this.createUserForm = this.fb.group({
@@ -85,7 +87,7 @@ export class AdminUserCreateModalComponent implements OnInit{
     request$.subscribe({
       next: (response) => {
         if (response.success) {
-          alert(response.message);
+          this.toastService.show(true, response.message);
           const modalElement = document.getElementById('createUserModal');
           if (modalElement) {
             bootstrap.Modal.getInstance(modalElement)?.hide();
@@ -97,14 +99,14 @@ export class AdminUserCreateModalComponent implements OnInit{
           this.userCreated.emit();
         }
         else {
-          alert(response.message);
+          this.toastService.show(false, response.message);
         }
 
         this.isSubmitting = false;
       },
       error: () => {
         this.isSubmitting = false;
-        alert(this.isEditing ? 'Error al actualizar usuario' : 'Error al crear usuario');
+        this.toastService.show(false, this.isEditing ? 'Error al actualizar usuario' : 'Error al crear usuario');
       }
     });
   }
@@ -140,7 +142,7 @@ export class AdminUserCreateModalComponent implements OnInit{
           this.createUserForm.updateValueAndValidity();
         },
         error: (err) => {
-          alert('No se pudo cargar la información del usuario.');
+          this.toastService.show(false, 'No se pudo cargar la información del usuario.');
         }
       });
 
