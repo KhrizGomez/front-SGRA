@@ -25,7 +25,7 @@ export class AdminPeriodsService {
   }
 
   createPeriod(periodData: GPeriodCUD): Observable<SpResponse> {
-    return this.http.post<SpResponse>(`${this.apiUrl}/security/periods/create-period`, periodData);
+    return this.http.post<SpResponse>(`${this.apiUrl}/academic/periods/create-period`, periodData);
   }
 
   updatePeriod(periodData: GPeriodCUD): Observable<SpResponse> {

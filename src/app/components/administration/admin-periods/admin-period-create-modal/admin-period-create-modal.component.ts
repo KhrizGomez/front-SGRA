@@ -50,6 +50,8 @@ export class AdminPeriodCreateModalComponent {
       state: formValues.status === 'activo',
     };
 
+    console.log(requestPayload);
+
     const request$ = this.isEditing
       ? this.periodService.updatePeriod(requestPayload)
       : this.periodService.createPeriod(requestPayload);
