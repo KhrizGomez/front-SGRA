@@ -36,8 +36,8 @@ export class WamInPersonRequestsService {
   }
 
   assignWorkArea(payload: AssignWorkAreaPayload): Observable<SpResponse> {
-    return this.http.post<SpResponse>(
-      `${this.apiUrl}/reinforcement/on-site-reinforcements/assign-work-area`,
+    return this.http.put<SpResponse>(
+      `${this.apiUrl}/reinforcement/work-areas/assign-work-area`,
       payload,
     );
   }
