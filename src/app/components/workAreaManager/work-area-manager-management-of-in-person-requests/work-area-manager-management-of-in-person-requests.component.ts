@@ -38,6 +38,8 @@ export class WorkAreaManagerManagementOfInPersonRequestsComponent implements OnI
 
     if (!userId) return;
 
+    console.log("id del usuario: " + userId)
+
     this.inPersonService.getInPersonReinforcements(userId).subscribe({
       next: (data) => {
         this.reinforcements = data;
