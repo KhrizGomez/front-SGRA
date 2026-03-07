@@ -96,6 +96,8 @@ export class WorkAreaAssignModalComponent {
 
     this.isAssigning = true;
 
+    console.log("Solicitud presencial: " + this.currentReinforcementId,"Area de trabjo seleccionada: " +this.selectedWorkAreaId)
+
     this.inPersonService
       .assignWorkArea({
         pidrefuerzopresencial: this.currentReinforcementId,
