@@ -93,6 +93,7 @@ export interface RegisterAttendanceBodyDTO {
 
 // ─── Active Sessions ─────────────────────────────────────────────────────────
 
+/** DTO retornado por GET /api/teacher/sessions/active (TeacherActiveSessionItemDTO) */
 export interface TeacherHistoryItemDTO {
   scheduledId: number;
   subjectName: string;
@@ -101,10 +102,64 @@ export interface TeacherHistoryItemDTO {
   endTime: string;
   modality: string;
   estimatedDuration: string;
+  /** Estado actual: "Espera espacio" | "Reprogramado" | "Programado" */
   statusName: string;
   sessionType: string;
   participantCount: number;
   virtualLink: string | null;
+}
+
+// ─── Session History (Completed) ─────────────────────────────────────────────
+
+/** DTO retornado por GET /api/teacher/history/sessions (lista paginada) */
+export interface TeacherSessionHistoryItemDTO {
+  scheduledId: number;
+  subjectName: string;
+  scheduledDate: string;
+  modality: string;
+  estimatedDuration: string;
+  timeSlot: string;
+  statusName: string;
+  sessionType: string;
+  studentCount: number;
+  totalParticipants: number;
+  attendedCount: number;
+  attendancePercentage: number;
+  resourceCount: number;
+}
+
+export interface HistoryParticipantDTO {
+  participantId: number;
+  studentName: string;
+  attended: boolean;
+}
+
+/** DTO retornado por GET /api/teacher/history/sessions/{scheduledId} (detalle) */
+export interface TeacherSessionHistoryDetailDTO {
+  scheduledId: number;
+  subjectName: string;
+  scheduledDate: string;
+  modality: string;
+  timeSlot: string;
+  sessionType: string;
+  statusName: string;
+  estimatedDuration: string;
+  observation: string | null;
+  actualDuration: string | null;
+  totalParticipants: number;
+  attendedCount: number;
+  attendancePercentage: number;
+  attendance: HistoryParticipantDTO[];
+  resources: string[];
+  virtualLink: string | null;
+}
+
+export interface TeacherSessionHistoryPageDTO {
+  items: TeacherSessionHistoryItemDTO[];
+  page: number;
+  size: number;
+  totalCount: number;
+  totalPages: number;
 }
 
 // ─── Legacy / kept for auth-service compatibility ────────────────────────────

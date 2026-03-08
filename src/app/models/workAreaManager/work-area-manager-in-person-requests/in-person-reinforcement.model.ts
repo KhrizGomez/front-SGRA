@@ -1,6 +1,7 @@
 export interface InPersonReinforcement {
   pidrefuerzopresencial: number;
   pidrefuerzoprogramado: number;
+  pidtipoareatrabajo: number;
   phorainicio: string;
   phorariofin: string;
   pfechaprogramadarefuerzo: string;
@@ -8,5 +9,5 @@ export interface InPersonReinforcement {
   pdocente: string;
   pparticipantesesperados: number;
   participantesconfirmados: number;
-  pidtipoareatrabajo: number;
+  pestadorefuerzoprogramado: string;
 }

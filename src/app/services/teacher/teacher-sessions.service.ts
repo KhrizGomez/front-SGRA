@@ -9,6 +9,7 @@ import {
   ApiActionResponseDTO,
   TeacherHistoryItemDTO,
   SessionParticipantDTO,
+  TeacherSessionHistoryPageDTO, TeacherSessionHistoryDetailDTO,
 } from '../../models/teacher/teacher-request.model';
 
 @Injectable({ providedIn: 'root' })
@@ -53,6 +54,22 @@ export class TeacherSessionsService {
   getActiveSessions(): Observable<TeacherHistoryItemDTO[]> {
     return this.http.get<TeacherHistoryItemDTO[]>(
       `${this.baseUrl}/teacher/sessions/active`,
+      this.opts
+    ).pipe(catchError(this.handleError));
+  }
+
+  /** GET /api/teacher/history/sessions – Historial de sesiones completadas */
+  getSessionHistory(page = 1, size = 10): Observable<TeacherSessionHistoryPageDTO> {
+    return this.http.get<TeacherSessionHistoryPageDTO>(
+      `${this.baseUrl}/teacher/history/sessions`,
+      { ...this.opts, params: { page: String(page), size: String(size) } }
+    ).pipe(catchError(this.handleError));
+  }
+
+  /** GET /api/teacher/history/sessions/{scheduledId} — detalle completo de sesión completada */
+  getHistoryDetail(scheduledId: number): Observable<TeacherSessionHistoryDetailDTO> {
+    return this.http.get<TeacherSessionHistoryDetailDTO>(
+      `${this.baseUrl}/teacher/history/sessions/${scheduledId}`,
       this.opts
     ).pipe(catchError(this.handleError));
   }

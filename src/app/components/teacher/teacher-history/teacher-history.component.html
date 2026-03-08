@@ -1,4 +1,3 @@
-
 <div class="container-fluid">
 
   <!-- Header -->
@@ -20,176 +19,516 @@
     </div>
   }
 
-  <!-- Error alert -->
-  @if (errorMsg && activeModal === 'none') {
+  <!-- Error alert (solo en la vista de activas) -->
+  @if (errorMsg && activeModal === 'none' && activeTab === 'active') {
     <div class="alert alert-danger alert-dismissible fade show border" role="alert">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMsg }}
       <button type="button" class="btn-close" (click)="errorMsg = null"></button>
     </div>
   }
 
-  <!-- Summary chips -->
-  <div class="row g-2 mb-4">
-    <div class="col-6 col-lg-3">
-      <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
-        <div>
-          <div class="text-muted small">Total sesiones</div>
-          <div class="fw-bold fs-4" style="color:#1B7505">{{ totalCount }}</div>
-        </div>
-        <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
-             style="background:#e8f5e9">
-          <i class="bi bi-journals" style="color:#1B7505"></i>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-lg-3">
-      <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
-        <div>
-          <div class="text-muted small">Virtuales</div>
-          <div class="fw-bold fs-4" style="color:#0288d1">{{ countByModality('Virtual') }}</div>
-        </div>
-        <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
-             style="background:#e1f5fe">
-          <i class="bi bi-camera-video" style="color:#0288d1"></i>
-        </div>
-      </div>
-    </div>
-    <div class="col-6 col-lg-3">
-      <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
-        <div>
-          <div class="text-muted small">Presenciales</div>
-          <div class="fw-bold fs-4" style="color:#7b1fa2">{{ countByModality('Presencial') }}</div>
-        </div>
-        <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
-             style="background:#f3e5f5">
-          <i class="bi bi-building" style="color:#7b1fa2"></i>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ── Pestañas ───────────────────────────────────────────────────────────── -->
+  <ul class="nav nav-tabs mb-4 border-bottom">
+    <li class="nav-item">
+      <button class="nav-link fw-semibold d-flex align-items-center gap-2"
+              [class.active]="activeTab === 'active'"
+              (click)="switchTab('active')">
+        <i class="bi bi-camera-video"></i> Sesiones Activas
+        <span class="badge rounded-pill ms-1"
+              [class.bg-success]="activeTab === 'active'"
+              [class.bg-secondary]="activeTab !== 'active'">{{ totalCount }}</span>
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold d-flex align-items-center gap-2"
+              [class.active]="activeTab === 'history'"
+              (click)="switchTab('history')">
+        <i class="bi bi-journal-check"></i> Historial Completadas
+        @if (historyTotal > 0) {
+          <span class="badge rounded-pill ms-1"
+                [class.bg-primary]="activeTab === 'history'"
+                [class.bg-secondary]="activeTab !== 'history'">{{ historyTotal }}</span>
+        }
+      </button>
+    </li>
+  </ul>
 
-  <!-- Loading -->
-  @if (loading) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-success" role="status"></div>
-      <p class="text-muted mt-2 mb-0">Cargando sesiones...</p>
-    </div>
-  } @else {
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB: SESIONES ACTIVAS
+  ══════════════════════════════════════════════════════════════════════════ -->
+  @if (activeTab === 'active') {
 
-    <!-- Card grid -->
-    @if (rows.length === 0) {
-      <div class="text-center py-5 text-muted">
-        <i class="bi bi-camera-video display-4 d-block mb-2 opacity-25"></i>
-        No tienes sesiones registradas aún.
+    <!-- Summary chips -->
+    <div class="row g-2 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Total sesiones</div>
+            <div class="fw-bold fs-4" style="color:#1B7505">{{ totalCount }}</div>
+          </div>
+          <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
+               style="background:#e8f5e9">
+            <i class="bi bi-journals" style="color:#1B7505"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Virtuales</div>
+            <div class="fw-bold fs-4" style="color:#0288d1">{{ countByModality('Virtual') }}</div>
+          </div>
+          <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
+               style="background:#e1f5fe">
+            <i class="bi bi-camera-video" style="color:#0288d1"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Presenciales</div>
+            <div class="fw-bold fs-4" style="color:#7b1fa2">{{ countByModality('Presencial') }}</div>
+          </div>
+          <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
+               style="background:#f3e5f5">
+            <i class="bi bi-building" style="color:#7b1fa2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    @if (loading) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="text-muted mt-2 mb-0">Cargando sesiones...</p>
       </div>
     } @else {
-      <!-- Layout toggle -->
-      <div class="d-flex justify-content-end gap-1 mb-3">
-        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
-                title="1 columna" (click)="colClass = 'col-12'">
-          <i class="bi bi-view-list"></i>
+
+      <!-- Filtros sesiones activas -->
+      <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+        <span class="small fw-semibold text-muted">
+          <i class="bi bi-funnel me-1"></i>Estado:
+        </span>
+
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === null"
+                (click)="activeFilterStatus = null">
+          <i class="bi bi-grid-fill me-1"></i>Todos
+          <span class="filter-tag__count">{{ rows.length }}</span>
         </button>
-        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
-                title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
-          <i class="bi bi-grid"></i>
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Programado'"
+                (click)="activeFilterStatus = 'Programado'">
+          <i class="bi bi-check-circle me-1"></i>Programado
         </button>
-        <button class="btn btn-sm border" [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
-                title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
-          <i class="bi bi-grid-3x3-gap"></i>
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Espera espacio'"
+                (click)="activeFilterStatus = 'Espera espacio'">
+          <i class="bi bi-hourglass-split me-1"></i>Espera espacio
+        </button>
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Reprogramado'"
+                (click)="activeFilterStatus = 'Reprogramado'">
+          <i class="bi bi-calendar2-event me-1"></i>Reprogramado
+        </button>
+
+        <span class="filter-divider"></span>
+
+        <span class="small fw-semibold text-muted">
+          <i class="bi bi-funnel me-1"></i>Modalidad:
+        </span>
+
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === null"
+                (click)="activeFilterModality = null">
+          <i class="bi bi-geo-alt me-1"></i>Todas
+        </button>
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === 'Virtual'"
+                (click)="activeFilterModality = 'Virtual'">
+          <i class="bi bi-camera-video me-1"></i>Virtual
+        </button>
+        <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === 'Presencial'"
+                (click)="activeFilterModality = 'Presencial'">
+          <i class="bi bi-geo-alt-fill me-1"></i>Presencial
         </button>
       </div>
 
-      <div class="row g-3">
-        @for (r of rows; track r.scheduledId) {
-          <div [ngClass]="colClass">
-            <article class="sess-card h-100 d-flex flex-column" style="cursor:pointer" (click)="openDetail(r)">
+      <!-- Card grid -->
+      @if (filteredRows.length === 0) {
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-camera-video display-4 d-block mb-2 opacity-25"></i>
+          No hay sesiones para el filtro seleccionado.
+        </div>
+      } @else {
+        <!-- Layout toggle -->
+        <div class="d-flex justify-content-end gap-1 mb-3">
+          <button class="btn btn-sm border"
+                  [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                  title="1 columna" (click)="colClass = 'col-12'">
+            <i class="bi bi-view-list"></i>
+          </button>
+          <button class="btn btn-sm border"
+                  [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                  title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+            <i class="bi bi-grid"></i>
+          </button>
+          <button class="btn btn-sm border"
+                  [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                  title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+        </div>
 
-              <!-- Top row: session type + status -->
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge sess-badge" [ngClass]="sessionTypeBadge(r.sessionType)">
-                  <i class="bi me-1" [ngClass]="r.sessionType === 'Grupal' ? 'bi-people-fill' : 'bi-person-fill'"></i>
-                  {{ r.sessionType }}
-                </span>
-                <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusName)">{{ r.statusName }}</span>
-              </div>
+        <div class="row g-3">
+          @for (r of filteredRows; track r.scheduledId) {
+            <div [ngClass]="colClass">
+              <article class="sess-card h-100 d-flex flex-column" style="cursor:pointer" (click)="openDetail(r)">
 
-              <!-- Subject -->
-              <div class="fw-semibold text-dark mb-1 sess-subject">{{ r.subjectName }}</div>
+                <!-- Top row: session type + status -->
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge sess-badge" [ngClass]="sessionTypeBadge(r.sessionType)">
+                    <i class="bi me-1" [ngClass]="r.sessionType === 'Grupal' ? 'bi-people-fill' : 'bi-person-fill'"></i>
+                    {{ r.sessionType }}
+                  </span>
+                  <span class="badge rounded-pill" [ngClass]="statusBadge(r.statusName)">{{ r.statusName }}</span>
+                </div>
 
-              <!-- Details -->
-              <div class="text-muted small flex-grow-1 d-flex flex-column gap-1 mb-2">
-                <div>
-                  <i class="bi bi-calendar3 me-1"></i>
-                  {{ r.scheduledDate | date:'dd/MM/yyyy' }}
-                  &nbsp;<i class="bi bi-clock ms-2 me-1"></i>{{ r.startTime }} – {{ r.endTime }}
-                </div>
-                <div>
-                  <i class="bi me-1" [ngClass]="r.modality === 'Virtual' ? 'bi-camera-video' : 'bi-geo-alt'"></i>
-                  <span class="badge rounded-pill sess-badge-sm" [ngClass]="modalityBadge(r.modality)">{{ r.modality }}</span>
-                  &nbsp;<i class="bi bi-hourglass-split ms-2 me-1"></i>{{ r.estimatedDuration }}
-                </div>
-                <div>
-                  <i class="bi bi-person-lines-fill me-1 sess-student-icon"></i>
-                  {{ r.participantCount }} {{ r.participantCount === 1 ? 'estudiante' : 'estudiantes' }}
-                </div>
-                @if (attendancePct(r.scheduledId) !== null) {
-                  <div class="mt-1">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="small" style="font-size:.72rem">
-                        <i class="bi bi-bar-chart-fill me-1"></i>Asistencia
-                      </span>
-                      <span class="small fw-semibold" [style.color]="pctColor(attendancePct(r.scheduledId)!)">
-                        {{ attendancePct(r.scheduledId) }}%
-                      </span>
-                    </div>
-                    <div class="progress" style="height:4px;border-radius:2px">
-                      <div class="progress-bar"
-                           [style.width]="attendancePct(r.scheduledId) + '%'"
-                           [style.background-color]="pctColor(attendancePct(r.scheduledId)!)">
+                <!-- Subject -->
+                <div class="fw-semibold text-dark mb-1 sess-subject">{{ r.subjectName }}</div>
+
+                <!-- Details -->
+                <div class="text-muted small flex-grow-1 d-flex flex-column gap-1 mb-2">
+                  <div>
+                    <i class="bi bi-calendar3 me-1"></i>
+                    {{ r.scheduledDate | date:'dd/MM/yyyy' }}
+                    &nbsp;<i class="bi bi-clock ms-2 me-1"></i>{{ r.startTime }} – {{ r.endTime }}
+                  </div>
+                  <div>
+                    <i class="bi me-1" [ngClass]="r.modality === 'Virtual' ? 'bi-camera-video' : 'bi-geo-alt'"></i>
+                    <span class="badge rounded-pill sess-badge-sm"
+                          [ngClass]="modalityBadge(r.modality)">{{ r.modality }}</span>
+                    &nbsp;<i class="bi bi-hourglass-split ms-2 me-1"></i>{{ r.estimatedDuration }}
+                  </div>
+                  <div>
+                    <i class="bi bi-person-lines-fill me-1 sess-student-icon"></i>
+                    {{ r.participantCount }} {{ r.participantCount === 1 ? 'estudiante' : 'estudiantes' }}
+                  </div>
+                  @if (attendancePct(r.scheduledId) !== null) {
+                    <div class="mt-1">
+                      <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small" style="font-size:.72rem">
+                          <i class="bi bi-bar-chart-fill me-1"></i>Asistencia
+                        </span>
+                        <span class="small fw-semibold" [style.color]="pctColor(attendancePct(r.scheduledId)!)">
+                          {{ attendancePct(r.scheduledId) }}%
+                        </span>
+                      </div>
+                      <div class="progress" style="height:4px;border-radius:2px">
+                        <div class="progress-bar"
+                             [style.width]="attendancePct(r.scheduledId) + '%'"
+                             [style.background-color]="pctColor(attendancePct(r.scheduledId)!)">
+                        </div>
                       </div>
                     </div>
+                  }
+                </div>
+
+                <!-- Footer: ref + actions -->
+                <div class="sess-footer mt-auto" (click)="$event.stopPropagation()">
+                  <span class="text-muted small fw-semibold">#{{ r.scheduledId }}</span>
+                  <div class="d-flex gap-1 flex-wrap">
+                    <button class="btn btn-outline-secondary btn-sm border" title="Ver detalle"
+                            (click)="openDetail(r)">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                    @if (r.statusName.toLowerCase().includes('finaliz')) {
+                      <button class="btn btn-outline-primary btn-sm border" title="Tomar lista"
+                              (click)="openDetail(r)">
+                        <i class="bi bi-person-check"></i>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </article>
+            </div>
+          }
+        </div>
+
+      }
+    }
+
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════════════
+       TAB: HISTORIAL DE SESIONES COMPLETADAS
+  ══════════════════════════════════════════════════════════════════════════ -->
+  @if (activeTab === 'history') {
+
+    <!-- Error historial -->
+    @if (historyError) {
+      <div class="alert alert-danger alert-dismissible fade show border" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ historyError }}
+        <button type="button" class="btn-close" (click)="historyError = null"></button>
+      </div>
+    }
+
+    <!-- Resumen chips -->
+    <div class="row g-2 mb-3">
+      <div class="col-6 col-lg-3">
+        <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Total</div>
+            <div class="fw-bold fs-4" style="color:#1565C0">{{ historyTotal }}</div>
+          </div>
+          <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
+               style="background:#e3f2fd">
+            <i class="bi bi-journal-check" style="color:#1565C0"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Virtuales</div>
+            <div class="fw-bold fs-4" style="color:#0288d1">{{ countHistoryByModality('Virtual') }}</div>
+          </div>
+          <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
+               style="background:#e1f5fe">
+            <i class="bi bi-camera-video" style="color:#0288d1"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted small">Presenciales</div>
+            <div class="fw-bold fs-4" style="color:#7b1fa2">{{ countHistoryByModality('Presencial') }}</div>
+          </div>
+          <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
+               style="background:#f3e5f5">
+            <i class="bi bi-building" style="color:#7b1fa2"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor principal igual que solicitudes -->
+    <div class="card border shadow-sm">
+      <div class="card-body">
+
+        <!-- Loading historial -->
+        @if (historyLoading) {
+          <div class="text-center py-5">
+            <div class="spinner-border text-success" role="status"></div>
+            <p class="text-muted mt-2 mb-0">Cargando historial...</p>
+          </div>
+        } @else {
+
+          <!-- Sin resultados -->
+          @if (historyItems.length === 0) {
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-journal-x display-4 d-block mb-2 opacity-25"></i>
+              No tienes sesiones completadas aún.
+            </div>
+          } @else {
+
+            <!-- Filtros historial -->
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+              <span class="small fw-semibold text-muted">
+                <i class="bi bi-funnel me-1"></i>Estado:
+              </span>
+
+              <button class="filter-tag" [class.filter-tag--active]="histFilterModality === null"
+                      (click)="histFilterModality = null">
+                <i class="bi bi-grid-fill me-1"></i>Todas
+                <span class="filter-tag__count">{{ historyItems.length }}</span>
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="histFilterModality === 'Virtual'"
+                      (click)="histFilterModality = 'Virtual'">
+                <i class="bi bi-camera-video me-1"></i>Virtual
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="histFilterModality === 'Presencial'"
+                      (click)="histFilterModality = 'Presencial'">
+                <i class="bi bi-geo-alt-fill me-1"></i>Presencial
+              </button>
+
+              <span class="filter-divider"></span>
+
+              <span class="small fw-semibold text-muted">
+                <i class="bi bi-funnel me-1"></i>Organizacion:
+              </span>
+
+              <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === null"
+                      (click)="histFilterSessionType = null">
+                <i class="bi bi-people me-1"></i>Todos
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === 'Individual'"
+                      (click)="histFilterSessionType = 'Individual'">
+                <i class="bi bi-person-fill me-1"></i>Individual
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === 'Grupal'"
+                      (click)="histFilterSessionType = 'Grupal'">
+                <i class="bi bi-people-fill me-1"></i>Grupal
+              </button>
+            </div>
+
+            <!-- Layout toggle igual que solicitudes -->
+            <div class="d-flex justify-content-end gap-1 mb-3">
+              <button class="btn btn-sm border"
+                      [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                      title="1 columna" (click)="colClass = 'col-12'">
+                <i class="bi bi-view-list"></i>
+              </button>
+              <button class="btn btn-sm border"
+                      [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                      title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+                <i class="bi bi-grid"></i>
+              </button>
+              <button class="btn btn-sm border"
+                      [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                      title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+                <i class="bi bi-grid-3x3-gap"></i>
+              </button>
+            </div>
+
+            <!-- Sin resultados tras filtro -->
+            @if (filteredHistoryItems.length === 0) {
+              <div class="text-center py-4 text-muted">
+                <i class="bi bi-funnel display-4 d-block mb-2 opacity-25"></i>
+                No hay sesiones para el filtro seleccionado.
+              </div>
+            } @else {
+
+              <!-- Cards grid -->
+              <div class="row g-3">
+                @for (h of filteredHistoryItems; track h.scheduledId) {
+                  <div [ngClass]="colClass">
+                    <article class="req-card" (click)="openHistoryDetail(h)">
+
+                      <!-- Cabecera: tipo sesión + fecha -->
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                      <span class="req-badge"
+                            [ngClass]="h.sessionType === 'Grupal' ? 'req-badge--grupal' : 'req-badge--individual'">
+                        <i class="bi me-1"
+                           [ngClass]="h.sessionType === 'Grupal' ? 'bi-people-fill' : 'bi-person-fill'"></i>
+                        {{ h.sessionType }}
+                      </span>
+                        <small class="text-muted">
+                          <i class="bi bi-calendar3 me-1"></i>{{ h.scheduledDate | date:'dd/MM/yyyy' }}
+                        </small>
+                      </div>
+
+                      <!-- Asignatura -->
+                      <h6 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-book-fill me-2 req-student-icon"></i>{{ h.subjectName }}
+                      </h6>
+
+                      <!-- Horario + duración -->
+                      <div class="text-muted small mb-2">
+                        <i class="bi bi-clock me-2"></i>{{ h.timeSlot }}
+                        <span class="ms-3"><i class="bi bi-hourglass-split me-1"></i>{{ h.estimatedDuration }}</span>
+                      </div>
+
+                      <!-- Modalidad + asistencia -->
+                      <div class="d-flex align-items-center justify-content-between mb-0">
+                      <span class="badge rounded-pill sess-badge-sm" [ngClass]="modalityBadge(h.modality)">
+                        <i class="bi me-1"
+                           [ngClass]="h.modality === 'Virtual' ? 'bi-camera-video-fill' : 'bi-geo-alt-fill'"></i>
+                        {{ h.modality }}
+                      </span>
+                        <small class="text-muted">
+                          <i class="bi bi-people me-1"></i>
+                          {{ h.attendedCount }}/{{ h.totalParticipants }} asistieron
+                        </small>
+                      </div>
+
+                      <!-- Barra de asistencia -->
+                      <div class="mt-2 mb-1">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-muted" style="font-size:.7rem">
+                          <i class="bi bi-bar-chart-fill me-1"></i>Asistencia
+                        </span>
+                          <span class="small fw-semibold" style="font-size:.7rem"
+                                [style.color]="historyAttendancePctColor(h.attendancePercentage)">
+                          {{ h.attendancePercentage | number:'1.0-1' }}%
+                        </span>
+                        </div>
+                        <div class="progress" style="height:4px;border-radius:2px">
+                          <div class="progress-bar"
+                               [style.width]="h.attendancePercentage + '%'"
+                               [style.background-color]="historyAttendancePctColor(h.attendancePercentage)">
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Pie: ref + estado + acción -->
+                      <div class="req-footer" (click)="$event.stopPropagation()">
+                        <small class="text-muted">
+                          <i class="bi bi-hash me-1"></i>Sesión #{{ h.scheduledId }}
+                        </small>
+                        <div class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-primary">
+                          <i class="bi bi-check-circle-fill me-1"></i>{{ h.statusName }}
+                        </span>
+                          <button class="btn btn-sm btn-outline-secondary border" title="Ver detalle"
+                                  (click)="openHistoryDetail(h)">
+                            <i class="bi bi-eye"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                    </article>
                   </div>
                 }
               </div>
 
-              <!-- Footer: ref + actions -->
-              <div class="sess-footer mt-auto" (click)="$event.stopPropagation()">
-                <span class="text-muted small fw-semibold">#{{ r.scheduledId }}</span>
-                <div class="d-flex gap-1 flex-wrap">
-                  <button class="btn btn-outline-secondary btn-sm border" title="Ver detalle"
-                          (click)="openDetail(r)">
-                    <i class="bi bi-eye"></i>
+              <!-- Paginación igual que solicitudes -->
+              <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <div class="text-muted small">
+                  Página {{ historyPage }} de {{ historyTotalPages }} · Total: {{ historyTotal }}
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-outline-secondary btn-sm border"
+                          [disabled]="historyPage <= 1"
+                          (click)="loadHistory(historyPage - 1)">
+                    <i class="bi bi-chevron-left"></i> Anterior
                   </button>
-                  @if (r.statusName.toLowerCase().includes('finaliz')) {
-                    <button class="btn btn-outline-primary btn-sm border" title="Tomar lista"
-                            (click)="openDetail(r)">
-                      <i class="bi bi-person-check"></i>
-                    </button>
-                  }
+                  <button class="btn btn-outline-secondary btn-sm border"
+                          [disabled]="historyPage >= historyTotalPages"
+                          (click)="loadHistory(historyPage + 1)">
+                    Siguiente <i class="bi bi-chevron-right"></i>
+                  </button>
                 </div>
               </div>
 
-            </article>
-          </div>
+            } <!-- fin @else filteredHistoryItems -->
+          }
         }
-      </div>
 
-    }
+      </div>
+    </div>
+
   }
 
 </div>
 
 <!-- MODAL: Detail -->
 @if (activeModal === 'detail' && selected) {
-  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.5);display:flex!important;align-items:center;justify-content:center;padding:1.5rem">
-    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-start;width:100%;max-width:1000px">
+  <div class="modal fade show d-block" tabindex="-1"
+       style="background:rgba(0,0,0,.5);display:flex!important;align-items:center;justify-content:center;padding:1.5rem">
+    <div
+      style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-start;width:100%;max-width:1000px">
 
       <!-- ── Detail panel ── -->
       <div class="modal-content border d-flex flex-column"
            style="max-width:580px;width:100%;max-height:80vh">
         <div class="modal-header border-bottom flex-shrink-0">
-          <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Sesión #{{ selected.scheduledId }}</h5>
-          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon bg-primary-subtle text-primary"><i class="bi bi-camera-video"></i></div>
+            <div>
+              <h5 class="modal-title fw-bold mb-0">Sesión <span class="text-muted fw-normal fs-6 ms-1">#{{ selected.scheduledId }}</span></h5>
+              <small class="text-muted" style="font-size:.78rem">{{ selected.subjectName }}</small>
+            </div>
+          </div>
+          <button class="btn-close ms-auto" (click)="closeModal()" [disabled]="busy"></button>
         </div>
         <div class="modal-body flex-grow-1 overflow-auto">
 
@@ -201,13 +540,20 @@
 
           <!-- Session info -->
           <div class="row g-3 mb-3">
-            <div class="col-6"><span class="label">Asignatura</span><strong class="d-block">{{ selected.subjectName }}</strong></div>
-            <div class="col-6"><span class="label">Tipo de sesión</span><strong class="d-block">{{ selected.sessionType }}</strong></div>
-            <div class="col-6"><span class="label">Fecha</span><strong class="d-block">{{ selected.scheduledDate | date:'dd/MM/yyyy' }}</strong></div>
-            <div class="col-6"><span class="label">Franja horaria</span><strong class="d-block">{{ selected.startTime }} – {{ selected.endTime }}</strong></div>
-            <div class="col-6"><span class="label">Modalidad</span><strong class="d-block">{{ selected.modality }}</strong></div>
-            <div class="col-6"><span class="label">Duración estimada</span><strong class="d-block">{{ selected.estimatedDuration }}</strong></div>
-            <div class="col-6"><span class="label">Participantes</span><strong class="d-block">{{ selected.participantCount }}</strong></div>
+            <div class="col-6"><span class="label">Asignatura</span><strong
+              class="d-block">{{ selected.subjectName }}</strong></div>
+            <div class="col-6"><span class="label">Tipo de sesión</span><strong
+              class="d-block">{{ selected.sessionType }}</strong></div>
+            <div class="col-6"><span class="label">Fecha</span><strong
+              class="d-block">{{ selected.scheduledDate | date:'dd/MM/yyyy' }}</strong></div>
+            <div class="col-6"><span class="label">Franja horaria</span><strong class="d-block">{{ selected.startTime }}
+              – {{ selected.endTime }}</strong></div>
+            <div class="col-6"><span class="label">Modalidad</span><strong
+              class="d-block">{{ selected.modality }}</strong></div>
+            <div class="col-6"><span class="label">Duración estimada</span><strong
+              class="d-block">{{ selected.estimatedDuration }}</strong></div>
+            <div class="col-6"><span class="label">Participantes</span><strong
+              class="d-block">{{ selected.participantCount }}</strong></div>
             <div class="col-6">
               <span class="label">Asistencia</span>
               @if (attendancePct(selected.scheduledId) !== null) {
@@ -228,23 +574,27 @@
             </div>
             <div class="col-6">
               <span class="label">Estado</span>
-              <span class="badge rounded-pill" [ngClass]="statusBadge(selected.statusName)">{{ selected.statusName }}</span>
+              <span class="badge rounded-pill"
+                    [ngClass]="statusBadge(selected.statusName)">{{ selected.statusName }}</span>
             </div>
           </div>
 
-          <!-- ── Aceptada / Espera espacio ────────────────────────────────── -->
-          @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+          <!-- ── Programado / Aceptada / Espera espacio ───────────────────── -->
+          @if (selected.statusName === 'Programado' || selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
             <hr class="my-3">
             <div class="mb-2">
               <h6 class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1 text-info"></i>Enlace virtual</h6>
               <div class="input-group">
                 <input type="url" class="form-control border" [(ngModel)]="virtualLinkUrl"
-                       placeholder="https://meet.google.com/..." />
+                       placeholder="https://meet.google.com/..."/>
                 <button class="btn btn-info text-white border" (click)="submitVirtualLink()"
                         [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)"
                         title="Guardar enlace">
-                  @if (busy) { <span class="spinner-border spinner-border-sm"></span> }
-                  @else { <i class="bi bi-floppy"></i> }
+                  @if (busy) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    <i class="bi bi-floppy"></i>
+                  }
                 </button>
               </div>
               @if (virtualLinkUrl && !isValidUrl(virtualLinkUrl)) {
@@ -258,11 +608,19 @@
         </div>
         <div class="modal-footer border-top flex-shrink-0">
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cerrar</button>
-          <button class="btn btn-outline-primary" (click)="openAttendance()" [disabled]="busy || showAttendance">
+          <button class="btn btn-outline-primary"
+                  (click)="openAttendance()"
+                  [disabled]="busy || showAttendance || selected.statusName !== 'Programado'"
+                  [title]="selected.statusName !== 'Programado' ? 'Solo puedes tomar asistencia cuando la sesión esté en estado Programado' : 'Tomar asistencia'">
             <i class="bi bi-person-check me-1"></i>Asistencia
           </button>
-          @if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+          @if (selected.statusName === 'Programado') {
             <button class="btn btn-success" (click)="openPerformed(selected)" [disabled]="busy">
+              <i class="bi bi-stop-circle me-1"></i>Finalizar aula virtual
+            </button>
+          } @else if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+            <button class="btn btn-success" disabled
+                    title="La sesión debe estar en estado 'Programado' para poder finalizarla">
               <i class="bi bi-stop-circle me-1"></i>Finalizar aula virtual
             </button>
           }
@@ -273,11 +631,12 @@
       @if (showAttendance) {
         <div class="modal-content border d-flex flex-column"
              style="max-width:380px;width:100%;max-height:80vh">
-          <div class="modal-header border-bottom flex-shrink-0" style="background:#f8f9fa">
-            <h6 class="modal-title fw-bold mb-0">
-              <i class="bi bi-person-check me-2 text-primary"></i>Asistencia · #{{ selected.scheduledId }}
-            </h6>
-            <button class="btn-close" (click)="closeAttendance()" [disabled]="busy"></button>
+          <div class="modal-header border-bottom flex-shrink-0">
+            <div class="d-flex align-items-center gap-3">
+              <div class="modal-icon bg-primary-subtle text-primary"><i class="bi bi-person-check"></i></div>
+              <h5 class="modal-title fw-bold mb-0">Asistencia <span class="text-muted fw-normal fs-6 ms-1">#{{ selected.scheduledId }}</span></h5>
+            </div>
+            <button class="btn-close ms-auto" (click)="closeAttendance()" [disabled]="busy"></button>
           </div>
           <div class="modal-body flex-grow-1 overflow-auto">
 
@@ -289,7 +648,7 @@
 
             @if (loadingParticipants) {
               <div class="text-center py-4">
-                <div class="spinner-border text-primary" role="status"></div>
+                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
                 <p class="text-muted small mt-2 mb-0">Cargando participantes...</p>
               </div>
             } @else {
@@ -304,7 +663,7 @@
                     <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
                       <span class="small fw-semibold">{{ p.studentName }}</span>
                       <input class="form-check-input ms-2" type="checkbox"
-                             [id]="'p-' + p.participantId" [(ngModel)]="p.attended" />
+                             [id]="'p-' + p.participantId" [(ngModel)]="p.attended"/>
                     </div>
                   }
                 </div>
@@ -313,10 +672,13 @@
 
           </div>
           <div class="modal-footer border-top flex-shrink-0">
-            <button class="btn btn-outline-secondary btn-sm" (click)="closeAttendance()" [disabled]="busy">Cancelar</button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="closeAttendance()" [disabled]="busy">Cancelar
+            </button>
             <button class="btn btn-primary btn-sm" (click)="saveAttendanceList()"
                     [disabled]="busy || loadingParticipants || participants.length === 0">
-              @if (busy) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              @if (busy) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
               <i class="bi bi-floppy me-1"></i>Guardar
             </button>
           </div>
@@ -333,10 +695,14 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border">
         <div class="modal-header border-bottom">
-          <h5 class="modal-title fw-bold">
-            <i class="bi bi-journal-check me-2 text-success"></i>Registrar resultado &middot; Sesión #{{ selected.scheduledId }}
-          </h5>
-          <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon bg-success-subtle text-success"><i class="bi bi-journal-check"></i></div>
+            <div>
+              <h5 class="modal-title fw-bold mb-0">Registrar resultado <span class="text-muted fw-normal fs-6 ms-1">#{{ selected.scheduledId }}</span></h5>
+              <small class="text-muted" style="font-size:.78rem">{{ selected.subjectName }}</small>
+            </div>
+          </div>
+          <button class="btn-close ms-auto" (click)="closeModal()" [disabled]="busy"></button>
         </div>
         <div class="modal-body">
 
@@ -348,7 +714,8 @@
 
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label small fw-semibold">Observaciones / Resultado <span class="text-danger">*</span></label>
+              <label class="form-label small fw-semibold">Observaciones / Resultado <span
+                class="text-danger">*</span></label>
               <textarea class="form-control border" rows="4" [(ngModel)]="performedObservation"
                         placeholder="Describe los temas abordados, resultados y cualquier observación relevante."></textarea>
             </div>
@@ -372,7 +739,9 @@
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
           <button class="btn btn-success" (click)="submitPerformed()"
                   [disabled]="busy || !performedObservation.trim() || !performedDuration.trim()">
-            @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
+            @if (busy) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
             <i class="bi bi-journal-check me-1"></i>Guardar resultado
           </button>
         </div>
@@ -380,3 +749,178 @@
     </div>
   </div>
 }
+
+<!-- MODAL: Detalle sesión completada (Historial) -->
+@if (showHistoryModal && selectedHistory) {
+  <div class="modal fade show d-block" tabindex="-1"
+       style="background:rgba(0,0,0,.5);display:flex!important;align-items:center;justify-content:center;padding:1.5rem">
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:flex-start;width:100%;max-width:700px">
+
+      <div class="modal-content border d-flex flex-column" style="width:100%;max-height:85vh">
+
+        <!-- Header — mismo estilo que todos los modales del módulo -->
+        <div class="modal-header border-bottom flex-shrink-0">
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-icon bg-success-subtle text-success"><i class="bi bi-journal-check"></i></div>
+            <div>
+              <h5 class="modal-title fw-bold mb-0">Sesión <span class="text-muted fw-normal fs-6 ms-1">#{{ selectedHistory.scheduledId }}</span></h5>
+              <small class="text-muted" style="font-size:.78rem">{{ selectedHistory.subjectName }}</small>
+            </div>
+          </div>
+          <button class="btn-close ms-auto" (click)="closeHistoryModal()"></button>
+        </div>
+
+        <div class="modal-body flex-grow-1 overflow-auto">
+
+          <!-- Loader -->
+          @if (historyDetailLoading) {
+            <div class="text-center py-5">
+              <div class="spinner-border text-success" role="status"></div>
+              <p class="text-muted mt-2 mb-0">Cargando detalle...</p>
+            </div>
+
+          } @else if (historyDetailError) {
+            <div class="alert alert-danger border small py-2 mb-0">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ historyDetailError }}
+            </div>
+
+          } @else if (historyDetail) {
+
+            <!-- Info principal: misma estructura que modal activas -->
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <span class="label">Asignatura</span>
+                <strong class="d-block">{{ historyDetail.subjectName }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Tipo de sesión</span>
+                <strong class="d-block">{{ historyDetail.sessionType }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Fecha</span>
+                <strong class="d-block">{{ historyDetail.scheduledDate | date:'dd/MM/yyyy' }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Horario</span>
+                <strong class="d-block">{{ historyDetail.timeSlot }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Modalidad</span>
+                <strong class="d-block">{{ historyDetail.modality }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Duración estimada</span>
+                <strong class="d-block">{{ historyDetail.estimatedDuration }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Duración real</span>
+                <strong class="d-block">{{ historyDetail.actualDuration ?? '--' }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Estado</span>
+                <span class="badge rounded-pill bg-success">
+                  <i class="bi bi-check-circle-fill me-1"></i>{{ historyDetail.statusName }}
+                </span>
+              </div>
+              <div class="col-6">
+                <span class="label">Participantes</span>
+                <strong class="d-block">{{ historyDetail.totalParticipants }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="label">Asistencia</span>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <div class="progress flex-grow-1" style="height:6px;border-radius:3px">
+                    <div class="progress-bar"
+                         [style.width]="historyDetail.attendancePercentage + '%'"
+                         [style.background-color]="historyAttendancePctColor(historyDetail.attendancePercentage)">
+                    </div>
+                  </div>
+                  <strong [style.color]="historyAttendancePctColor(historyDetail.attendancePercentage)">
+                    {{ historyDetail.attendancePercentage | number:'1.0-1' }}%
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            <hr class="my-3">
+            <div class="mb-3">
+              <span class="label">Observaciones</span>
+              @if (historyDetail.observation) {
+                <p class="mb-0 mt-1 small text-dark" style="line-height:1.6">{{ historyDetail.observation }}</p>
+              } @else {
+                <p class="mb-0 mt-1 small text-muted fst-italic">Sin observaciones registradas.</p>
+              }
+            </div>
+
+            <!-- Enlace virtual -->
+            @if (historyDetail.virtualLink) {
+              <div class="mb-3">
+                <span class="label">Enlace virtual</span>
+                <a [href]="historyDetail.virtualLink" target="_blank" rel="noopener"
+                   class="d-block mt-1 small text-info text-break">
+                  <i class="bi bi-link-45deg me-1"></i>{{ historyDetail.virtualLink }}
+                </a>
+              </div>
+            }
+
+            <!-- Participantes -->
+            @if (historyDetail.attendance.length > 0) {
+              <hr class="my-3">
+              <h6 class="fw-semibold mb-3">
+                <i class="bi bi-people-fill me-2 text-primary"></i>Participantes
+              </h6>
+              <div class="list-group list-group-flush rounded-3 border overflow-hidden mb-3">
+                @for (p of historyDetail.attendance; track p.participantId) {
+                  <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="hist-avatar flex-shrink-0"
+                           [style.background]="p.attended ? '#1B7505' : '#9e9e9e'">
+                        {{ p.studentName.charAt(0).toUpperCase() }}
+                      </div>
+                      <span class="small fw-semibold">{{ p.studentName }}</span>
+                    </div>
+                    @if (p.attended) {
+                      <span class="badge rounded-pill px-3 py-1 small"
+                            style="background:#e8f5e9;color:#1B7505;border:1px solid #a5d6a7">
+                        <i class="bi bi-check-circle-fill me-1"></i>Asistió
+                      </span>
+                    } @else {
+                      <span class="badge rounded-pill px-3 py-1 small"
+                            style="background:#f5f5f5;color:#757575;border:1px solid #e0e0e0">
+                        <i class="bi bi-x-circle me-1"></i>No asistió
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Recursos -->
+            @if (historyDetail.resources && historyDetail.resources.length > 0) {
+              <h6 class="fw-semibold mb-3">
+                <i class="bi bi-paperclip me-2 text-secondary"></i>Recursos adjuntos
+              </h6>
+              <div class="list-group list-group-flush rounded-3 border overflow-hidden">
+                @for (url of historyDetail.resources; track url) {
+                  <a [href]="url" target="_blank" rel="noopener"
+                     class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 small">
+                    <i class="bi bi-file-earmark-arrow-down text-primary"></i>
+                    <span class="text-truncate text-info">{{ url }}</span>
+                  </a>
+                }
+              </div>
+            }
+
+          }
+        </div>
+
+        <div class="modal-footer border-top flex-shrink-0">
+          <button class="btn btn-outline-secondary" (click)="closeHistoryModal()">Cerrar</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}
+

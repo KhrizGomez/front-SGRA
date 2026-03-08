@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/services/student/http-params.helper.ts"],
-  "sourcesContent": ["import { HttpParams } from '@angular/common/http';\r\n\r\n/**\r\n * Builds HttpParams from an object, omitting null/undefined values\r\n * @param params Object with key-value pairs\r\n * @returns HttpParams instance with only defined values\r\n */\r\nexport function buildHttpParams(params: Record<string, unknown>): HttpParams {\r\n  let httpParams = new HttpParams();\r\n\r\n  for (const key of Object.keys(params)) {\r\n    const value = params[key];\r\n    if (value !== null && value !== undefined && value !== '') {\r\n      httpParams = httpParams.set(key, String(value));\r\n    }\r\n  }\r\n\r\n  return httpParams;\r\n}\r\n\r\n"],
-  "mappings": ";;;;;AAOM,SAAU,gBAAgB,QAA+B;AAC7D,MAAI,aAAa,IAAI,WAAU;AAE/B,aAAW,OAAO,OAAO,KAAK,MAAM,GAAG;AACrC,UAAM,QAAQ,OAAO,GAAG;AACxB,QAAI,UAAU,QAAQ,UAAU,UAAa,UAAU,IAAI;AACzD,mBAAa,WAAW,IAAI,KAAK,OAAO,KAAK,CAAC;IAChD;EACF;AAEA,SAAO;AACT;",
-  "names": []
-}

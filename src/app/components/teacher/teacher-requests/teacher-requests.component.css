@@ -190,11 +190,49 @@ td {
   line-height: 1;
 }
 
-.time-range-label {
-  font-size: 0.7rem;
+/* ── Filter tags (estilo igual a botones de duración) ────────────────────────── */
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .38rem .9rem;
+  border-radius: 999px;
+  font-size: .8rem;
   font-weight: 600;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  margin-bottom: 4px;
+  border: 1.5px solid #dee2e6;
+  background: #fff;
+  color: #495057;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+  white-space: nowrap;
+  line-height: 1.4;
 }
+.filter-tag:hover {
+  border-color: #adb5bd;
+  background: #f8f9fa;
+}
+.filter-tag--active {
+  background: #1B7505 !important;
+  border-color: #1B7505 !important;
+  color: #fff !important;
+}
+.filter-tag__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9ecef;
+  color: #495057;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 0 .4rem;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  margin-left: .2rem;
+  transition: background .15s, color .15s;
+}
+.filter-tag--active .filter-tag__count {
+  background: rgba(255,255,255,.3);
+  color: #fff;
+}
+

@@ -59,6 +59,19 @@ export class WorkAreaManagerManagementOfInPersonRequestsComponent implements OnI
     return tipo === 'Grupal' ? 'bg-primary-subtle text-primary' : 'bg-info-subtle text-info';
   }
 
+  getStateBadgeClass(estado: string): string {
+    switch (estado) {
+      case 'Programado':
+        return 'bg-success-subtle text-success';
+      case 'Espera espacio':
+        return 'bg-warning-subtle text-warning';
+      case 'Cancelado':
+        return 'bg-danger-subtle text-danger';
+      default:
+        return 'bg-secondary-subtle text-secondary';
+    }
+  }
+
   openAssignModal(item: InPersonReinforcement): void {
     this.selectedReinforcementId = item.pidrefuerzopresencial;
     this.selectedTipoAreaTrabajo = item.pidtipoareatrabajo;

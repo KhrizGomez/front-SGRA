@@ -6,8 +6,11 @@ import { catchError } from 'rxjs/operators';
 import { TeacherSessionsService } from '../../../services/teacher/teacher-sessions.service';
 import {
   TeacherHistoryItemDTO,
-  AttendanceEntryDTO,
   SessionParticipantDTO,
+  TeacherSessionHistoryItemDTO,
+  TeacherSessionHistoryPageDTO,
+  TeacherSessionHistoryDetailDTO,
+  HistoryParticipantDTO,
 } from '../../../models/teacher/teacher-request.model';
 
 type ActiveModal = 'none' | 'detail' | 'performed';
@@ -16,8 +19,8 @@ type ActiveModal = 'none' | 'detail' | 'performed';
   selector: 'app-teacher-history',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './teacher-history.component.html',
-  styleUrl: './teacher-history.component.css'
+  templateUrl: 'teacher-history.component.html',
+  styleUrl: 'teacher-history.component.css'
 })
 export class TeacherHistoryComponent implements OnInit {
   private sessSvc = inject(TeacherSessionsService);
@@ -30,6 +33,10 @@ export class TeacherHistoryComponent implements OnInit {
 
   colClass = 'col-12 col-md-4';
 
+  // ── Tabs ─────────────────────────────────────────────────────────────────
+  activeTab: 'active' | 'history' = 'active';
+
+  // ── Active Sessions ───────────────────────────────────────────────────────
   rows: TeacherHistoryItemDTO[] = [];
   totalCount = 0;
 
@@ -54,7 +61,115 @@ export class TeacherHistoryComponent implements OnInit {
   performedDuration    = '';
   perfDurationPresets: string[] = [];
 
+  // ── Session History ───────────────────────────────────────────────────────
+  historyItems: TeacherSessionHistoryItemDTO[] = [];
+  historyLoading  = false;
+  historyError: string | null = null;
+  historyPage     = 1;
+  historySize     = 10;
+  historyTotal    = 0;
+  historyTotalPages = 1;
+
+  // Modal detalle historial
+  selectedHistory: TeacherSessionHistoryItemDTO | null = null;
+  showHistoryModal = false;
+  historyDetail: TeacherSessionHistoryDetailDTO | null = null;
+  historyDetailLoading = false;
+  historyDetailError: string | null = null;
+
+  // mantener compatibilidad con el template que usa historyParticipants
+  get historyParticipants(): HistoryParticipantDTO[] {
+    return this.historyDetail?.attendance ?? [];
+  }
+  get historyParticipantsLoading(): boolean { return this.historyDetailLoading; }
+  get historyParticipantsError(): string | null { return this.historyDetailError; }
+
+  // ── Filtros sesiones activas ──────────────────────────────────────────────
+  activeFilterStatus: string | null   = null;   // null = Todos
+  activeFilterModality: string | null = null;   // null = Todas
+
+  // ── Filtros historial ─────────────────────────────────────────────────────
+  histFilterModality:    string | null = null;
+  histFilterSessionType: string | null = null;
+
+  get filteredRows(): TeacherHistoryItemDTO[] {
+    return this.rows.filter(r => {
+      const okStatus   = !this.activeFilterStatus   || r.statusName   === this.activeFilterStatus;
+      const okModality = !this.activeFilterModality || r.modality     === this.activeFilterModality;
+      return okStatus && okModality;
+    });
+  }
+
+  get filteredHistoryItems(): TeacherSessionHistoryItemDTO[] {
+    return this.historyItems.filter(h => {
+      const okModality    = !this.histFilterModality    || h.modality    === this.histFilterModality;
+      const okSessionType = !this.histFilterSessionType || h.sessionType === this.histFilterSessionType;
+      return okModality && okSessionType;
+    });
+  }
+
   ngOnInit(): void { this.load(); }
+
+  switchTab(tab: 'active' | 'history'): void {
+    this.activeTab = tab;
+    if (tab === 'history' && this.historyItems.length === 0 && !this.historyLoading) {
+      this.loadHistory();
+    }
+  }
+
+  loadHistory(page = 1): void {
+    this.historyLoading = true;
+    this.historyError   = null;
+    this.historyPage    = page;
+    this.sessSvc.getSessionHistory(page, this.historySize).subscribe({
+      next: (data: TeacherSessionHistoryPageDTO) => {
+        this.historyItems      = data.items ?? [];
+        this.historyTotal      = data.totalCount;
+        this.historyTotalPages = data.totalPages;
+        this.historyLoading    = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: Error) => {
+        this.historyError   = err?.message || 'Error al cargar el historial';
+        this.historyLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+
+  historyAttendancePctColor(pct: number): string {
+    if (pct >= 75) return '#1B7505';
+    if (pct >= 50) return '#ed6c02';
+    return '#d32f2f';
+  }
+
+  openHistoryDetail(item: TeacherSessionHistoryItemDTO): void {
+    this.selectedHistory   = item;
+    this.showHistoryModal  = true;
+    this.historyDetail     = null;
+    this.historyDetailError   = null;
+    this.historyDetailLoading = true;
+    this.sessSvc.getHistoryDetail(item.scheduledId).subscribe({
+      next: detail => {
+        this.historyDetail        = detail;
+        this.historyDetailLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.historyDetailError   = err?.message || 'Error al cargar el detalle';
+        this.historyDetailLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeHistoryModal(): void {
+    this.showHistoryModal     = false;
+    this.selectedHistory      = null;
+    this.historyDetail        = null;
+    this.historyDetailError   = null;
+  }
 
   load(): void {
     this.loading  = true;
@@ -127,6 +242,10 @@ export class TeacherHistoryComponent implements OnInit {
 
   countByModality(modality: string): number {
     return this.rows.filter(r => r.modality === modality).length;
+  }
+
+  countHistoryByModality(modality: string): number {
+    return this.historyItems.filter((h: { modality: string }) => h.modality === modality).length;
   }
 
   // ── Modal openers ───────────────────────────────────────────────────────────
@@ -245,6 +364,8 @@ export class TeacherHistoryComponent implements OnInit {
       'Rechazada':      'bg-danger',
       'Pendiente':      'bg-warning text-dark',
       'Espera espacio': 'bg-warning text-dark',
+      'Programado':     'bg-success',
+      'Reprogramado':   'bg-info text-dark',
     };
     return map[statusName] ?? 'bg-secondary';
   }

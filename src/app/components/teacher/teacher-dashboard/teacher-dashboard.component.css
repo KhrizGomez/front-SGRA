@@ -88,3 +88,16 @@
   display: flex; align-items: center; justify-content: center;
   font-size: 1.1rem;
 }
+
+/* ── Donut center label ─────────────────────────────────────── */
+.donut-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.2;
+}
+
+
+

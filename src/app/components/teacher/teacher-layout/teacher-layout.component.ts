@@ -7,7 +7,7 @@ import { ChangePasswordModalComponent } from '../../shared/change-password-modal
 @Component({
   selector: 'app-teacher-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './teacher-layout.component.html',
   styleUrl: './teacher-layout.component.css',
 })
