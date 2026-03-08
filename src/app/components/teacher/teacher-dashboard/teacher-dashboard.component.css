@@ -1,15 +1,17 @@
 /* ── Base ──────────────────────────────────────────────────────── */
 :host {
-  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--t-font, 'Inter', 'Segoe UI', sans-serif);
+  font-size: var(--t-base);
+  color: var(--t-body);
 }
 
 /* ── Header icon ───────────────────────────────────────────────── */
 .header-icon {
-  width: 48px; height: 48px;
+  width: 48px; height: 48px; min-width: 48px;
   border-radius: 14px;
-  background: #1B7505; color: #fff;
+  background: var(--t-accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem;
+  font-size: var(--t-xl);
   border: 1px solid #145904;
 }
 
@@ -20,20 +22,28 @@
   transition: transform .18s, box-shadow .18s;
 }
 .stat-card.clickable { cursor: pointer; }
-.stat-card.clickable:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(0,0,0,.08) !important;
-}
+.stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,0,0,.08) !important; }
 
-.stat-label { font-size: .72rem; font-weight: 500; letter-spacing: .03em; text-transform: uppercase; }
-.stat-value { font-size: 2rem; line-height: 1.15; letter-spacing: -.02em; }
+.stat-label {
+  font-size: var(--t-xs);
+  font-weight: var(--t-medium);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--t-muted);
+}
+.stat-value {
+  font-size: var(--t-stat);
+  font-weight: var(--t-bold);
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
 
 /* stat icon circles */
 .stat-icon-circle {
   width: 46px; height: 46px; min-width: 46px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 /* Pending — amber */
@@ -52,52 +62,48 @@
 .text-sessions    { color: #1565C0; }
 .bg-sessions-soft { background: #E3F2FD; }
 
-/* ── Today's sessions card ─────────────────────────────────────── */
-.card { border-radius: 14px; }
-.card-header { border-radius: 14px 14px 0 0 !important; }
-.card-footer { border-radius: 0 0 14px 14px !important; }
+/* ── Cards ─────────────────────────────────────────────────────── */
+.card         { border-radius: 14px; }
+.card-header  { border-radius: 14px 14px 0 0 !important; font-size: var(--t-sm); font-weight: var(--t-semi); }
+.card-footer  { border-radius: 0 0 14px 14px !important; font-size: var(--t-xs); }
 
-.session-time { white-space: nowrap; }
+/* ── Today sessions list ────────────────────────────────────────── */
+.session-time { white-space: nowrap; font-size: var(--t-xs); color: var(--t-muted); font-weight: var(--t-medium); }
 
-.badge-virtual {
-  background: #E3F2FD;
-  color: #1565C0;
-  font-weight: 500;
-}
-.badge-presencial {
-  background: #FFF3E0;
-  color: #E65100;
-  font-weight: 500;
-}
+.badge-virtual    { background: #E3F2FD; color: #1565C0; font-size: var(--t-xs); font-weight: var(--t-medium); }
+.badge-presencial { background: #FFF3E0; color: #E65100; font-size: var(--t-xs); font-weight: var(--t-medium); }
 
 /* ── Quick links card ──────────────────────────────────────────── */
 .quick-link-card {
-  border-radius: 10px;
-  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  border: 1.5px solid #ebebeb;
   cursor: pointer;
-  transition: background .15s, border-color .15s;
+  background: #fff;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
 }
 .quick-link-card:hover {
-  background: #f6faf4;
-  border-color: #1B7505;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  border-color: #c8e6c9;
 }
 
 .quick-link-icon {
-  width: 40px; height: 40px; min-width: 40px;
+  width: 42px; height: 42px; min-width: 42px;
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
 }
 
 /* ── Donut center label ─────────────────────────────────────── */
 .donut-center {
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   pointer-events: none;
-  line-height: 1.2;
+  line-height: 1.25;
 }
-
-
-
+.donut-center .fw-bold { font-size: var(--t-lg); }
+.donut-center .text-muted { font-size: var(--t-xs); }

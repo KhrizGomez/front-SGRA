@@ -3,6 +3,10 @@
   font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+.sidebar-header {
+  padding: 0.9rem 0.5rem 0.9rem 0.5rem;
+}
+
 /* ── Sidebar ── */
 .teacher-sidebar {
   width: 15rem;
@@ -13,10 +17,110 @@
   top: 0;
   left: 0;
   background-color: #1B7505;
-  transition: all 0.3s ease-in-out;
+  transition: width 0.35s cubic-bezier(.4,0,.2,1),
+              min-width 0.35s cubic-bezier(.4,0,.2,1),
+              max-width 0.35s cubic-bezier(.4,0,.2,1);
   z-index: 20;
-  overflow-y: auto;
-  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  border-right: 1px solid rgba(0,0,0,0.15);
+}
+
+.titulo{
+  padding-left: 0.8rem;
+  font-size: 1.4rem;
+}
+
+
+/* ── Textos y etiquetas del sidebar con fade/slide ── */
+.sidebar-label {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 160px;
+  opacity: 1;
+  transition: max-width 0.35s cubic-bezier(.4,0,.2,1),
+              opacity 0.25s ease,
+              margin 0.3s ease;
+}
+
+/* Iconos del nav: transición suave del margen */
+.nav-icon {
+  flex-shrink: 0;
+  transition: margin 0.3s ease;
+}
+
+/* ── Sidebar colapsado ── */
+.teacher-sidebar.collapsed {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  max-width: 4.5rem;
+}
+
+.teacher-sidebar.collapsed .sidebar-header {
+  padding: 0.9rem 0.5rem !important;
+}
+
+/* Ocultar texto al colapsar */
+.teacher-sidebar.collapsed .sidebar-label {
+  max-width: 0;
+  opacity: 0;
+  margin: 0 !important;
+}
+
+.teacher-sidebar.collapsed .nav-icon {
+  margin-right: 0 !important;
+}
+
+.teacher-sidebar.collapsed .nav-link {
+  padding: 0.625rem 0;
+  font-size: 1.1rem;
+}
+
+.teacher-sidebar.collapsed .nav-link.active-link {
+  border-left: 4px solid #fff;
+  border-radius: 4px 8px 8px 4px;
+}
+
+/* ── Botón toggle (fijo, se mueve con el sidebar) ── */
+.sidebar-toggle-btn {
+  position: fixed;
+  top: 4.8rem; /* alineado al borde inferior del header */
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: #1B7505;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.72rem;
+  transition: left 0.35s cubic-bezier(.4,0,.2,1),
+              background 0.2s,
+              border-color 0.2s,
+              box-shadow 0.2s;
+  z-index: 100;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.sidebar-toggle-btn:hover {
+  background: #124d1c;
+  border-color: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+}
+
+/* ── Content area ── */
+.content-area {
+  margin-left: 15rem;
+  overflow: visible;
+  transition: margin-left 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+.content-area.sidebar-collapsed {
+  margin-left: 4.5rem;
 }
 
 /* ── Teacher avatar ── */
@@ -90,6 +194,8 @@
   transition: all 0.2s ease-in-out;
   opacity: 0.85;
   font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-link:hover {
@@ -117,10 +223,4 @@
 .header-title {
   font-size: 0.95rem;
   letter-spacing: 0.01em;
-}
-
-/* ── Content area ── */
-.content-area {
-  margin-left: 15rem;
-  overflow: visible;
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize, timeout } from 'rxjs/operators';
 import { TeacherSessionsService } from '../../../services/teacher/teacher-sessions.service';
 import { ToastService } from '../../../services/shared/toast.service';
 import {
@@ -121,20 +121,24 @@ export class TeacherHistoryComponent implements OnInit {
     this.historyLoading = true;
     this.historyError   = null;
     this.historyPage    = page;
-    this.sessSvc.getSessionHistory(page, this.historySize).subscribe({
-      next: (data: TeacherSessionHistoryPageDTO) => {
+    this.sessSvc.getSessionHistory(page, this.historySize)
+      .pipe(
+        timeout(15_000),
+        catchError(err => {
+          this.historyError = err?.message || 'Error al cargar el historial';
+          return of(null);
+        }),
+        finalize(() => {
+          this.historyLoading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe(data => {
+        if (!data) return;
         this.historyItems      = data.items ?? [];
         this.historyTotal      = data.totalCount;
         this.historyTotalPages = data.totalPages;
-        this.historyLoading    = false;
-        this.cdr.detectChanges();
-      },
-      error: (err: Error) => {
-        this.historyError   = err?.message || 'Error al cargar el historial';
-        this.historyLoading = false;
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
 
@@ -173,35 +177,43 @@ export class TeacherHistoryComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    this.sessSvc.getActiveSessions().subscribe({
-      next: items => {
+    this.sessSvc.getActiveSessions()
+      .pipe(
+        timeout(15_000),                     // ← máx 15 s de espera
+        catchError(err => {
+          this.toast.show(false, err?.message || 'Error al cargar las sesiones');
+          return of([]);                     // emite array vacío y continúa
+        }),
+        finalize(() => {                     // ← SIEMPRE se ejecuta
+          this.loading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe(items => {
         this.rows       = items ?? [];
         this.totalCount = this.rows.length;
-        this.loading    = false;
-        this.cdr.detectChanges();
         this.loadAllAttendance();
-      },
-      error: err => {
-        this.toast.show(false, err?.message || 'Error al cargar las sesiones');
-        this.loading = false;
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   private loadAllAttendance(): void {
     if (this.rows.length === 0) return;
     const calls = this.rows.map(r =>
-      this.sessSvc.getParticipants(r.scheduledId).pipe(catchError(() => of([])))
+      this.sessSvc.getParticipants(r.scheduledId).pipe(
+        timeout(10_000),
+        catchError(() => of([]))             // ← si falla una, devuelve []
+      )
     );
-    forkJoin(calls).subscribe(results => {
-      results.forEach((list, i) => {
-        const total    = list.length;
-        const attended = list.filter(p => p.attended).length;
-        this.attendanceMap.set(this.rows[i].scheduledId, { attended, total });
+    forkJoin(calls)
+      .pipe(catchError(() => of(this.rows.map(() => []))))  // ← fallo total → arrays vacíos
+      .subscribe(results => {
+        results.forEach((list, i) => {
+          const total    = list.length;
+          const attended = list.filter((p: SessionParticipantDTO) => p.attended).length;
+          this.attendanceMap.set(this.rows[i].scheduledId, { attended, total });
+        });
+        setTimeout(() => this.cdr.detectChanges());
       });
-      this.cdr.detectChanges();
-    });
   }
 
   attendancePct(scheduledId: number): number | null {

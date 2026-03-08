@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="mb-4">
     <div class="d-flex align-items-center gap-3">
-      <div class="header-icon"><i class="bi bi-bell-fill"></i></div>
+      <div class="header-icon"><i class="bi bi-sliders"></i></div>
       <div>
         <h3 class="fw-bold text-dark mb-0">Preferencias</h3>
         <p class="text-muted mb-0">Configura cómo deseas recibir notificaciones de refuerzos académicos</p>
@@ -42,7 +42,7 @@
               <div class="fw-bold" style="color:#1B7505;font-size:1rem">{{ currentPreference.channelName }}</div>
             </div>
             <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle" style="background:#e8f5e9">
-              <i class="bi bi-broadcast" style="color:#1B7505"></i>
+              <i class="bi bi-broadcast-pin" style="color:#1B7505"></i>
             </div>
           </div>
         </div>
@@ -53,7 +53,7 @@
               <div class="fw-bold" style="color:#1565C0;font-size:1rem">{{ currentPreference.reminderAnticipation }} min</div>
             </div>
             <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle" style="background:#e3f2fd">
-              <i class="bi bi-clock" style="color:#1565C0"></i>
+              <i class="bi bi-stopwatch" style="color:#1565C0"></i>
             </div>
           </div>
         </div>
@@ -63,7 +63,7 @@
     <!-- Formulario -->
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3 px-4">
-        <i class="bi bi-sliders text-success fs-5"></i>
+        <i class="bi bi-bell-fill text-success fs-5"></i>
         <span class="fw-semibold small">Configuración de Notificaciones</span>
       </div>
       <div class="card-body px-4 py-4">
@@ -116,7 +116,7 @@
               @if (saving) {
                 <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
               } @else {
-                <i class="bi bi-check-lg me-2"></i>Guardar cambios
+                <i class="bi bi-floppy-fill me-2"></i>Guardar cambios
               }
             </button>
             <button type="button" class="btn btn-outline-secondary"

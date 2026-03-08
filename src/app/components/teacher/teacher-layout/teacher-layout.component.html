@@ -1,36 +1,53 @@
 <div class="d-flex vh-100 bg-light">
 
-  <aside class="teacher-sidebar d-flex flex-column text-white shadow">
-    <div class="sidebar-header text-center p-4 border-bottom border-light border-opacity-25">
+  <!-- Botón toggle fuera del aside para no ser cortado por overflow:hidden -->
+  <button class="sidebar-toggle-btn" (click)="toggleSidebar()"
+          [style.left]="sidebarCollapsed ? 'calc(4.5rem - 13px)' : 'calc(15rem - 13px)'"
+          [title]="sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'">
+    <i class="bi" [class.bi-chevron-left]="!sidebarCollapsed" [class.bi-chevron-right]="sidebarCollapsed"></i>
+  </button>
+
+  <aside class="teacher-sidebar d-flex flex-column text-white shadow" [class.collapsed]="sidebarCollapsed">
+
+    <!-- Header -->
+    <div class="sidebar-header text-center border-bottom border-light border-opacity-25">
       <i class="bi bi-mortarboard-fill display-6 mb-2"></i>
-      <h6 class="m-0 fw-bold">Gestión de Refuerzos Académicos</h6>
+      <h6 class="m-0 fw-bold sidebar-label titulo">SGRA</h6>
     </div>
 
     <ul class="nav nav-pills flex-column mb-auto p-3 gap-2">
       <li class="nav-item">
-        <a routerLink="/teacher/dashboard" routerLinkActive="active-link" class="nav-link text-white">
-          <i class="bi bi-boxes"></i>⠀Dashboard
+        <a routerLink="/teacher/dashboard" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
+           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Dashboard' : ''">
+          <i class="bi bi-speedometer2 nav-icon" [class.me-2]="!sidebarCollapsed"></i>
+          <span class="sidebar-label">Dashboard</span>
         </a>
       </li>
       <li class="nav-item">
-        <a routerLink="/teacher/requests" routerLinkActive="active-link" class="nav-link text-white">
-          <i class="bi bi-inbox me-2"></i> Solicitudes
+        <a routerLink="/teacher/requests" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
+           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Solicitudes' : ''">
+          <i class="bi bi-inbox-fill nav-icon" [class.me-2]="!sidebarCollapsed"></i>
+          <span class="sidebar-label">Solicitudes</span>
         </a>
       </li>
       <li class="nav-item">
-        <a routerLink="/teacher/history" routerLinkActive="active-link" class="nav-link text-white">
-          <i class="bi bi-camera-video-fill me-2"></i> Aula Virtual
+        <a routerLink="/teacher/history" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
+           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Aula Virtual' : ''">
+          <i class="bi bi-easel2-fill nav-icon" [class.me-2]="!sidebarCollapsed"></i>
+          <span class="sidebar-label">Aula Virtual</span>
         </a>
       </li>
       <li class="nav-item">
-        <a routerLink="/teacher/preferences" routerLinkActive="active-link" class="nav-link text-white">
-          <i class="bi bi-gear-fill me-2"></i> Preferencias
+        <a routerLink="/teacher/preferences" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
+           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Preferencias' : ''">
+          <i class="bi bi-sliders nav-icon" [class.me-2]="!sidebarCollapsed"></i>
+          <span class="sidebar-label">Preferencias</span>
         </a>
       </li>
     </ul>
   </aside>
 
-  <div class="flex-grow-1 d-flex flex-column content-area">
+  <div class="flex-grow-1 d-flex flex-column content-area" [class.sidebar-collapsed]="sidebarCollapsed">
 
     <header class="top-header bg-white shadow-sm p-3 d-flex justify-content-between align-items-center z-1">
       <h5 class="m-0 text-secondary fw-semibold header-title"></h5>
@@ -53,14 +70,13 @@
             </div>
             <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                     (click)="openChangePasswordModal()">
-              <i class="bi bi-key"></i> Cambiar contraseña
+              <i class="bi bi-shield-lock"></i> Cambiar contraseña
             </button>
             <button type="button" class="dropdown-item text-danger d-flex align-items-center gap-2 px-3 py-2"
                     (click)="logout()">
-              <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+              <i class="bi bi-door-open"></i> Cerrar sesión
             </button>
           </div>
-          <!-- Backdrop to close dropdown on outside click -->
           <div class="dropdown-backdrop" (click)="closeDropdown()"></div>
         }
       </div>
@@ -72,3 +88,10 @@
 
   </div>
 </div>
+
+<!-- Modal Cambiar Contraseña -->
+@if (showChangePasswordModal) {
+  <app-change-password-modal
+    (closed)="closeChangePasswordModal()">
+  </app-change-password-modal>
+}

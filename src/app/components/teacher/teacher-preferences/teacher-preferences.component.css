@@ -1,16 +1,19 @@
 /* teacher-preferences.component.css */
 
+/* ── Base ─────────────────────────────────────────────────────── */
 :host {
-  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--t-font, 'Inter', 'Segoe UI', sans-serif);
+  font-size: var(--t-base);
+  color: var(--t-body);
 }
 
 /* ── Header icon ── */
 .header-icon {
   width: 48px; height: 48px; min-width: 48px;
   border-radius: 14px;
-  background: #1B7505; color: #fff;
+  background: var(--t-accent); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.4rem;
+  font-size: var(--t-xl);
   border: 1px solid #145904;
 }
 
@@ -19,11 +22,14 @@
   min-height: 72px;
   border: 1px solid #e0e0e0 !important;
 }
-.chip-icon {
-  width: 40px; height: 40px; min-width: 40px;
-  font-size: 1.1rem;
-}
+.chip-icon { width: 40px; height: 40px; min-width: 40px; font-size: 1.05rem; }
+.chip-box .text-muted { font-size: var(--t-xs); font-weight: var(--t-medium); letter-spacing: .02em; }
+.chip-box .fw-bold    { font-size: var(--t-stat); line-height: 1.15; }
 
 /* ── Card ── */
-.card { border-radius: 14px; }
-.card-header { border-radius: 14px 14px 0 0 !important; }
+.card         { border-radius: 14px; }
+.card-header  { border-radius: 14px 14px 0 0 !important; font-size: var(--t-sm); font-weight: var(--t-semi); }
+
+/* ── Form labels ── */
+label { font-size: var(--t-sm); font-weight: var(--t-medium); color: var(--t-body); }
+.form-text { font-size: var(--t-xs); color: var(--t-muted); }

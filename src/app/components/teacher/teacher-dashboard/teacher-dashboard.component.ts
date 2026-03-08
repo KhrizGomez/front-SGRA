@@ -57,8 +57,32 @@ export class TeacherDashboardComponent implements OnInit {
     labels: ['Pendientes', 'Aceptadas', 'Rechazadas', 'Canceladas'],
     datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#F57C00','#1B7505','#C62828','#757575'], borderWidth: 2 }]
   };
+  donutCenterPlugin = {
+    id: 'donutCenter',
+    afterDraw: (chart: any) => {
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return;
+      const cx = (chartArea.left + chartArea.right) / 2;
+      const cy = (chartArea.top + chartArea.bottom) / 2;
+      // Sumar todos los valores del dataset (excluye canceladas del conteo visual)
+      const data: number[] = chart.data?.datasets?.[0]?.data ?? [];
+      const total = (data as number[]).reduce((a, b) => a + b, 0);
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 26px Inter, Segoe UI, sans-serif';
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillText(String(total), cx, cy - 8);
+      ctx.font = '12px Inter, Segoe UI, sans-serif';
+      ctx.fillStyle = '#6c757d';
+      ctx.fillText('Solicitudes', cx, cy + 14);
+      ctx.restore();
+    }
+  };
+
   donutOptions: ChartOptions<'doughnut'> = {
     responsive: true,
+    layout: { padding: 0 },
     plugins: {
       legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
       tooltip: { enabled: true }
@@ -84,8 +108,10 @@ export class TeacherDashboardComponent implements OnInit {
   };
 
   readonly quickLinks = [
-    { label: 'Mis Solicitudes', icon: 'bi-inbox-fill',        route: '/teacher/requests', accent: '#1B7505' },
-    { label: 'Aula Virtual',    icon: 'bi-camera-video-fill', route: '/teacher/history',  accent: '#1565C0' }
+    { label: 'Mis Solicitudes', desc: 'Revisa y gestiona solicitudes',    icon: 'bi-inbox-fill',         route: '/teacher/requests',    accent: '#1B7505', bg: '#E8F5E9' },
+    { label: 'Aula Virtual',    desc: 'Sesiones activas y asistencia',    icon: 'bi-easel2-fill',        route: '/teacher/history',     accent: '#1565C0', bg: '#E3F2FD' },
+    { label: 'Historial',       desc: 'Sesiones completadas',             icon: 'bi-journal-check',      route: '/teacher/history',     accent: '#6A1B9A', bg: '#F3E5F5' },
+    { label: 'Preferencias',    desc: 'Horarios y disponibilidad',        icon: 'bi-sliders',            route: '/teacher/preferences', accent: '#E65100', bg: '#FFF3E0' },
   ];
 
   ngOnInit(): void { this.buildWeek(); this.load(); }

@@ -13,6 +13,31 @@
   --bs-primary-rgb: 25, 135, 84;
   --bs-link-color: #198754;
   --bs-link-hover-color: #146c43;
+
+  /* ── Tipografía unificada (módulo teacher y global) ── */
+  --t-font: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* escala de tamaños */
+  --t-xs:   .72rem;   /* labels, chips, meta */
+  --t-sm:   .8rem;    /* texto secundario, filtros */
+  --t-base: .9rem;    /* cuerpo normal */
+  --t-md:   1rem;     /* títulos de card */
+  --t-lg:   1.1rem;   /* subtítulos de sección */
+  --t-xl:   1.4rem;   /* iconos de cabecera */
+  --t-stat: 1.9rem;   /* valores de estadísticas */
+
+  /* pesos */
+  --t-normal:  400;
+  --t-medium:  500;
+  --t-semi:    600;
+  --t-bold:    700;
+
+  /* colores de texto */
+  --t-heading: #1a1a2e;   /* títulos */
+  --t-body:    #343a40;   /* texto normal */
+  --t-muted:   #6c757d;   /* secundario */
+  --t-light:   #9ca3af;   /* muy secundario */
+  --t-accent:  #1B7505;   /* verde principal */
 }
 body{
   background: var(--sgra-bg);
@@ -74,6 +99,35 @@ a {
 }
 a:hover {
   color: #146c43;
+}
+
+/* ===== Tipografía homogénea módulo teacher ===== */
+/* Títulos de página (h3) en todos los componentes del módulo */
+app-teacher-dashboard h3,
+app-teacher-requests h3,
+app-teacher-history h3,
+app-teacher-preferences h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--t-heading);
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+
+/* Subtítulo de página (p.text-muted bajo el h3) */
+app-teacher-dashboard .text-muted.mb-0,
+app-teacher-requests .text-muted.mb-0,
+app-teacher-history .text-muted.mb-0,
+app-teacher-preferences .text-muted.mb-0 {
+  font-size: var(--t-sm);
+}
+
+/* small tag: texto auxiliar muy pequeño */
+app-teacher-dashboard small,
+app-teacher-requests small,
+app-teacher-history small,
+app-teacher-preferences small {
+  font-size: var(--t-xs);
 }
 
 /* ===== Layout fix: componentes standalone como block ===== */

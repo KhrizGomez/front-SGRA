@@ -4,7 +4,7 @@
   <!-- Header -->
   <div class="mb-4">
     <div class="d-flex align-items-center gap-3">
-      <div class="header-icon"><i class="bi bi-inbox"></i></div>
+      <div class="header-icon"><i class="bi bi-inbox-fill"></i></div>
       <div>
         <h3 class="fw-bold text-dark mb-0">Solicitudes de Refuerzo</h3>
         <p class="text-muted mb-0">Revisa y gestiona las solicitudes de refuerzo académico recibidas</p>
@@ -56,27 +56,27 @@
             <button class="filter-tag"
                     [class.filter-tag--active]="filters.statusId === 1"
                     (click)="filters.statusId = 1; load()">
-              <i class="bi bi-clock-history me-1"></i>Pendiente
+              <i class="bi bi-hourglass-split me-1"></i>Pendiente
             </button>
             <button class="filter-tag"
                     [class.filter-tag--active]="filters.statusId === 2"
                     (click)="filters.statusId = 2; load()">
-              <i class="bi bi-check-circle me-1"></i>Aceptada
+              <i class="bi bi-check-circle-fill me-1"></i>Aceptada
             </button>
             <button class="filter-tag"
                     [class.filter-tag--active]="filters.statusId === 3"
                     (click)="filters.statusId = 3; load()">
-              <i class="bi bi-x-circle me-1"></i>Rechazada
+              <i class="bi bi-x-circle-fill me-1"></i>Rechazada
             </button>
             <button class="filter-tag"
                     [class.filter-tag--active]="filters.statusId === 4"
                     (click)="filters.statusId = 4; load()">
-              <i class="bi bi-slash-circle me-1"></i>Cancelada
+              <i class="bi bi-ban me-1"></i>Cancelada
             </button>
             <button class="filter-tag"
                     [class.filter-tag--active]="filters.statusId === 5"
                     (click)="filters.statusId = 5; load()">
-              <i class="bi bi-journal-check me-1"></i>Completada
+              <i class="bi bi-patch-check-fill me-1"></i>Completada
             </button>
           </div>
 
@@ -121,18 +121,18 @@
 
                 <!-- Estudiante -->
                 <h6 class="fw-bold text-dark mb-1">
-                  <i class="bi bi-person-badge-fill me-2 req-student-icon"></i>{{ r.studentName }}
+                  <i class="bi bi-person-vcard-fill me-2 req-student-icon"></i>{{ r.studentName }}
                 </h6>
 
                 <!-- Asignatura -->
                 <div class="text-muted small mb-3">
-                  <i class="bi bi-book me-2"></i>{{ r.subjectName }}
+                  <i class="bi bi-book-half me-2"></i>{{ r.subjectName }}
                 </div>
 
                 <!-- Motivo -->
                 @if (r.reason) {
                   <div class="text-muted small mb-3 text-truncate">
-                    <i class="bi bi-chat-left-text me-2"></i>{{ r.reason }}
+                    <i class="bi bi-chat-quote me-2"></i>{{ r.reason }}
                   </div>
                 }
 
@@ -152,22 +152,22 @@
                   </small>
                   <div class="d-flex gap-2 flex-wrap">
                     <button class="btn btn-sm btn-outline-secondary border" title="Ver detalle" (click)="openDetail(r)">
-                      <i class="bi bi-eye"></i>
+                      <i class="bi bi-eye-fill"></i>
                     </button>
                     @if (r.statusId === 1) {
                       <button class="btn btn-sm btn-success" title="Aceptar" (click)="openAccept(r)">
-                        <i class="bi bi-check-circle"></i>
+                        <i class="bi bi-check-circle-fill"></i>
                       </button>
                       <button class="btn btn-sm btn-outline-danger border" title="Rechazar" (click)="openReject(r)">
-                        <i class="bi bi-x-circle"></i>
+                        <i class="bi bi-x-circle-fill"></i>
                       </button>
                     }
                     @if (r.statusId === 2) {
                       <button class="btn btn-sm btn-outline-warning border" title="Reprogramar" (click)="openReschedule(r)">
-                        <i class="bi bi-calendar2-event"></i>
+                        <i class="bi bi-calendar2-event-fill"></i>
                       </button>
                       <button class="btn btn-sm btn-outline-danger border" title="Cancelar" (click)="openCancel(r)">
-                        <i class="bi bi-slash-circle"></i>
+                        <i class="bi bi-ban"></i>
                       </button>
                     }
                   </div>
@@ -202,10 +202,10 @@
       <div class="modal-content border">
         <div class="modal-header border-bottom">
           <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-secondary-subtle text-secondary"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="modal-icon bg-secondary-subtle text-secondary"><i class="bi bi-file-earmark-person-fill"></i></div>
             <div>
               <h5 class="modal-title fw-bold mb-0">Solicitud <span class="text-muted fw-normal fs-6 ms-1">#{{ selected.requestId }}</span></h5>
-              <small class="text-muted" style="font-size:.78rem">{{ selected.subjectName }}</small>
+              <small class="text-muted">{{ selected.subjectName }}</small>
             </div>
           </div>
           <button class="btn-close ms-auto" (click)="closeModal()"></button>
@@ -226,12 +226,12 @@
         </div>
         <div class="modal-footer border-top">
           @if (selected.statusId === 1) {
-            <button class="btn btn-outline-danger" (click)="openReject(selected)"><i class="bi bi-x-circle me-1"></i>Rechazar</button>
-            <button class="btn btn-success" (click)="openAccept(selected)"><i class="bi bi-check-circle me-1"></i>Aceptar</button>
+            <button class="btn btn-outline-danger" (click)="openReject(selected)"><i class="bi bi-x-circle-fill me-1"></i>Rechazar</button>
+            <button class="btn btn-success" (click)="openAccept(selected)"><i class="bi bi-check-circle-fill me-1"></i>Aceptar</button>
           }
           @if (selected.statusId === 2) {
-            <button class="btn btn-outline-danger me-auto" (click)="openCancel(selected)"><i class="bi bi-slash-circle me-1"></i>Cancelar</button>
-            <button class="btn btn-outline-warning" (click)="openReschedule(selected)"><i class="bi bi-calendar2-event me-1"></i>Reprogramar</button>
+            <button class="btn btn-outline-danger me-auto" (click)="openCancel(selected)"><i class="bi bi-ban me-1"></i>Cancelar</button>
+            <button class="btn btn-outline-warning" (click)="openReschedule(selected)"><i class="bi bi-calendar2-event-fill me-1"></i>Reprogramar</button>
           }
           @if (selected.statusId !== 1 && selected.statusId !== 2) {
             <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
@@ -249,7 +249,7 @@
       <div class="modal-content border">
         <div class="modal-header border-bottom">
           <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-success-subtle text-success"><i class="bi bi-calendar-check"></i></div>
+            <div class="modal-icon bg-success-subtle text-success"><i class="bi bi-calendar2-check-fill"></i></div>
             <h5 class="modal-title fw-bold mb-0">
               {{ activeModal === 'accept' ? 'Aceptar solicitud' : 'Reprogramar sesión' }}
               <span class="text-muted fw-normal fs-6 ms-2">#{{ selected.requestId }}</span>
@@ -352,7 +352,7 @@
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
           <button class="btn btn-success" (click)="submitSchedule()" [disabled]="busy || !scheduleFormValid()">
             @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            <i class="bi bi-calendar-check me-1"></i>
+            <i class="bi bi-calendar2-check-fill me-1"></i>
             {{ activeModal === 'accept' ? 'Aceptar y programar' : 'Confirmar reprogramación' }}
           </button>
         </div>
@@ -368,7 +368,7 @@
       <div class="modal-content border">
         <div class="modal-header border-bottom">
           <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-danger-subtle text-danger"><i class="bi bi-x-circle"></i></div>
+            <div class="modal-icon bg-danger-subtle text-danger"><i class="bi bi-x-circle-fill"></i></div>
             <h5 class="modal-title fw-bold mb-0">Rechazar solicitud <span class="text-muted fw-normal fs-6 ms-2">#{{ selected.requestId }}</span></h5>
           </div>
           <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
@@ -383,7 +383,7 @@
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cancelar</button>
           <button class="btn btn-danger" (click)="submitReject()" [disabled]="busy">
             @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            <i class="bi bi-x-circle me-1"></i>Confirmar rechazo
+            <i class="bi bi-x-circle-fill me-1"></i>Confirmar rechazo
           </button>
         </div>
       </div>
@@ -398,7 +398,7 @@
       <div class="modal-content border">
         <div class="modal-header border-bottom">
           <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-danger-subtle text-danger"><i class="bi bi-slash-circle"></i></div>
+            <div class="modal-icon bg-danger-subtle text-danger"><i class="bi bi-ban"></i></div>
             <h5 class="modal-title fw-bold mb-0">Cancelar sesión <span class="text-muted fw-normal fs-6 ms-2">#{{ selected.requestId }}</span></h5>
           </div>
           <button class="btn-close" (click)="closeModal()" [disabled]="busy"></button>
@@ -415,7 +415,7 @@
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">No cancelar</button>
           <button class="btn btn-danger" (click)="submitCancel()" [disabled]="busy">
             @if (busy) { <span class="spinner-border spinner-border-sm me-2"></span> }
-            <i class="bi bi-slash-circle me-1"></i>Sí, cancelar sesión
+            <i class="bi bi-ban me-1"></i>Sí, cancelar sesión
           </button>
         </div>
       </div>

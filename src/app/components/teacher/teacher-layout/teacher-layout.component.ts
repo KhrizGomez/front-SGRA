@@ -7,7 +7,7 @@ import { ChangePasswordModalComponent } from '../../shared/change-password-modal
 @Component({
   selector: 'app-teacher-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
   templateUrl: './teacher-layout.component.html',
   styleUrl: './teacher-layout.component.css',
 })
@@ -16,6 +16,11 @@ export class TeacherLayoutComponent {
 
   showDropdown = false;
   showChangePasswordModal = false;
+  sidebarCollapsed = false;
+
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
 
   get userName(): string {
     const user = this.authService.currentUser();
