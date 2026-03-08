@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  PeriodType,
   ReportConfig,
   ReportParams,
   ReportPreviewParams,
@@ -24,9 +25,8 @@ export class CoordReportService {
    */
   getReportPreview(params: ReportPreviewParams): Observable<ReportPreviewRow[]> {
     const queryParams: Record<string, string> = { type: params.type };
-    if (params.period)   queryParams['period']   = params.period;
-    if (params.dateFrom) queryParams['dateFrom'] = params.dateFrom;
-    if (params.dateTo)   queryParams['dateTo']   = params.dateTo;
+    if (params.periodType)  queryParams['periodType']  = params.periodType;
+    if (params.periodValue) queryParams['periodValue'] = params.periodValue;
     return this.http.get<ReportPreviewRow[]>(`${this.baseUrl}/preview`, { params: queryParams });
   }
 
@@ -34,10 +34,10 @@ export class CoordReportService {
    * Descarga un reporte del backend como Blob binario.
    */
   downloadReport(params: ReportParams): Observable<Blob> {
-    const { type, format, dateFrom, dateTo, columns } = params;
+    const { type, format, periodType, periodValue, columns } = params;
     const queryParams: Record<string, string> = { type, format };
-    if (dateFrom) queryParams['dateFrom'] = dateFrom;
-    if (dateTo)   queryParams['dateTo']   = dateTo;
+    if (periodType)  queryParams['periodType']  = periodType;
+    if (periodValue) queryParams['periodValue'] = periodValue;
     if (columns?.length) queryParams['columns'] = columns.join(',');
     return this.http.get(`${this.baseUrl}/download`, { params: queryParams, responseType: 'blob' });
   }
@@ -117,61 +117,31 @@ export const REPORT_CONFIGS: ReportConfig[] = [
     ],
   },
   {
-    key: 'BY_PARALLEL',
-    label: 'Por Paralelo',
-    description: 'Distribución de solicitudes por paralelo (A, B, C…).',
+    key: 'BY_SECTION_AND_GRADE',
+    label: 'Por Paralelo y Curso',
+    description: 'Distribución de solicitudes por paralelo y nivel (semestre).',
     icon: 'bi-diagram-3-fill',
     color: C.purple,
-    allowedCharts: ['BAR', 'PIE'],
-    hasGenderBreakdown: false,
-    columns: [
-      { key: 'paralelo',    label: 'Paralelo',         defaultSelected: true },
-      { key: 'materia',     label: 'Materia',          defaultSelected: true },
-      { key: 'solicitudes', label: 'Solicitudes',      defaultSelected: true },
-      { key: 'asistencia',  label: 'Asistencia (%)',   defaultSelected: true },
-      { key: 'inasistencia',label: 'Inasistencia (%)', defaultSelected: true },
-    ],
-    previewRows: [
-      { paralelo: 'A', materia: 'Matemáticas', solicitudes: 18, asistencia: '88%', inasistencia: '12%' },
-      { paralelo: 'B', materia: 'Matemáticas', solicitudes: 15, asistencia: '85%', inasistencia: '15%' },
-      { paralelo: 'C', materia: 'Matemáticas', solicitudes: 12, asistencia: '90%', inasistencia: '10%' },
-      { paralelo: 'A', materia: 'Física',      solicitudes: 14, asistencia: '92%', inasistencia: '8%'  },
-      { paralelo: 'B', materia: 'Física',      solicitudes: 18, asistencia: '87%', inasistencia: '13%' },
-    ],
-    chartLabels: ['Paralelo A', 'Paralelo B', 'Paralelo C', 'Paralelo D'],
-    chartDatasets: [
-      { label: 'Solicitudes', data: [44, 38, 30, 22], color: C.purple },
-    ],
-  },
-  {
-    key: 'BY_GRADE',
-    label: 'Por Curso',
-    description: 'Solicitudes de refuerzo por nivel (1ro a 10mo semestre).',
-    icon: 'bi-layers-fill',
-    color: C.orange,
     allowedCharts: ['BAR', 'LINE', 'PIE'],
     hasGenderBreakdown: false,
     columns: [
+      { key: 'paralelo',     label: 'Paralelo',         defaultSelected: true },
       { key: 'curso',        label: 'Curso',             defaultSelected: true },
       { key: 'solicitudes',  label: 'Total Solicitudes', defaultSelected: true },
       { key: 'asistencia',   label: 'Asistencia (%)',    defaultSelected: true },
       { key: 'inasistencia', label: 'Inasistencia (%)',  defaultSelected: true },
     ],
     previewRows: [
-      { curso: '1ro Semestre',  solicitudes: 120, asistencia: '86%', inasistencia: '14%' },
-      { curso: '2do Semestre',  solicitudes: 95,  asistencia: '89%', inasistencia: '11%' },
-      { curso: '3ro Semestre',  solicitudes: 88,  asistencia: '91%', inasistencia: '9%'  },
-      { curso: '4to Semestre',  solicitudes: 74,  asistencia: '93%', inasistencia: '7%'  },
-      { curso: '5to Semestre',  solicitudes: 80,  asistencia: '92%', inasistencia: '8%'  },
-      { curso: '6to Semestre',  solicitudes: 68,  asistencia: '90%', inasistencia: '10%' },
-      { curso: '7mo Semestre',  solicitudes: 55,  asistencia: '94%', inasistencia: '6%'  },
-      { curso: '8vo Semestre',  solicitudes: 48,  asistencia: '95%', inasistencia: '5%'  },
-      { curso: '9no Semestre',  solicitudes: 40,  asistencia: '96%', inasistencia: '4%'  },
-      { curso: '10mo Semestre', solicitudes: 32,  asistencia: '97%', inasistencia: '3%'  },
+      { paralelo: 'A', curso: '1ro Semestre',  solicitudes: 18, asistencia: '88%', inasistencia: '12%' },
+      { paralelo: 'B', curso: '1ro Semestre',  solicitudes: 15, asistencia: '85%', inasistencia: '15%' },
+      { paralelo: 'A', curso: '2do Semestre',  solicitudes: 22, asistencia: '90%', inasistencia: '10%' },
+      { paralelo: 'C', curso: '3ro Semestre',  solicitudes: 14, asistencia: '92%', inasistencia: '8%'  },
+      { paralelo: 'B', curso: '4to Semestre',  solicitudes: 20, asistencia: '87%', inasistencia: '13%' },
+      { paralelo: 'A', curso: '5to Semestre',  solicitudes: 16, asistencia: '91%', inasistencia: '9%'  },
     ],
-    chartLabels: ['1ro', '2do', '3ro', '4to', '5to', '6to', '7mo', '8vo', '9no', '10mo'],
+    chartLabels: ['A-1ro', 'B-1ro', 'A-2do', 'C-3ro', 'B-4to', 'A-5to'],
     chartDatasets: [
-      { label: 'Total Solicitudes', data: [120, 95, 88, 74, 80, 68, 55, 48, 40, 32], color: C.orange },
+      { label: 'Solicitudes', data: [18, 15, 22, 14, 20, 16], color: C.purple },
     ],
   },
   // ── COMENTADO: reporte Por Estudiantes (no requerido por ahora) ──────────
