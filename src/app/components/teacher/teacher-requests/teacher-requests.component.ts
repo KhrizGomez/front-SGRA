@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TeacherRequestsService } from '../../../services/teacher/teacher-requests.service';
+import { ToastService } from '../../../services/shared/toast.service';
 import {
   TeacherRequestItemDTO,
   AcceptRescheduleBodyDTO,
@@ -31,11 +32,10 @@ const STATUS_META: Record<number, { badge: string }> = {
 export class TeacherRequestsComponent implements OnInit {
   private reqSvc  = inject(TeacherRequestsService);
   private cdr     = inject(ChangeDetectorRef);
+  private toast   = inject(ToastService);
 
   loading  = false;
   busy     = false;
-  errorMsg: string | null  = null;
-  successMsg: string | null = null;
 
   rows: TeacherRequestItemDTO[] = [];
   totalCount = 0;
@@ -143,8 +143,7 @@ export class TeacherRequestsComponent implements OnInit {
   }
 
   load(): void {
-    this.loading  = true;
-    this.errorMsg = null;
+    this.loading = true;
     this.reqSvc.getRequests({ statusId: this.filters.statusId, page: this.page, size: this.size }).subscribe({
       next: d => {
         this.rows       = d.items ?? [];
@@ -156,8 +155,8 @@ export class TeacherRequestsComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: err => {
-        this.errorMsg = err?.message || 'Error al cargar solicitudes';
-        this.loading  = false;
+        this.toast.show(false, err?.message || 'Error al cargar solicitudes');
+        this.loading = false;
         this.cdr.detectChanges();
       }
     });
@@ -237,8 +236,9 @@ export class TeacherRequestsComponent implements OnInit {
 
   scheduleFormValid(): boolean {
     const f = this.scheduleForm;
+    // estimatedDuration se autocalcula al ingresar inicio/fin; si aún está vacío, los tiempos son inválidos
     const base = !!f.scheduledDate && !!f.startTime && !!f.endTime && f.modalityId > 0 && !!f.estimatedDuration.trim();
-    const pres = this.scheduleForm.modalityId !== this.presencialId || (!!f.workAreaTypeId && f.workAreaTypeId > 0);
+    const pres = f.modalityId !== this.presencialId || (!!f.workAreaTypeId && f.workAreaTypeId > 0);
     return base && pres;
   }
 
@@ -253,8 +253,8 @@ export class TeacherRequestsComponent implements OnInit {
       : this.reqSvc.rescheduleRequest(id, body);
     const label = this.activeModal === 'accept' ? 'aceptada y programada' : 'reprogramada';
     obs.subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Solicitud #${id} ${label}. ${res.message}`); this.closeModal(); this.load(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
+      next: res => { this.busy = false; this.toast.show(true, `Solicitud #${id} ${label}. ${res.message}`); this.closeModal(); this.load(); },
+      error: err => { this.busy = false; this.toast.show(false, err?.message || 'Error al procesar solicitud'); this.cdr.detectChanges(); }
     });
   }
 
@@ -263,8 +263,8 @@ export class TeacherRequestsComponent implements OnInit {
     if (!this.selected) return;
     this.busy = true;
     this.reqSvc.rejectRequest(this.selected.requestId, { reason: this.reasonText || undefined }).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Solicitud rechazada. ${res.message}`); this.closeModal(); this.load(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
+      next: res => { this.busy = false; this.toast.show(true, `Solicitud rechazada. ${res.message}`); this.closeModal(); this.load(); },
+      error: err => { this.busy = false; this.toast.show(false, err?.message || 'Error al rechazar solicitud'); this.cdr.detectChanges(); }
     });
   }
 
@@ -273,16 +273,10 @@ export class TeacherRequestsComponent implements OnInit {
     if (!this.selected) return;
     this.busy = true;
     this.reqSvc.cancelRequest(this.selected.requestId, { reason: this.reasonText || undefined }).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Sesión cancelada. ${res.message}`); this.closeModal(); this.load(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
+      next: res => { this.busy = false; this.toast.show(true, `Sesión cancelada. ${res.message}`); this.closeModal(); this.load(); },
+      error: err => { this.busy = false; this.toast.show(false, err?.message || 'Error al cancelar sesión'); this.cdr.detectChanges(); }
     });
   }
 
   statusBadge(statusId: number): string { return STATUS_META[statusId]?.badge ?? 'bg-secondary'; }
-
-  private showSuccess(msg: string): void {
-    this.successMsg = msg;
-    this.cdr.detectChanges();
-    setTimeout(() => { this.successMsg = null; this.cdr.detectChanges(); }, 6000);
-  }
 }

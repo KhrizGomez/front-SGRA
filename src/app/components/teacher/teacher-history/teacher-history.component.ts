@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TeacherSessionsService } from '../../../services/teacher/teacher-sessions.service';
+import { ToastService } from '../../../services/shared/toast.service';
 import {
   TeacherHistoryItemDTO,
   SessionParticipantDTO,
@@ -25,10 +26,9 @@ type ActiveModal = 'none' | 'detail' | 'performed';
 export class TeacherHistoryComponent implements OnInit {
   private sessSvc = inject(TeacherSessionsService);
   private cdr     = inject(ChangeDetectorRef);
+  private toast   = inject(ToastService);
 
   loading   = false;
-  errorMsg: string | null = null;
-  successMsg: string | null = null;
   busy = false;
 
   colClass = 'col-12 col-md-4';
@@ -172,8 +172,7 @@ export class TeacherHistoryComponent implements OnInit {
   }
 
   load(): void {
-    this.loading  = true;
-    this.errorMsg = null;
+    this.loading = true;
     this.sessSvc.getActiveSessions().subscribe({
       next: items => {
         this.rows       = items ?? [];
@@ -183,8 +182,8 @@ export class TeacherHistoryComponent implements OnInit {
         this.loadAllAttendance();
       },
       error: err => {
-        this.errorMsg = err?.message || 'Error al cargar las sesiones';
-        this.loading  = false;
+        this.toast.show(false, err?.message || 'Error al cargar las sesiones');
+        this.loading = false;
         this.cdr.detectChanges();
       }
     });
@@ -251,7 +250,6 @@ export class TeacherHistoryComponent implements OnInit {
   // ── Modal openers ───────────────────────────────────────────────────────────
   openDetail(row: TeacherHistoryItemDTO): void {
     this.selected              = row;
-    this.errorMsg              = null;
     this.virtualLinkUrl        = row.virtualLink ?? '';
     this.showAttendance        = false;
     this.participants          = [];
@@ -261,7 +259,6 @@ export class TeacherHistoryComponent implements OnInit {
 
   openPerformed(row: TeacherHistoryItemDTO): void {
     this.selected             = row;
-    this.errorMsg             = null;
     this.performedObservation = '';
     this.performedDuration    = '';
     this.onPerfTimeChange(row.startTime, row.endTime);
@@ -271,7 +268,6 @@ export class TeacherHistoryComponent implements OnInit {
   closeModal(): void {
     this.activeModal       = 'none';
     this.selected          = null;
-    this.errorMsg          = null;
     this.busy              = false;
     this.showAttendance    = false;
     this.participants      = [];
@@ -312,7 +308,7 @@ export class TeacherHistoryComponent implements OnInit {
         const attended = this.participants.filter(p => p.attended).length;
         this.attendanceMap.set(this.selected!.scheduledId, { attended, total: this.participants.length });
         this.busy = false;
-        this.showSuccess(`Asistencia guardada. ${res.message}`);
+        this.toast.show(true, `Asistencia guardada. ${res.message}`);
         this.closeAttendance();
         this.cdr.detectChanges();
       },
@@ -327,11 +323,10 @@ export class TeacherHistoryComponent implements OnInit {
     if (!this.selected) return;
     this.busy = true;
     this.sessSvc.setVirtualLink(this.selected.scheduledId, { url: this.virtualLinkUrl }).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Enlace virtual registrado. ${res.message}`); this.closeModal(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
+      next: res => { this.busy = false; this.toast.show(true, `Enlace virtual registrado. ${res.message}`); this.closeModal(); },
+      error: err => { this.busy = false; this.toast.show(false, err?.message || 'Error al registrar enlace'); this.cdr.detectChanges(); }
     });
   }
-
 
   submitPerformed(): void {
     if (!this.selected) return;
@@ -342,8 +337,8 @@ export class TeacherHistoryComponent implements OnInit {
       this.performedDuration,
       []
     ).subscribe({
-      next: res => { this.busy = false; this.showSuccess(`Resultado registrado. ${res.message}`); this.closeModal(); this.load(); },
-      error: err => { this.busy = false; this.errorMsg = err?.message; this.cdr.detectChanges(); }
+      next: res => { this.busy = false; this.toast.show(true, `Resultado registrado. ${res.message}`); this.closeModal(); this.load(); },
+      error: err => { this.busy = false; this.toast.show(false, err?.message || 'Error al registrar resultado'); this.cdr.detectChanges(); }
     });
   }
 
@@ -374,9 +369,5 @@ export class TeacherHistoryComponent implements OnInit {
     return sessionType === 'Grupal' ? 'sess-badge--grupal' : 'sess-badge--individual';
   }
 
-  private showSuccess(msg: string): void {
-    this.successMsg = msg;
-    this.cdr.detectChanges();
-    setTimeout(() => { this.successMsg = null; this.cdr.detectChanges(); }, 6000);
-  }
 }
+

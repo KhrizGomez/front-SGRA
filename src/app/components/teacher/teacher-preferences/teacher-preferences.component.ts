@@ -16,7 +16,7 @@ import { ToastService } from '../../../services/shared/toast.service';
   templateUrl: './teacher-preferences.component.html',
   styleUrl: './teacher-preferences.component.css'
 })
-export class StudentPreferencesComponent implements AfterViewInit {
+export class TeacherPreferencesComponent implements AfterViewInit {
   private svc = inject(StudentPreferencesService);
   private cdr = inject(ChangeDetectorRef);
   private toast = inject(ToastService);
@@ -35,6 +35,14 @@ export class StudentPreferencesComponent implements AfterViewInit {
     channelId: null as unknown as number,
     reminderAnticipation: 30
   };
+
+  readonly anticipationPresets = [
+    { label: 'Sin recordatorio', value: 0   },
+    { label: '15 min',           value: 15  },
+    { label: '30 min',           value: 30  },
+    { label: '1 hora',           value: 60  },
+    { label: '2 horas',          value: 120 },
+  ];
 
   ngAfterViewInit(): void {
     Promise.resolve().then(() => {

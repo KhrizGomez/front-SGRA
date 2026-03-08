@@ -75,6 +75,10 @@ export const routes: Routes = [
         path: 'history',
         loadComponent: () => import('./components/teacher/teacher-history/teacher-history.component').then(m => m.TeacherHistoryComponent)
       },
+      {
+        path: 'preferences',
+        loadComponent: () => import('./components/teacher/teacher-preferences/teacher-preferences.component').then(m => m.TeacherPreferencesComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

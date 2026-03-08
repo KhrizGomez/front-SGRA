@@ -11,21 +11,6 @@
     </div>
   </div>
 
-  <!-- Success alert -->
-  @if (successMsg) {
-    <div class="alert alert-success alert-dismissible fade show border" role="alert">
-      <i class="bi bi-check-circle-fill me-2"></i>{{ successMsg }}
-      <button type="button" class="btn-close" (click)="successMsg = null"></button>
-    </div>
-  }
-
-  <!-- Error alert (solo en la vista de activas) -->
-  @if (errorMsg && activeModal === 'none' && activeTab === 'active') {
-    <div class="alert alert-danger alert-dismissible fade show border" role="alert">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMsg }}
-      <button type="button" class="btn-close" (click)="errorMsg = null"></button>
-    </div>
-  }
 
   <!-- ── Pestañas ───────────────────────────────────────────────────────────── -->
   <ul class="nav nav-tabs mb-4 border-bottom">
@@ -33,7 +18,7 @@
       <button class="nav-link fw-semibold d-flex align-items-center gap-2"
               [class.active]="activeTab === 'active'"
               (click)="switchTab('active')">
-        <i class="bi bi-camera-video"></i> Sesiones Activas
+        <i class="bi bi-camera-video"></i> Sesiones activas
         <span class="badge rounded-pill ms-1"
               [class.bg-success]="activeTab === 'active'"
               [class.bg-secondary]="activeTab !== 'active'">{{ totalCount }}</span>
@@ -43,7 +28,7 @@
       <button class="nav-link fw-semibold d-flex align-items-center gap-2"
               [class.active]="activeTab === 'history'"
               (click)="switchTab('history')">
-        <i class="bi bi-journal-check"></i> Historial Completadas
+        <i class="bi bi-journal-check"></i> Historial de sesiones
         @if (historyTotal > 0) {
           <span class="badge rounded-pill ms-1"
                 [class.bg-primary]="activeTab === 'history'"
@@ -63,7 +48,7 @@
       <div class="col-6 col-lg-3">
         <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
           <div>
-            <div class="text-muted small">Total sesiones</div>
+            <div class="text-muted small">Sesiones programadas</div>
             <div class="fw-bold fs-4" style="color:#1B7505">{{ totalCount }}</div>
           </div>
           <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
@@ -106,78 +91,82 @@
       </div>
     } @else {
 
-      <!-- Filtros sesiones activas -->
-      <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-        <span class="small fw-semibold text-muted">
-          <i class="bi bi-funnel me-1"></i>Estado:
-        </span>
+      <!-- Card contenedor principal sesiones activas -->
+      <div class="card border shadow-sm">
+        <div class="card-body">
 
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === null"
-                (click)="activeFilterStatus = null">
-          <i class="bi bi-grid-fill me-1"></i>Todos
-          <span class="filter-tag__count">{{ rows.length }}</span>
-        </button>
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Programado'"
-                (click)="activeFilterStatus = 'Programado'">
-          <i class="bi bi-check-circle me-1"></i>Programado
-        </button>
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Espera espacio'"
-                (click)="activeFilterStatus = 'Espera espacio'">
-          <i class="bi bi-hourglass-split me-1"></i>Espera espacio
-        </button>
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Reprogramado'"
-                (click)="activeFilterStatus = 'Reprogramado'">
-          <i class="bi bi-calendar2-event me-1"></i>Reprogramado
-        </button>
+          <!-- Filtros + layout toggle en la misma fila -->
+          <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+              <span class="small fw-semibold text-muted">
+                <i class="bi bi-funnel me-1"></i>Estado:
+              </span>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === null"
+                      (click)="activeFilterStatus = null">
+                <i class="bi bi-grid-fill me-1"></i>Todos
+                <span class="filter-tag__count">{{ rows.length }}</span>
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Programado'"
+                      (click)="activeFilterStatus = 'Programado'">
+                <i class="bi bi-check-circle me-1"></i>Programado
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Espera espacio'"
+                      (click)="activeFilterStatus = 'Espera espacio'">
+                <i class="bi bi-hourglass-split me-1"></i>Espera espacio
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterStatus === 'Reprogramado'"
+                      (click)="activeFilterStatus = 'Reprogramado'">
+                <i class="bi bi-calendar2-event me-1"></i>Reprogramado
+              </button>
 
-        <span class="filter-divider"></span>
+              <span class="filter-divider"></span>
 
-        <span class="small fw-semibold text-muted">
-          <i class="bi bi-funnel me-1"></i>Modalidad:
-        </span>
+              <span class="small fw-semibold text-muted">
+                <i class="bi bi-funnel me-1"></i>Modalidad:
+              </span>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === null"
+                      (click)="activeFilterModality = null">
+                <i class="bi bi-geo-alt me-1"></i>Todas
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === 'Virtual'"
+                      (click)="activeFilterModality = 'Virtual'">
+                <i class="bi bi-camera-video me-1"></i>Virtual
+              </button>
+              <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === 'Presencial'"
+                      (click)="activeFilterModality = 'Presencial'">
+                <i class="bi bi-geo-alt-fill me-1"></i>Presencial
+              </button>
+            </div>
 
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === null"
-                (click)="activeFilterModality = null">
-          <i class="bi bi-geo-alt me-1"></i>Todas
-        </button>
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === 'Virtual'"
-                (click)="activeFilterModality = 'Virtual'">
-          <i class="bi bi-camera-video me-1"></i>Virtual
-        </button>
-        <button class="filter-tag" [class.filter-tag--active]="activeFilterModality === 'Presencial'"
-                (click)="activeFilterModality = 'Presencial'">
-          <i class="bi bi-geo-alt-fill me-1"></i>Presencial
-        </button>
-      </div>
+            <!-- Layout toggle alineado a la derecha -->
+            <div class="d-flex gap-1 flex-shrink-0">
+              <button class="btn btn-sm border"
+                      [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                      title="1 columna" (click)="colClass = 'col-12'">
+                <i class="bi bi-view-list"></i>
+              </button>
+              <button class="btn btn-sm border"
+                      [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                      title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+                <i class="bi bi-grid"></i>
+              </button>
+              <button class="btn btn-sm border"
+                      [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                      title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+                <i class="bi bi-grid-3x3-gap"></i>
+              </button>
+            </div>
+          </div>
 
-      <!-- Card grid -->
-      @if (filteredRows.length === 0) {
-        <div class="text-center py-5 text-muted">
-          <i class="bi bi-camera-video display-4 d-block mb-2 opacity-25"></i>
-          No hay sesiones para el filtro seleccionado.
-        </div>
-      } @else {
-        <!-- Layout toggle -->
-        <div class="d-flex justify-content-end gap-1 mb-3">
-          <button class="btn btn-sm border"
-                  [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
-                  title="1 columna" (click)="colClass = 'col-12'">
-            <i class="bi bi-view-list"></i>
-          </button>
-          <button class="btn btn-sm border"
-                  [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
-                  title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
-            <i class="bi bi-grid"></i>
-          </button>
-          <button class="btn btn-sm border"
-                  [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
-                  title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
-            <i class="bi bi-grid-3x3-gap"></i>
-          </button>
-        </div>
+          @if (filteredRows.length === 0) {
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-camera-video display-4 d-block mb-2 opacity-25"></i>
+              No hay sesiones para el filtro seleccionado.
+            </div>
+          } @else {
 
-        <div class="row g-3">
-          @for (r of filteredRows; track r.scheduledId) {
+            <div class="row g-3">
+              @for (r of filteredRows; track r.scheduledId) {
             <div [ngClass]="colClass">
               <article class="sess-card h-100 d-flex flex-column" style="cursor:pointer" (click)="openDetail(r)">
 
@@ -249,12 +238,15 @@
 
               </article>
             </div>
-          }
+              }
+            </div>
+
+          } <!-- fin @else filteredRows -->
+
         </div>
+      </div> <!-- fin card -->
 
-      }
     }
-
   }
 
   <!-- ══════════════════════════════════════════════════════════════════════════
@@ -275,7 +267,7 @@
       <div class="col-6 col-lg-3">
         <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
           <div>
-            <div class="text-muted small">Total</div>
+            <div class="text-muted small">Sesiones completadas</div>
             <div class="fw-bold fs-4" style="color:#1565C0">{{ historyTotal }}</div>
           </div>
           <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle"
@@ -330,63 +322,63 @@
             </div>
           } @else {
 
-            <!-- Filtros historial -->
-            <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-              <span class="small fw-semibold text-muted">
-                <i class="bi bi-funnel me-1"></i>Estado:
-              </span>
+            <!-- Filtros + layout toggle en la misma fila -->
+            <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4">
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="small fw-semibold text-muted">
+                  <i class="bi bi-funnel me-1"></i>Modalidad:
+                </span>
+                <button class="filter-tag" [class.filter-tag--active]="histFilterModality === null"
+                        (click)="histFilterModality = null">
+                  <i class="bi bi-grid-fill me-1"></i>Todas
+                  <span class="filter-tag__count">{{ historyItems.length }}</span>
+                </button>
+                <button class="filter-tag" [class.filter-tag--active]="histFilterModality === 'Virtual'"
+                        (click)="histFilterModality = 'Virtual'">
+                  <i class="bi bi-camera-video me-1"></i>Virtual
+                </button>
+                <button class="filter-tag" [class.filter-tag--active]="histFilterModality === 'Presencial'"
+                        (click)="histFilterModality = 'Presencial'">
+                  <i class="bi bi-geo-alt-fill me-1"></i>Presencial
+                </button>
 
-              <button class="filter-tag" [class.filter-tag--active]="histFilterModality === null"
-                      (click)="histFilterModality = null">
-                <i class="bi bi-grid-fill me-1"></i>Todas
-                <span class="filter-tag__count">{{ historyItems.length }}</span>
-              </button>
-              <button class="filter-tag" [class.filter-tag--active]="histFilterModality === 'Virtual'"
-                      (click)="histFilterModality = 'Virtual'">
-                <i class="bi bi-camera-video me-1"></i>Virtual
-              </button>
-              <button class="filter-tag" [class.filter-tag--active]="histFilterModality === 'Presencial'"
-                      (click)="histFilterModality = 'Presencial'">
-                <i class="bi bi-geo-alt-fill me-1"></i>Presencial
-              </button>
+                <span class="filter-divider"></span>
 
-              <span class="filter-divider"></span>
+                <span class="small fw-semibold text-muted">
+                  <i class="bi bi-funnel me-1"></i>Organización:
+                </span>
+                <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === null"
+                        (click)="histFilterSessionType = null">
+                  <i class="bi bi-people me-1"></i>Todos
+                </button>
+                <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === 'Individual'"
+                        (click)="histFilterSessionType = 'Individual'">
+                  <i class="bi bi-person-fill me-1"></i>Individual
+                </button>
+                <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === 'Grupal'"
+                        (click)="histFilterSessionType = 'Grupal'">
+                  <i class="bi bi-people-fill me-1"></i>Grupal
+                </button>
+              </div>
 
-              <span class="small fw-semibold text-muted">
-                <i class="bi bi-funnel me-1"></i>Organizacion:
-              </span>
-
-              <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === null"
-                      (click)="histFilterSessionType = null">
-                <i class="bi bi-people me-1"></i>Todos
-              </button>
-              <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === 'Individual'"
-                      (click)="histFilterSessionType = 'Individual'">
-                <i class="bi bi-person-fill me-1"></i>Individual
-              </button>
-              <button class="filter-tag" [class.filter-tag--active]="histFilterSessionType === 'Grupal'"
-                      (click)="histFilterSessionType = 'Grupal'">
-                <i class="bi bi-people-fill me-1"></i>Grupal
-              </button>
-            </div>
-
-            <!-- Layout toggle igual que solicitudes -->
-            <div class="d-flex justify-content-end gap-1 mb-3">
-              <button class="btn btn-sm border"
-                      [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
-                      title="1 columna" (click)="colClass = 'col-12'">
-                <i class="bi bi-view-list"></i>
-              </button>
-              <button class="btn btn-sm border"
-                      [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
-                      title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
-                <i class="bi bi-grid"></i>
-              </button>
-              <button class="btn btn-sm border"
-                      [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
-                      title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
-                <i class="bi bi-grid-3x3-gap"></i>
-              </button>
+              <!-- Layout toggle alineado a la derecha -->
+              <div class="d-flex gap-1 flex-shrink-0">
+                <button class="btn btn-sm border"
+                        [ngClass]="colClass === 'col-12' ? 'btn-secondary' : 'btn-outline-secondary'"
+                        title="1 columna" (click)="colClass = 'col-12'">
+                  <i class="bi bi-view-list"></i>
+                </button>
+                <button class="btn btn-sm border"
+                        [ngClass]="colClass === 'col-12 col-md-6' ? 'btn-secondary' : 'btn-outline-secondary'"
+                        title="2 columnas" (click)="colClass = 'col-12 col-md-6'">
+                  <i class="bi bi-grid"></i>
+                </button>
+                <button class="btn btn-sm border"
+                        [ngClass]="colClass === 'col-12 col-md-4' ? 'btn-secondary' : 'btn-outline-secondary'"
+                        title="3 columnas" (click)="colClass = 'col-12 col-md-4'">
+                  <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+              </div>
             </div>
 
             <!-- Sin resultados tras filtro -->
@@ -532,11 +524,6 @@
         </div>
         <div class="modal-body flex-grow-1 overflow-auto">
 
-          @if (errorMsg) {
-            <div class="alert alert-danger border small py-2 mb-3">
-              <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
-            </div>
-          }
 
           <!-- Session info -->
           <div class="row g-3 mb-3">
@@ -706,11 +693,6 @@
         </div>
         <div class="modal-body">
 
-          @if (errorMsg) {
-            <div class="alert alert-danger border small py-2 mb-3">
-              <i class="bi bi-exclamation-triangle me-1"></i>{{ errorMsg }}
-            </div>
-          }
 
           <div class="row g-3">
             <div class="col-12">

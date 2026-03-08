@@ -2,3 +2,4 @@
 /.angular
 .angular/cache/21.1.4/Frontend/.tsbuildinfo
 /dist
+/dist/Frontend

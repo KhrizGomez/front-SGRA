@@ -1,142 +1,134 @@
+<div class="container-fluid">
 
-    <div class="container-fluid">
-      <!-- Header -->
-      <div class="mb-4">
-        <h3 class="mb-1">Preferencias</h3>
-        <p class="text-muted mb-0">Configura tus preferencias para notificaciones de refuerzos académicos</p>
+  <!-- Header -->
+  <div class="mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="header-icon"><i class="bi bi-bell-fill"></i></div>
+      <div>
+        <h3 class="fw-bold text-dark mb-0">Preferencias</h3>
+        <p class="text-muted mb-0">Configura cómo deseas recibir notificaciones de refuerzos académicos</p>
       </div>
+    </div>
+  </div>
 
+  <!-- Loading -->
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="text-muted mt-2 mb-0 small">Cargando preferencias...</p>
+    </div>
+  }
 
-      <!-- Loading State -->
-      @if (loading) {
-        <div class="card border-0 shadow-sm">
-          <div class="card-body text-center py-5">
-            <div class="spinner-border text-success mb-3" role="status"></div>
-            <p class="text-muted mb-0">Cargando preferencias...</p>
-          </div>
+  @if (!loading) {
+
+    <!-- Alerta nuevo usuario -->
+    @if (isNewUser) {
+      <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-start gap-3">
+        <i class="bi bi-info-circle-fill fs-5 text-success flex-shrink-0 mt-1"></i>
+        <div>
+          <p class="fw-semibold mb-1">¡Configura tus preferencias de notificación!</p>
+          <p class="mb-0 text-muted small">Aún no tienes preferencias configuradas. Selecciona cómo y cuándo recibir avisos sobre tus sesiones de refuerzo.</p>
         </div>
-      }
+      </div>
+    }
 
-      <!-- Preferences Form -->
-      @if (!loading) {
-
-        <!-- Welcome message for new users -->
-        @if (isNewUser) {
-          <div class="alert alert-success border-0 shadow-sm mb-3">
-            <div class="d-flex align-items-start">
-              <i class="bi bi-info-circle-fill fs-4 me-3 text-success"></i>
-              <div>
-                <h6 class="fw-bold mb-1">¡Bienvenido! Configura tus preferencias</h6>
-                <p class="mb-0 text-muted">
-                  Aún no tienes preferencias de notificación configuradas. Selecciona cómo deseas recibir
-                  avisos sobre tus solicitudes de refuerzo y guarda los cambios.
-                </p>
-              </div>
+    <!-- Summary chips -->
+    @if (currentPreference) {
+      <div class="row g-2 mb-4">
+        <div class="col-6 col-lg-4">
+          <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small">Canal activo</div>
+              <div class="fw-bold" style="color:#1B7505;font-size:1rem">{{ currentPreference.channelName }}</div>
+            </div>
+            <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle" style="background:#e8f5e9">
+              <i class="bi bi-broadcast" style="color:#1B7505"></i>
             </div>
           </div>
-        }
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white border-0 py-3">
-            <h5 class="mb-0">
-              <i class="bi bi-bell me-2 text-success"></i>
-              Notificaciones
-            </h5>
-          </div>
-          <div class="card-body">
-            <form (ngSubmit)="onSave()" #preferencesForm="ngForm">
-              <!-- Channel Selection -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold">
-                  Canal de Notificación <span class="text-danger">*</span>
-                </label>
-                <p class="text-muted small mb-2">
-                  Selecciona cómo deseas recibir notificaciones sobre tus solicitudes de refuerzo
-                </p>
-                <select class="form-select" [(ngModel)]="form.channelId" name="channelId" required>
-                  <option [ngValue]="null">Selecciona un canal</option>
-                  @for (channel of channels; track channel.channelId) {
-                    <option [ngValue]="channel.channelId">{{ channel.channelName }}</option>
-                  }
-                </select>
-              </div>
-
-              <!-- Reminder Anticipation -->
-              <div class="mb-4">
-                <label class="form-label fw-semibold">
-                  Anticipación del Recordatorio <span class="text-danger">*</span>
-                </label>
-                <p class="text-muted small mb-2">
-                  ¿Con cuántos minutos de anticipación deseas recibir un recordatorio antes de tu sesión?
-                </p>
-                <div class="input-group" style="max-width: 200px;">
-                  <input type="number" class="form-control"
-                         [(ngModel)]="form.reminderAnticipation"
-                         name="reminderAnticipation"
-                         min="0" max="1440" required
-                         placeholder="0">
-                  <span class="input-group-text">minutos</span>
-                </div>
-                <small class="text-muted">Entre 0 y 1440 minutos (24 horas)</small>
-              </div>
-
-              <!-- Anticipation presets -->
-              <div class="mb-4">
-                <label class="form-label small text-muted">Opciones rápidas:</label>
-                <div class="d-flex flex-wrap gap-2">
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          (click)="setAnticipation(0)" [class.active]="form.reminderAnticipation === 0">
-                    Sin recordatorio
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          (click)="setAnticipation(15)" [class.active]="form.reminderAnticipation === 15">
-                    15 min
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          (click)="setAnticipation(30)" [class.active]="form.reminderAnticipation === 30">
-                    30 min
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          (click)="setAnticipation(60)" [class.active]="form.reminderAnticipation === 60">
-                    1 hora
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          (click)="setAnticipation(120)" [class.active]="form.reminderAnticipation === 120">
-                    2 horas
-                  </button>
-                </div>
-              </div>
-
-              <!-- Current preference info -->
-              @if (currentPreference) {
-                <div class="alert alert-light mb-4">
-                  <small>
-                    <i class="bi bi-info-circle me-1"></i>
-                    Preferencia actual: <strong>{{ currentPreference.channelName }}</strong>
-                    con recordatorio de <strong>{{ currentPreference.reminderAnticipation }} minutos</strong>
-                  </small>
-                </div>
-              }
-
-              <!-- Buttons -->
-              <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-success"
-                        [disabled]="!preferencesForm.valid || saving">
-                  @if (saving) {
-                    <span class="spinner-border spinner-border-sm me-2"></span>
-                    Guardando...
-                  } @else {
-                    <i class="bi bi-check-lg me-2"></i>
-                    Guardar cambios
-                  }
-                </button>
-                <button type="button" class="btn btn-outline-secondary"
-                        (click)="resetForm()" [disabled]="saving">
-                  <i class="bi bi-arrow-counterclockwise me-2"></i>
-                  Restablecer
-                </button>
-              </div>
-            </form>
+        </div>
+        <div class="col-6 col-lg-4">
+          <div class="chip-box bg-white shadow-sm rounded-3 p-3 d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-muted small">Anticipación</div>
+              <div class="fw-bold" style="color:#1565C0;font-size:1rem">{{ currentPreference.reminderAnticipation }} min</div>
+            </div>
+            <div class="chip-icon d-flex align-items-center justify-content-center rounded-circle" style="background:#e3f2fd">
+              <i class="bi bi-clock" style="color:#1565C0"></i>
+            </div>
           </div>
         </div>
-      }
+      </div>
+    }
+
+    <!-- Formulario -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom d-flex align-items-center gap-2 py-3 px-4">
+        <i class="bi bi-sliders text-success fs-5"></i>
+        <span class="fw-semibold small">Configuración de Notificaciones</span>
+      </div>
+      <div class="card-body px-4 py-4">
+        <form (ngSubmit)="onSave()" #preferencesForm="ngForm">
+
+          <!-- Canal -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">
+              Canal de Notificación <span class="text-danger">*</span>
+            </label>
+            <p class="text-muted small mb-2">Selecciona cómo deseas recibir notificaciones sobre tus solicitudes de refuerzo</p>
+            <select class="form-select border" [(ngModel)]="form.channelId" name="channelId" required>
+              <option [ngValue]="null">Selecciona un canal...</option>
+              @for (channel of channels; track channel.channelId) {
+                <option [ngValue]="channel.channelId">{{ channel.channelName }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Anticipación -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">
+              Anticipación del Recordatorio <span class="text-danger">*</span>
+            </label>
+            <p class="text-muted small mb-2">¿Con cuántos minutos de anticipación deseas recibir el recordatorio antes de tu sesión?</p>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              @for (opt of anticipationPresets; track opt.value) {
+                <button type="button"
+                        class="btn btn-sm rounded-pill"
+                        [class.btn-success]="form.reminderAnticipation === opt.value"
+                        [class.btn-outline-secondary]="form.reminderAnticipation !== opt.value"
+                        (click)="setAnticipation(opt.value)">
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <input type="number" class="form-control border" style="max-width:130px"
+                     [(ngModel)]="form.reminderAnticipation"
+                     name="reminderAnticipation"
+                     min="0" max="1440" required placeholder="0">
+              <span class="text-muted small">minutos (personalizado)</span>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success"
+                    [disabled]="!preferencesForm.valid || saving">
+              @if (saving) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+              } @else {
+                <i class="bi bi-check-lg me-2"></i>Guardar cambios
+              }
+            </button>
+            <button type="button" class="btn btn-outline-secondary"
+                    (click)="resetForm()" [disabled]="saving">
+              <i class="bi bi-arrow-counterclockwise me-2"></i>Restablecer
+            </button>
+          </div>
+
+        </form>
+      </div>
     </div>
+
+  }
+
+</div>

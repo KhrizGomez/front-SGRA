@@ -151,12 +151,12 @@ var routes = [
   },
   {
     path: "teacher",
-    loadComponent: () => import("./chunk-L7TWVAQM.js").then((m) => m.TeacherLayoutComponent),
+    loadComponent: () => import("./chunk-UFQRJYDN.js").then((m) => m.TeacherLayoutComponent),
     canActivate: [authGuard, roleGuard(["teacher", "docente"])],
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-MWOS6GR5.js").then((m) => m.TeacherDashboardComponent)
+        loadComponent: () => import("./chunk-2BAU3ILK.js").then((m) => m.TeacherDashboardComponent)
       },
       {
         path: "requests",
@@ -165,6 +165,10 @@ var routes = [
       {
         path: "history",
         loadComponent: () => import("./chunk-JIJWIAJ4.js").then((m) => m.TeacherHistoryComponent)
+      },
+      {
+        path: "preferences",
+        loadComponent: () => import("./chunk-D2GMIOE3.js").then((m) => m.TeacherPreferencesComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
@@ -192,7 +196,7 @@ var routes = [
       },
       {
         path: "preferences",
-        loadComponent: () => import("./chunk-WV42H54W.js").then((m) => m.StudentPreferencesComponent)
+        loadComponent: () => import("./chunk-6POA6BTA.js").then((m) => m.StudentPreferencesComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
@@ -204,7 +208,7 @@ var routes = [
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-GDHZ6VCM.js").then((m) => m.CoordDashboardComponent)
+        loadComponent: () => import("./chunk-E66ZY6TE.js").then((m) => m.CoordDashboardComponent)
       },
       {
         path: "dataload",
