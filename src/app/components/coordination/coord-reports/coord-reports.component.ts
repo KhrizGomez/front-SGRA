@@ -14,6 +14,7 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 import {
   ChartTypeKey,
+  PeriodType,
   ReportColumn,
   ReportConfig,
   ReportFormat,
@@ -47,8 +48,8 @@ export class CoordReportsComponent implements OnDestroy {
   selectedChartType = signal<ChartTypeKey>('BAR');
   showChart = signal(true);
   showTable = signal(true);
-  dateFrom = signal('');
-  dateTo = signal('');
+  periodType = signal<PeriodType>('PERIOD');
+  periodValue = signal('');
   downloadFormat = signal<ReportFormat>('PDF');
   isDownloading = signal(false);
   downloadError = signal('');
@@ -112,8 +113,8 @@ export class CoordReportsComponent implements OnDestroy {
 
     this.reportService.getReportPreview({
       type: this.selectedTypeKey(),
-      dateFrom: this.dateFrom() || undefined,
-      dateTo:   this.dateTo()   || undefined,
+      periodType: this.periodType() || undefined,
+      periodValue: this.periodValue() || undefined,
     }).subscribe({
       next: rows => {
         this.serverRows.set(rows?.length ? rows : []);
@@ -264,8 +265,8 @@ export class CoordReportsComponent implements OnDestroy {
       .downloadReport({
         type: this.selectedTypeKey(),
         format: 'PDF',
-        dateFrom: this.dateFrom() || undefined,
-        dateTo: this.dateTo() || undefined,
+        periodType: this.periodType() || undefined,
+        periodValue: this.periodValue() || undefined,
         columns: this.selectedColumnKeys(),
       })
       .subscribe({
@@ -293,8 +294,8 @@ export class CoordReportsComponent implements OnDestroy {
       .downloadReport({
         type: this.selectedTypeKey(),
         format: 'EXCEL',
-        dateFrom: this.dateFrom() || undefined,
-        dateTo: this.dateTo() || undefined,
+        periodType: this.periodType() || undefined,
+        periodValue: this.periodValue() || undefined,
         columns: this.selectedColumnKeys(),
       })
       .subscribe({
