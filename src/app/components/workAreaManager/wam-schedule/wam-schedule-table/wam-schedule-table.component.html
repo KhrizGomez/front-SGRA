@@ -1,0 +1,57 @@
+<div class="table-responsive">
+  <table class="table table-bordered table-sm align-middle mb-0" aria-label="Horario semanal">
+    <thead class="table-light">
+      <tr>
+        <th scope="col" class="text-center py-1 small" style="width:3.5rem">Hora</th>
+        @for (day of days; track day.dateStr) {
+        <th scope="col" class="text-center py-1" [class.table-success]="isToday(day.dateStr)">
+          <span class="d-block fw-semibold small">{{ day.label }}</span>
+          <small class="text-muted" style="font-size:0.7rem">{{ formatDisplayDate(day.date) }}</small>
+        </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (slot of timeSlots; track slot.time) {
+      <tr>
+        <td class="text-center text-muted fw-medium py-1 small bg-body-secondary">
+          {{ slot.time }}
+        </td>
+        @for (day of days; track day.dateStr) {
+        @let cellOccupancies = getOccupanciesForSlot(day.dateStr, slot.time);
+        <td class="schedule-cell p-0">
+          @for (occ of cellOccupancies; track occ.pidocupacion) {
+          @if (isFirstSlotOfOccupancy(day.dateStr, slot.time, occ)) {
+          <div class="occ-block rounded-1 d-flex flex-column px-2 py-1"
+            [class.bg-primary]="occ.ptiposesion === 'Grupal'" [class.text-white]="occ.ptiposesion === 'Grupal'"
+            [class.bg-success-subtle]="occ.ptiposesion !== 'Grupal'" [class.text-success]="occ.ptiposesion !== 'Grupal'"
+            [style.height.rem]="getOccupancySpan(occ) * 2.1" [title]="occ.pmateria + ' — ' + occ.pdocente">
+            <span class="fw-bold text-truncate" style="font-size:0.78rem">{{ occ.pmateria }}</span>
+            <small class="text-truncate" style="font-size:0.68rem">{{ occ.pdocente }}</small>
+            <small class="text-truncate" style="font-size:0.68rem">{{ occ.pareatrabajo }} #{{ occ.pnumeroarea }}</small>
+            <small class="mt-auto" style="font-size:0.65rem;opacity:0.8">{{ occ.phorainicio }} - {{ occ.phorafin
+              }}</small>
+          </div>
+          }
+          }
+        </td>
+        }
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- Leyenda -->
+<div class="card-footer bg-white border-top py-2">
+  <div class="d-flex align-items-center gap-4 flex-wrap">
+    <div class="d-flex align-items-center gap-1">
+      <span class="badge bg-primary">&nbsp;&nbsp;</span>
+      <small class="text-muted">Sesión grupal</small>
+    </div>
+    <div class="d-flex align-items-center gap-1">
+      <span class="badge bg-success">&nbsp;&nbsp;</span>
+      <small class="text-muted">Sesión individual</small>
+    </div>
+  </div>
+</div>

@@ -30,6 +30,7 @@ export class WorkAreaManagerLayoutComponent implements OnInit {
   navItems = [
     { path: '/workAreaManagement/dashboard',          label: 'Dashboard',             icon: 'bi-boxes' },
     { path: '/workAreaManagement/management-requests', label: 'Gestionar Solicitudes', icon: 'bi-clipboard-check' },
+    { path: '/workAreaManagement/schedule',            label: 'Calendario',            icon: 'bi-calendar-week' },
   ];
 
   ngOnInit(): void {

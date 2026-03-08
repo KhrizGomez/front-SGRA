@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.schedule-cell {
+  height: 2.1rem;
+  position: relative;
+}
+
+.occ-block {
+  position: absolute;
+  inset: 1px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.occ-block:hover {
+  z-index: 2;
+  opacity: 0.9;
+}

@@ -150,6 +150,10 @@ export const routes: Routes = [
         path: 'management-requests',
         loadComponent: () => import('./components/workAreaManager/work-area-manager-management-of-in-person-requests/work-area-manager-management-of-in-person-requests.component').then(m => m.WorkAreaManagerManagementOfInPersonRequestsComponent)
       },
+      {
+        path: 'schedule',
+        loadComponent: () => import('./components/workAreaManager/wam-schedule/wam-schedule.component').then(m => m.WamScheduleComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

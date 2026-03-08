@@ -49,7 +49,7 @@ export class AdminPeriodCreateModalComponent {
       period: formValues.period,
       startDate: formValues.startDate,
       endDate: formValues.endDate,
-      state: (formValues.status === 'activo') ? true : false,
+      state: formValues.status === 'activo',
     };
 
     console.log(requestPayload);
