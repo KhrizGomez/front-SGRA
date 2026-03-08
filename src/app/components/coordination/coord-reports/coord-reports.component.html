@@ -71,26 +71,68 @@
           </h6>
         </div>
         <div class="card-body">
-          <div class="row g-2">
-            <div class="col-6">
-              <label class="form-label small text-muted">Desde</label>
-              <input
-                type="date"
-                class="form-control form-control-sm"
-                [ngModel]="dateFrom()"
-                (ngModelChange)="dateFrom.set($event)"
-              />
-            </div>
-            <div class="col-6">
-              <label class="form-label small text-muted">Hasta</label>
-              <input
-                type="date"
-                class="form-control form-control-sm"
-                [ngModel]="dateTo()"
-                (ngModelChange)="dateTo.set($event)"
-              />
-            </div>
-          </div>
+          <!-- Tipo de período -->
+          <label class="form-label small text-muted">Tipo de período</label>
+          <select
+            class="form-select form-select-sm mb-3"
+            [ngModel]="periodType()"
+            (ngModelChange)="periodType.set($event); periodValue.set('')"
+          >
+            <option value="PERIOD">Por período académico</option>
+            <option value="YEAR">Por año</option>
+            <option value="WEEKLY">Semanal</option>
+            <option value="MONTHLY">Mensual</option>
+          </select>
+
+          <!-- Valor según tipo -->
+          @if (periodType() === 'PERIOD') {
+            <label class="form-label small text-muted">Período académico</label>
+            <select
+              class="form-select form-select-sm"
+              [ngModel]="periodValue()"
+              (ngModelChange)="periodValue.set($event)"
+            >
+              <option value="">Período actual</option>
+              <option value="2025-2">2025-2</option>
+              <option value="2025-1">2025-1</option>
+              <option value="2024-2">2024-2</option>
+              <option value="2024-1">2024-1</option>
+              <option value="2023-2">2023-2</option>
+              <option value="2023-1">2023-1</option>
+            </select>
+          }
+          @if (periodType() === 'YEAR') {
+            <label class="form-label small text-muted">Año</label>
+            <select
+              class="form-select form-select-sm"
+              [ngModel]="periodValue()"
+              (ngModelChange)="periodValue.set($event)"
+            >
+              <option value="">Año actual</option>
+              <option value="2026">2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+            </select>
+          }
+          @if (periodType() === 'WEEKLY') {
+            <label class="form-label small text-muted">Semana</label>
+            <input
+              type="week"
+              class="form-control form-control-sm"
+              [ngModel]="periodValue()"
+              (ngModelChange)="periodValue.set($event)"
+            />
+          }
+          @if (periodType() === 'MONTHLY') {
+            <label class="form-label small text-muted">Mes</label>
+            <input
+              type="month"
+              class="form-control form-control-sm"
+              [ngModel]="periodValue()"
+              (ngModelChange)="periodValue.set($event)"
+            />
+          }
         </div>
       </div>
 

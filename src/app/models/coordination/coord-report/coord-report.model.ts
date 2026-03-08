@@ -2,12 +2,11 @@
 export type ReportTypeKey =
   | 'BY_SUBJECT'
   | 'BY_TEACHER'
-  | 'BY_PARALLEL'
-  | 'BY_GRADE';
-  // | 'BY_STUDENT_REQUESTS'; // comentado temporalmente
+  | 'BY_SECTION_AND_GRADE';
 
 export type ChartTypeKey = 'BAR' | 'PIE' | 'DOUGHNUT' | 'LINE';
 export type ReportFormat = 'PDF' | 'EXCEL';
+export type PeriodType = 'PERIOD' | 'YEAR' | 'WEEKLY' | 'MONTHLY';
 
 // ─── Columna seleccionable ───────────────────────────────────────────────────
 export interface ReportColumn {
@@ -41,8 +40,8 @@ export interface ChartDatasetDef {
 export interface ReportParams {
   type: ReportTypeKey;
   format: ReportFormat;
-  dateFrom?: string;
-  dateTo?: string;
+  periodType?: PeriodType;
+  periodValue?: string;
   columns?: string[];
   chartType?: ChartTypeKey;
 }
@@ -50,9 +49,8 @@ export interface ReportParams {
 // ─── Parámetros para obtener datos de vista previa ──────────────────────────
 export interface ReportPreviewParams {
   type: ReportTypeKey;
-  period?: string;
-  dateFrom?: string;
-  dateTo?: string;
+  periodType?: PeriodType;
+  periodValue?: string;
 }
 
 // ─── Respuesta de vista previa (filas genéricas) ────────────────────────────
