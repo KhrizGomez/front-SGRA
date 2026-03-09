@@ -28,7 +28,8 @@
     <div class="card-body p-0">
       <app-admin-audit-table
         [records]="paginatedRecords"
-        [isLoading]="isLoading">
+        [isLoading]="isLoading"
+        (forceLogoutRequest)="handleForceLogout($event)">
       </app-admin-audit-table>
     </div>
 

@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuditAccess } from '../../../models/administration/admin-audit/audit-access.model';
 import { AdminAuditService } from '../../../services/administration/admin-audit/admin-audit.service';
 import { AdminAuditTableComponent } from './admin-audit-table/admin-audit-table.component';
+import { ToastService } from '../../../services/shared/toast.service';
 
 @Component({
   selector: 'app-admin-audit',
@@ -14,6 +15,8 @@ import { AdminAuditTableComponent } from './admin-audit-table/admin-audit-table.
   styleUrl: './admin-audit.component.css',
 })
 export class AdminAuditComponent implements OnInit {
+  @ViewChild(AdminAuditTableComponent) auditTable!: AdminAuditTableComponent;
+
   auditRecords: AuditAccess[] = [];
   filteredRecords: AuditAccess[] = [];
   isLoading = true;
@@ -22,6 +25,7 @@ export class AdminAuditComponent implements OnInit {
 
   private auditService = inject(AdminAuditService);
   private cdr = inject(ChangeDetectorRef);
+  private toastService = inject(ToastService);
 
   currentPage = 1;
   pageSize = 10;
@@ -93,4 +97,20 @@ export class AdminAuditComponent implements OnInit {
       this.currentPage = page;
     }
   }
+
+  handleForceLogout(event: { asesion: string; ausuario: string }): void {
+    this.auditService.forceLogout(event.asesion).subscribe({
+      next: () => {
+        this.toastService.show(true, `Sesión de "${event.ausuario}" cerrada correctamente.`);
+        this.auditTable?.clearForcingState();
+        this.loadAuditRecords();
+      },
+      error: (err) => {
+        console.error('Error al forzar cierre de sesión', err);
+        this.toastService.show(false, `No se pudo cerrar la sesión de "${event.ausuario}".`);
+        this.auditTable?.clearForcingState();
+      },
+    });
+  }
 }
+

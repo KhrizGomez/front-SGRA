@@ -20,4 +20,12 @@ export class AdminAuditService {
 
     return this.http.get<AuditAccess[]>(`${this.apiUrl}/security/audit/list-access-audit`, { params });
   }
+
+  forceLogout(sessionId: string): Observable<{ message?: string; error?: string }> {
+    const params = new HttpParams().set('sessionId', sessionId);
+    return this.http.delete<{ message?: string; error?: string }>(
+      `${this.apiUrl}/security/audit/force-logout`,
+      { params }
+    );
+  }
 }
