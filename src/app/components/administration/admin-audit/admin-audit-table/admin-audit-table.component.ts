@@ -12,14 +12,14 @@ import { AuditAccess } from '../../../../models/administration/admin-audit/audit
 export class AdminAuditTableComponent {
   @Input() records: AuditAccess[] = [];
   @Input() isLoading = true;
-  @Output() forceLogoutRequest = new EventEmitter<{ asesion: string; ausuario: string }>();
+  @Output() forceLogoutRequest = new EventEmitter<{ aidauditoriaacceso: number; ausuario: string }>();
 
-  forcingLogout: string | null = null;
+  forcingLogout: number | null = null;
 
-  onForceLogout(asesion: string, ausuario: string): void {
-    if (!asesion) return;
-    this.forcingLogout = asesion;
-    this.forceLogoutRequest.emit({ asesion, ausuario });
+  onForceLogout(aidauditoriaacceso: number, ausuario: string): void {
+    if (!aidauditoriaacceso) return;
+    this.forcingLogout = aidauditoriaacceso;
+    this.forceLogoutRequest.emit({ aidauditoriaacceso, ausuario });
   }
 
   clearForcingState(): void {

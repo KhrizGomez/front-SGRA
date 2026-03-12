@@ -98,8 +98,8 @@ export class AdminAuditComponent implements OnInit {
     }
   }
 
-  handleForceLogout(event: { asesion: string; ausuario: string }): void {
-    this.auditService.forceLogout(event.asesion).subscribe({
+  handleForceLogout(event: { aidauditoriaacceso: number; ausuario: string }): void {
+    this.auditService.forceLogout(event.aidauditoriaacceso).subscribe({
       next: () => {
         this.toastService.show(true, `Sesión de "${event.ausuario}" cerrada correctamente.`);
         this.auditTable?.clearForcingState();
