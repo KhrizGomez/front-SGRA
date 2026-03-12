@@ -144,6 +144,9 @@
             <span class="badge bg-success-subtle text-success rounded-pill px-3">
               <i class="bi bi-check-circle me-1"></i>{{ successCount }} exitosos
             </span>
+            <span class="badge bg-warning-subtle text-warning rounded-pill px-3">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ warningCount }} advertencias
+            </span>
             <span class="badge bg-danger-subtle text-danger rounded-pill px-3">
               <i class="bi bi-exclamation-circle me-1"></i>{{ errorCount }} errores
             </span>
@@ -189,6 +192,13 @@
           </button>
           <button type="button"
                   class="btn btn-sm"
+                  [class.btn-success]="currentFilterStatus === 'warning'"
+                  [class.btn-outline-secondary]="currentFilterStatus !== 'warning'"
+                  (click)="filterByStatus('warning')">
+            Advertencias
+          </button>
+          <button type="button"
+                  class="btn btn-sm"
                   [class.btn-success]="currentFilterStatus === 'error'"
                   [class.btn-outline-secondary]="currentFilterStatus !== 'error'"
                   (click)="filterByStatus('error')">
@@ -214,6 +224,10 @@
                 <span *ngIf="result.status === 'success'"
                       class="badge bg-success-subtle text-success rounded-pill px-3">
                   <i class="bi bi-check-circle-fill me-1"></i>Éxito
+                </span>
+                <span *ngIf="result.status === 'warning'"
+                      class="badge bg-warning-subtle text-warning rounded-pill px-3">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>Advertencia
                 </span>
                 <span *ngIf="result.status === 'error'"
                       class="badge bg-danger-subtle text-danger rounded-pill px-3">
@@ -438,4 +452,5 @@
     </div>
   </div>
 </div>
+
 

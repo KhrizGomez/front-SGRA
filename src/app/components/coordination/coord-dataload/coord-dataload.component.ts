@@ -199,12 +199,13 @@ export class CoordDataloadComponent implements OnDestroy {
   paginatedResults: UploadResult[] = [];
   currentPage = 1;
   pageSize = 10;
-  currentFilterStatus: 'all' | 'success' | 'error' = 'all';
+  currentFilterStatus: 'all' | 'success' | 'warning' | 'error' = 'all';
   filteredResults: UploadResult[] = [];
   Math = Math;
   uploadedItems = 0;
   errorCount = 0;
   successCount = 0;
+  warningCount = 0;
 
   // ===== VALIDACIÓN IA =====
   isValidating = false;
@@ -351,6 +352,11 @@ export class CoordDataloadComponent implements OnDestroy {
 
     // Keywords para detectar mensajes de error/advertencia del backend
     // Los mensajes técnicos ya no llegan aquí, solo mensajes amigables
+    const warningKeywords = [
+      'aviso credenciales',
+      'credenciales: ya existen',
+    ];
+
     const errorKeywords = [
       'no se pudo',
       'no se encontró',
@@ -363,6 +369,7 @@ export class CoordDataloadComponent implements OnDestroy {
 
     reporte.forEach((mensaje: string) => {
       const texto = mensaje.toLowerCase();
+      const isWarning = warningKeywords.some((keyword) => texto.includes(keyword));
       const isError = errorKeywords.some((keyword) => texto.includes(keyword));
 
       // Si el mensaje contiene ✓ es un éxito aunque tenga "verifique" u otra keyword
@@ -372,7 +379,7 @@ export class CoordDataloadComponent implements OnDestroy {
 
       const result: UploadResult = {
         tipo: tipo as any,
-        status: (isError && !isSuccess) ? 'error' : 'success',
+        status: isWarning ? 'warning' : (isError && !isSuccess) ? 'error' : 'success',
         message: mensaje,
         timestamp: new Date(),
       };
@@ -391,6 +398,7 @@ export class CoordDataloadComponent implements OnDestroy {
     this.uploadedItems = this.uploadResults.length;
     this.errorCount = this.uploadResults.filter((r) => r.status === 'error').length;
     this.successCount = this.uploadResults.filter((r) => r.status === 'success').length;
+    this.warningCount = this.uploadResults.filter((r) => r.status === 'warning').length;
   }
 
   filterResults(): void {
@@ -437,7 +445,7 @@ export class CoordDataloadComponent implements OnDestroy {
     return Math.ceil(this.filteredResults.length / this.pageSize) || 1;
   }
 
-  filterByStatus(status: 'all' | 'success' | 'error'): void {
+  filterByStatus(status: 'all' | 'success' | 'warning' | 'error'): void {
     this.currentFilterStatus = status;
     this.currentPage = 1;
     this.filterResults();
@@ -569,3 +577,6 @@ export class CoordDataloadComponent implements OnDestroy {
   }
 
 }
+
+
+

@@ -5,7 +5,7 @@
 export interface UploadResult {
   id?: number;
   tipo: 'Estudiantes' | 'Docentes';
-  status: 'success' | 'error';
+  status: 'success' | 'warning' | 'error';
   message: string;
   fila?: number;
   codigo?: string;
