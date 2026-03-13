@@ -48,6 +48,13 @@ export interface HistorySessionsPageDTO {
   size: number;
 }
 
+export interface HistoryRequestResourcesDTO {
+  requestId: number;
+  studentFiles: string[];
+  teacherResources: string[];
+  virtualLink: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class StudentHistoryService {
   private readonly baseUrl = environment.apiUrl;
@@ -94,6 +101,13 @@ export class StudentHistoryService {
     return this.http.get<HistorySessionsPageDTO>(
       `${this.baseUrl}/student/history/sessions`,
       { ...this.httpOptions, params }
+    ).pipe(catchError(this.handleError));
+  }
+
+  getRequestResources(requestId: number): Observable<HistoryRequestResourcesDTO> {
+    return this.http.get<HistoryRequestResourcesDTO>(
+      `${this.baseUrl}/student/requests/${requestId}/resources`,
+      this.httpOptions
     ).pipe(catchError(this.handleError));
   }
 

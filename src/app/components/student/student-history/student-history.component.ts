@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import {
   StudentHistoryService,
   HistoryRequestItemDTO,
-  HistorySessionItemDTO
+  HistorySessionItemDTO,
+  HistoryRequestResourcesDTO
 } from '../../../services/student/student-history.service';
 import { ToastService } from '../../../services/shared/toast.service';
 
@@ -41,6 +42,12 @@ export class StudentHistoryComponent implements AfterViewInit {
   sessionTotalCount = 0;
   sessionTotalPages = 1;
   sessionFilters: { onlyAttended: boolean } = { onlyAttended: false };
+
+  // Session resources modal
+  showResourcesModal = false;
+  selectedSession: HistorySessionItemDTO | null = null;
+  resourcesDetail: HistoryRequestResourcesDTO | null = null;
+  loadingResources = false;
 
   ngAfterViewInit(): void {
     Promise.resolve().then(() => {
@@ -131,6 +138,50 @@ export class StudentHistoryComponent implements AfterViewInit {
       case 4: return 'bg-secondary';          // Cancelada
       case 5: return 'bg-dark';               // Completada
       default: return 'bg-light text-dark';
+    }
+  }
+
+  openResourcesModal(session: HistorySessionItemDTO): void {
+    this.selectedSession = session;
+    this.showResourcesModal = true;
+    this.loadingResources = true;
+    this.resourcesDetail = null;
+
+    this.svc.getRequestResources(session.requestId).subscribe({
+      next: (res) => {
+        this.resourcesDetail = res;
+        this.loadingResources = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.loadingResources = false;
+        this.toast.show(false, err?.message || 'Error al cargar recursos');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  closeResourcesModal(): void {
+    this.showResourcesModal = false;
+    this.selectedSession = null;
+    this.resourcesDetail = null;
+    this.loadingResources = false;
+  }
+
+  hasResources(): boolean {
+    if (!this.resourcesDetail) return false;
+    return this.resourcesDetail.studentFiles.length > 0
+      || this.resourcesDetail.teacherResources.length > 0
+      || !!this.resourcesDetail.virtualLink;
+  }
+
+  extractFileName(url: string): string {
+    try {
+      const cleaned = url.split('?')[0];
+      const parts = cleaned.split('/');
+      return decodeURIComponent(parts[parts.length - 1] || url);
+    } catch {
+      return url;
     }
   }
 }

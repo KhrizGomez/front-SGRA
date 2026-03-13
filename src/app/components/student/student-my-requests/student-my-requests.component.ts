@@ -5,7 +5,8 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import {
   StudentMyRequestsService,
   StudentMyRequestsPageDTO,
-  MyRequestRowDTO
+  MyRequestRowDTO,
+  StudentRequestResourcesDTO
 } from '../../../services/student/student-my-requests.service';
 import { StudentNewRequestService } from '../../../services/student/student-new-request.service';
 import { StudentInvitationsService } from '../../../services/student/student-invitations.service';
@@ -205,6 +206,8 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   showDetailModal = false;
   showCancelModal = false;
   selectedRequest: MyRequestRowDTO | null = null;
+  resourcesDetail: StudentRequestResourcesDTO | null = null;
+  loadingResources = false;
   cancelling = false;
   activeDropdown: number | null = null;
 
@@ -219,11 +222,49 @@ export class StudentMyRequestsComponent implements AfterViewInit {
   viewDetail(row: MyRequestRowDTO): void {
     this.selectedRequest = row;
     this.showDetailModal = true;
+    this.loadRequestResources(row.requestId);
   }
 
   closeDetailModal(): void {
     this.showDetailModal = false;
     this.selectedRequest = null;
+    this.resourcesDetail = null;
+    this.loadingResources = false;
+  }
+
+  loadRequestResources(requestId: number): void {
+    this.loadingResources = true;
+    this.resourcesDetail = null;
+
+    this.svc.getRequestResources(requestId).subscribe({
+      next: (data) => {
+        this.resourcesDetail = data;
+        this.loadingResources = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.loadingResources = false;
+        this.toast.show(false, err?.message || 'No se pudieron cargar los recursos');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  hasResources(): boolean {
+    if (!this.resourcesDetail) return false;
+    return this.resourcesDetail.studentFiles.length > 0
+      || this.resourcesDetail.teacherResources.length > 0
+      || !!this.resourcesDetail.virtualLink;
+  }
+
+  extractFileName(url: string): string {
+    try {
+      const cleaned = url.split('?')[0];
+      const parts = cleaned.split('/');
+      return decodeURIComponent(parts[parts.length - 1] || url);
+    } catch {
+      return url;
+    }
   }
 
   confirmCancel(row: MyRequestRowDTO): void {
