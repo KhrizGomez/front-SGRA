@@ -55,7 +55,6 @@ export class StudentMyRequestsComponent implements AfterViewInit {
     search: ''
   };
 
-  // ✅ Estados reales de tu BD:
   // 1 Pendiente, 2 Aceptada, 3 Rechazada, 4 Cancelada, 5 Completada
   statusOptions: Option[] = [
     { value: null, label: 'Todos' },
@@ -76,7 +75,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
     { value: null, label: 'Todas' },
   ];
 
-  // ✅ Chips alineados a tu BD (sin "Programadas/Completadas")
+  // Chips alineados a la BD
   summaryChips: { label: string; value: number }[] = [
     { label: 'Pendientes', value: 0 },
     { label: 'Aceptadas', value: 0 },
@@ -239,7 +238,7 @@ export class StudentMyRequestsComponent implements AfterViewInit {
 
   canCancel(status: string): boolean {
     const s = this.norm(status);
-    return s.includes('pend') || s.includes('acept');
+    return s.includes('pend');
   }
 
   doCancelRequest(): void {
