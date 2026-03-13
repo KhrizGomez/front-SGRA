@@ -146,19 +146,20 @@
                     <th>DURACIÓN</th>
                     <th>ASISTENCIA</th>
                     <th>NOTAS</th>
+                    <th>ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody>
                   @if (loadingSessions) {
                     <tr>
-                      <td colspan="7" class="text-center py-4">
+                      <td colspan="8" class="text-center py-4">
                         <div class="spinner-border spinner-border-sm text-success me-2"></div>
                         Cargando...
                       </td>
                     </tr>
                   } @else if (sessions.length === 0) {
                     <tr>
-                      <td colspan="7" class="text-center py-5 text-muted">
+                      <td colspan="8" class="text-center py-5 text-muted">
                         No hay sesiones completadas.
                       </td>
                     </tr>
@@ -186,6 +187,11 @@
                         <td>
                           <small class="text-muted">{{ s.notes || '-' }}</small>
                         </td>
+                        <td>
+                          <button class="btn btn-sm btn-outline-primary" (click)="openResourcesModal(s)">
+                            <i class="bi bi-folder2-open me-1"></i>Ver recursos
+                          </button>
+                        </td>
                       </tr>
                     }
                   }
@@ -205,6 +211,63 @@
                 <button class="btn btn-outline-secondary" [disabled]="sessionPage >= sessionTotalPages" (click)="goToSessionPage(sessionPage + 1)">
                   Siguiente
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (showResourcesModal && selectedSession) {
+        <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Recursos de sesión #{{ selectedSession.completedSessionId }}</h5>
+                <button type="button" class="btn-close" (click)="closeResourcesModal()"></button>
+              </div>
+              <div class="modal-body">
+                @if (loadingResources) {
+                  <div class="text-muted small">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Cargando recursos...
+                  </div>
+                } @else if (resourcesDetail && hasResources()) {
+                  @if (resourcesDetail.studentFiles.length > 0) {
+                    <div class="mb-3">
+                      <small class="fw-semibold d-block mb-1">Tus archivos adjuntos</small>
+                      @for (url of resourcesDetail.studentFiles; track url) {
+                        <a [href]="url" target="_blank" rel="noopener" class="d-block small text-info text-break">
+                          <i class="bi bi-file-earmark-arrow-down me-1"></i>{{ extractFileName(url) }}
+                        </a>
+                      }
+                    </div>
+                  }
+
+                  @if (resourcesDetail.teacherResources.length > 0) {
+                    <div class="mb-3">
+                      <small class="fw-semibold d-block mb-1">Recursos del docente</small>
+                      @for (url of resourcesDetail.teacherResources; track url) {
+                        <a [href]="url" target="_blank" rel="noopener" class="d-block small text-info text-break">
+                          <i class="bi bi-paperclip me-1"></i>{{ extractFileName(url) }}
+                        </a>
+                      }
+                    </div>
+                  }
+
+                  @if (resourcesDetail.virtualLink) {
+                    <div>
+                      <small class="fw-semibold d-block mb-1">Enlace virtual</small>
+                      <a [href]="resourcesDetail.virtualLink" target="_blank" rel="noopener" class="small text-info text-break">
+                        <i class="bi bi-link-45deg me-1"></i>{{ resourcesDetail.virtualLink }}
+                      </a>
+                    </div>
+                  }
+                } @else {
+                  <div class="text-muted small">Sin recursos disponibles para esta sesión.</div>
+                }
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeResourcesModal()">Cerrar</button>
               </div>
             </div>
           </div>

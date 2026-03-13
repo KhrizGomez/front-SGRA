@@ -83,6 +83,51 @@
                       </span>
                     </div>
                   </div>
+
+                  <div class="col-12">
+                    <hr class="my-2">
+                    <label class="form-label text-muted small mb-1">Recursos</label>
+
+                    @if (loadingResources) {
+                      <div class="text-muted small">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Cargando recursos...
+                      </div>
+                    } @else if (resourcesDetail && hasResources()) {
+                      @if (resourcesDetail.studentFiles.length > 0) {
+                        <div class="mb-2">
+                          <small class="fw-semibold d-block mb-1">Tus archivos adjuntos</small>
+                          @for (url of resourcesDetail.studentFiles; track url) {
+                            <a [href]="url" target="_blank" rel="noopener" class="d-block small text-info text-break">
+                              <i class="bi bi-file-earmark-arrow-down me-1"></i>{{ extractFileName(url) }}
+                            </a>
+                          }
+                        </div>
+                      }
+
+                      @if (resourcesDetail.teacherResources.length > 0) {
+                        <div class="mb-2">
+                          <small class="fw-semibold d-block mb-1">Recursos del docente</small>
+                          @for (url of resourcesDetail.teacherResources; track url) {
+                            <a [href]="url" target="_blank" rel="noopener" class="d-block small text-info text-break">
+                              <i class="bi bi-paperclip me-1"></i>{{ extractFileName(url) }}
+                            </a>
+                          }
+                        </div>
+                      }
+
+                      @if (resourcesDetail.virtualLink) {
+                        <div>
+                          <small class="fw-semibold d-block mb-1">Enlace virtual</small>
+                          <a [href]="resourcesDetail.virtualLink" target="_blank" rel="noopener" class="small text-info text-break">
+                            <i class="bi bi-link-45deg me-1"></i>{{ resourcesDetail.virtualLink }}
+                          </a>
+                        </div>
+                      }
+                    } @else {
+                      <div class="text-muted small">Sin recursos disponibles para esta solicitud.</div>
+                    }
+                  </div>
                 </div>
               </div>
               <div class="modal-footer">
