@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminBackupService } from '../../../services/administration/admin-backup/admin-backup.service';
@@ -16,8 +18,10 @@ import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../
 export class AdminBackupComponent implements OnInit {
   private backupService = inject(AdminBackupService);
   private toastService  = inject(ToastService);
-  private cdr = inject(ChangeDetectorRef);
-  private readonly historyCacheKey = 'sgra_admin_backup_history';
+  private cdr           = inject(ChangeDetectorRef);
+  private destroyRef    = inject(DestroyRef);
+  private readonly historyCacheKey  = 'sgra_admin_backup_history';
+  private readonly POLL_INTERVAL_MS = 30_000;
   private optimisticAdds = new Set<string>();
   private optimisticDeletes = new Set<string>();
 
@@ -71,6 +75,11 @@ export class AdminBackupComponent implements OnInit {
     this.loadValidation();
     this.loadHistory();
     this.loadSchedules();
+
+    // Auto-refresh: detecta respaldos automáticos sin que el usuario presione "Actualizar"
+    interval(this.POLL_INTERVAL_MS)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.pollHistory());
   }
 
   loadValidation(): void {
@@ -102,6 +111,28 @@ export class AdminBackupComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: ()     => { this.isLoading.set(false); }
+    });
+  }
+
+  /** Refresca historial y programaciones en segundo plano sin mostrar spinner. */
+  private pollHistory(): void {
+    this.backupService.history().subscribe({
+      next: (data) => {
+        const list = Array.isArray(data) ? data : [];
+        if (list.length === 0) return;
+        const merged = this.mergeHistory(list);
+        // Solo actualiza si hay cambios reales para evitar renders innecesarios
+        const current = this.history();
+        const changed = merged.length !== current.length ||
+          merged.some((item, i) => item.fileName !== current[i]?.fileName);
+        if (changed) this.setHistory(merged, true);
+      },
+      error: () => {}
+    });
+    // También refresca las programaciones para ver última ejecución actualizada
+    this.backupService.listSchedules().subscribe({
+      next:  (data) => this.schedules.set(data),
+      error: () => {}
     });
   }
 
