@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   PeriodType,
@@ -25,19 +26,31 @@ export class CoordReportService {
    */
   getReportPreview(params: ReportPreviewParams): Observable<ReportPreviewRow[]> {
     const queryParams: Record<string, string> = { type: params.type };
-    if (params.periodType)  queryParams['periodType']  = params.periodType;
-    if (params.periodValue) queryParams['periodValue'] = params.periodValue;
-    return this.http.get<ReportPreviewRow[]>(`${this.baseUrl}/preview`, { params: queryParams });
+    // El backend espera un único parámetro ?period=<valor>
+    if (params.periodValue) {
+      queryParams['period'] = params.periodValue;
+    }
+    return this.http.get<ReportPreviewRow[] | { data: ReportPreviewRow[] } | null>(
+      `${this.baseUrl}/preview`, { params: queryParams }
+    ).pipe(
+      map(res => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        // Soporte para respuesta envuelta: { data: [...] }
+        if (Array.isArray((res as any).data)) return (res as any).data as ReportPreviewRow[];
+        return [];
+      })
+    );
   }
 
   /**
    * Descarga un reporte del backend como Blob binario.
    */
   downloadReport(params: ReportParams): Observable<Blob> {
-    const { type, format, periodType, periodValue, columns } = params;
+    const { type, format, periodValue, columns } = params;
     const queryParams: Record<string, string> = { type, format };
-    if (periodType)  queryParams['periodType']  = periodType;
-    if (periodValue) queryParams['periodValue'] = periodValue;
+    // El backend espera un único parámetro ?period=<valor>
+    if (periodValue) queryParams['period'] = periodValue;
     if (columns?.length) queryParams['columns'] = columns.join(',');
     return this.http.get(`${this.baseUrl}/download`, { params: queryParams, responseType: 'blob' });
   }

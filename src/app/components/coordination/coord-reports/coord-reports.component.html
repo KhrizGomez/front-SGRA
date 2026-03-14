@@ -76,7 +76,7 @@
           <select
             class="form-select form-select-sm mb-3"
             [ngModel]="periodType()"
-            (ngModelChange)="periodType.set($event); periodValue.set(''); loadPreview()"
+            (ngModelChange)="periodType.set($event); periodValue.set('')"
           >
             <option value="PERIOD">Por período académico</option>
             <option value="YEAR">Por año</option>
@@ -99,7 +99,7 @@
               <select
                 class="form-select form-select-sm"
                 [ngModel]="periodValue()"
-                (ngModelChange)="periodValue.set($event); loadPreview()"
+                (ngModelChange)="periodValue.set($event)"
               >
                 <option value="">Todos los períodos</option>
                 @for (p of availablePeriods(); track p.idperiodo) {
@@ -122,7 +122,7 @@
               <select
                 class="form-select form-select-sm"
                 [ngModel]="periodValue()"
-                (ngModelChange)="periodValue.set($event); loadPreview()"
+                (ngModelChange)="periodValue.set($event)"
               >
                 <option value="">Todos los años</option>
                 @for (y of availableYears(); track y) {
@@ -137,7 +137,7 @@
               type="week"
               class="form-control form-control-sm"
               [ngModel]="periodValue()"
-              (ngModelChange)="periodValue.set($event); loadPreview()"
+              (ngModelChange)="periodValue.set($event)"
               [min]="periodDateRange().min"
               [max]="periodDateRange().max"
             />
@@ -153,7 +153,7 @@
               type="month"
               class="form-control form-control-sm"
               [ngModel]="periodValue()"
-              (ngModelChange)="periodValue.set($event); loadPreview()"
+              (ngModelChange)="periodValue.set($event)"
               [min]="periodDateRange().min"
               [max]="periodDateRange().max"
             />

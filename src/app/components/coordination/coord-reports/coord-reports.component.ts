@@ -6,6 +6,7 @@ import {
   inject,
   OnDestroy,
   signal,
+  untracked,
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -165,12 +166,21 @@ export class CoordReportsComponent implements OnDestroy {
       periodValue: this.periodValue() || undefined,
     }).subscribe({
       next: rows => {
-        this.serverRows.set(rows?.length ? rows : []);
+        this.serverRows.set(Array.isArray(rows) && rows.length ? rows : []);
         this.isLoadingPreview.set(false);
         this.hasLoadedPreview.set(true);
         setTimeout(() => this.renderChart(), 60);
       },
-      error: () => {
+      error: (err) => {
+        const status = err?.status;
+        const msg = err?.error?.message || err?.message || '';
+        this.previewError.set(
+          status === 404
+            ? 'El endpoint de reportes no está disponible (404).'
+            : status === 403
+            ? 'Sin permisos para consultar este reporte.'
+            : `Error al cargar datos${ msg ? ': ' + msg : ' (' + status + ')' }.`
+        );
         this.serverRows.set([]);
         this.isLoadingPreview.set(false);
         this.hasLoadedPreview.set(true);
