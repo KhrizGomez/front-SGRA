@@ -235,6 +235,17 @@
     }
   </div>
 
+  <!-- Banner post-restore -->
+  @if (restoreCountdown() !== null) {
+    <div class="alert alert-success d-flex align-items-center gap-3 mb-3" role="alert">
+      <span class="spinner-border spinner-border-sm flex-shrink-0"></span>
+      <div>
+        <strong>Restauración completada.</strong>
+        La aplicación se recargará en <strong>{{ restoreCountdown() }}</strong> segundo{{ restoreCountdown() !== 1 ? 's' : '' }}...
+      </div>
+    </div>
+  }
+
   <!-- Historial -->
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
@@ -281,7 +292,24 @@
                   <td><span class="badge bg-light text-dark border">{{ formatSize(item.fileSizeBytes) }}</span></td>
                   <td class="text-muted small">{{ item.createdAt }}</td>
                   <td class="text-center pe-3">
-                    @if (confirmingDelete() === item.fileName) {
+                    @if (confirmingRestore() === item.fileName) {
+                      <div class="restore-confirm d-inline-flex align-items-center gap-2 flex-wrap justify-content-center px-2 py-1 rounded-2">
+                        <span class="small fw-semibold text-warning">
+                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                          Esto reemplazará todos los datos actuales
+                        </span>
+                        <button type="button" class="btn btn-sm btn-warning"
+                                (click)="restoreBackup(item.fileName)"
+                                [disabled]="restoring() === item.fileName">
+                          @if (restoring() === item.fileName) {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                          }
+                          Confirmar
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                (click)="cancelRestore()">Cancelar</button>
+                      </div>
+                    } @else if (confirmingDelete() === item.fileName) {
                       <div class="d-inline-flex align-items-center gap-2">
                         <span class="small text-danger fw-semibold">¿Eliminar?</span>
                         <button type="button" class="btn btn-sm btn-danger"
@@ -294,7 +322,7 @@
                         <button type="button"
                                 class="btn btn-sm btn-outline-success d-inline-flex align-items-center"
                                 (click)="downloadBackup(item.fileName)"
-                                [disabled]="downloading() === item.fileName || deleting() === item.fileName"
+                                [disabled]="downloading() === item.fileName || deleting() === item.fileName || restoring() === item.fileName"
                                 title="Descargar respaldo">
                           @if (downloading() === item.fileName) {
                             <span class="spinner-border spinner-border-sm"></span>
@@ -303,9 +331,20 @@
                           }
                         </button>
                         <button type="button"
+                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center"
+                                (click)="confirmRestore(item.fileName)"
+                                [disabled]="restoring() === item.fileName || deleting() === item.fileName || downloading() === item.fileName"
+                                title="Restaurar base de datos desde este respaldo">
+                          @if (restoring() === item.fileName) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                          }
+                        </button>
+                        <button type="button"
                                 class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
                                 (click)="confirmDelete(item.fileName)"
-                                [disabled]="deleting() === item.fileName || downloading() === item.fileName"
+                                [disabled]="deleting() === item.fileName || downloading() === item.fileName || restoring() === item.fileName"
                                 title="Eliminar respaldo">
                           @if (deleting() === item.fileName) {
                             <span class="spinner-border spinner-border-sm"></span>
