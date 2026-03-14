@@ -6,6 +6,7 @@ import {
   inject,
   OnDestroy,
   signal,
+  untracked,
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +26,8 @@ import {
   CoordReportService,
   REPORT_CONFIGS,
 } from '../../../services/coordination/coord-report/coord-report.service';
+import { AdminPeriodsService } from '../../../services/administration/admin-periods/admin-periods.service';
+import { GPeriod } from '../../../models/administration/admin-periods/GPeriod.model';
 
 Chart.register(...registerables);
 
@@ -39,6 +42,7 @@ export class CoordReportsComponent implements OnDestroy {
   @ViewChild('chartCanvas') chartCanvasRef!: ElementRef<HTMLCanvasElement>;
 
   private readonly reportService = inject(CoordReportService);
+  private readonly periodsService = inject(AdminPeriodsService);
   private chartInstance: Chart | null = null;
 
   // ── Estado de configuración ──────────────────────────────────────────
@@ -58,10 +62,35 @@ export class CoordReportsComponent implements OnDestroy {
   serverRows = signal<ReportPreviewRow[]>([]);
   isLoadingPreview = signal(false);
   previewError = signal('');
+  hasLoadedPreview = signal(false);
 
   // ── Columnas seleccionadas (mapa key → seleccionado) ──────────────────────
   columnSelection = signal<Record<string, boolean>>({});
+  // ── Períodos disponibles desde el backend ────────────────────────
+  availablePeriods = signal<GPeriod[]>([]);
+  isLoadingPeriods = signal(false);
 
+  readonly availableYears = computed<number[]>(() => {
+    const years = new Set<number>();
+    this.availablePeriods().forEach(p => {
+      if (p.fechainicio) years.add(new Date(p.fechainicio).getFullYear());
+      if (p.fechafin)    years.add(new Date(p.fechafin).getFullYear());
+    });
+    return Array.from(years).sort((a, b) => b - a);
+  });
+
+  readonly periodDateRange = computed<{ min: string; max: string }>(() => {
+    const periods = this.availablePeriods();
+    if (!periods.length) return { min: '', max: '' };
+    const allDates = [
+      ...periods.map(p => p.fechainicio),
+      ...periods.map(p => p.fechafin),
+    ].filter(Boolean);
+    return {
+      min: allDates.reduce((a, b) => a < b ? a : b).substring(0, 10),
+      max: allDates.reduce((a, b) => a > b ? a : b).substring(0, 10),
+    };
+  });
   // ── Configuración activa derivada ────────────────────────────────────────
   readonly activeConfig = computed<ReportConfig>(
     () => this.configs.find(c => c.key === this.selectedTypeKey())!
@@ -101,30 +130,60 @@ export class CoordReportsComponent implements OnDestroy {
       // Re-renderizar gráfico tras cambio de tipo (diferido para que el DOM esté listo)
       setTimeout(() => this.renderChart(), 60);
     });
+
+    // Cargar períodos disponibles una vez al iniciar
+    this.loadAvailablePeriods();
   }
 
   ngOnDestroy(): void {
     this.destroyChart();
   }
+
+  // ── Carga de períodos disponibles ────────────────────────────
+  loadAvailablePeriods(): void {
+    this.isLoadingPeriods.set(true);
+    this.periodsService.getPeriods().subscribe({
+      next: periods => {
+        this.availablePeriods.set(periods ?? []);
+        this.isLoadingPeriods.set(false);
+      },
+      error: () => {
+        this.availablePeriods.set([]);
+        this.isLoadingPeriods.set(false);
+      },
+    });
+  }
+
   // ── Carga de datos del servidor ────────────────────────────────
   loadPreview(): void {
     this.isLoadingPreview.set(true);
     this.previewError.set('');
 
+    this.hasLoadedPreview.set(false);
     this.reportService.getReportPreview({
       type: this.selectedTypeKey(),
       periodType: this.periodType() || undefined,
       periodValue: this.periodValue() || undefined,
     }).subscribe({
       next: rows => {
-        this.serverRows.set(rows?.length ? rows : []);
+        this.serverRows.set(Array.isArray(rows) && rows.length ? rows : []);
         this.isLoadingPreview.set(false);
+        this.hasLoadedPreview.set(true);
         setTimeout(() => this.renderChart(), 60);
       },
-      error: () => {
-        // Si el servidor falla, caemos en los datos de muestra locales
+      error: (err) => {
+        const status = err?.status;
+        const msg = err?.error?.message || err?.message || '';
+        this.previewError.set(
+          status === 404
+            ? 'El endpoint de reportes no está disponible (404).'
+            : status === 403
+            ? 'Sin permisos para consultar este reporte.'
+            : `Error al cargar datos${ msg ? ': ' + msg : ' (' + status + ')' }.`
+        );
         this.serverRows.set([]);
         this.isLoadingPreview.set(false);
+        this.hasLoadedPreview.set(true);
         setTimeout(() => this.renderChart(), 60);
       },
     });

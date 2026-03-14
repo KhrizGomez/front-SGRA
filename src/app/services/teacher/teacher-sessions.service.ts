@@ -42,7 +42,7 @@ export class TeacherSessionsService {
     const form = new FormData();
     form.append('observation', observation);
     form.append('duration', duration);
-    files.forEach(f => form.append('files[]', f, f.name));
+    files.forEach(f => form.append('files', f, f.name));
     return this.http.post<ApiActionResponseDTO>(
       `${this.baseUrl}/teacher/sessions/${scheduledId}/performed`,
       form,

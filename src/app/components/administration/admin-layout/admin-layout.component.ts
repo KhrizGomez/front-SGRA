@@ -35,6 +35,7 @@ export class AdminLayoutComponent implements OnInit {
     { path: '/admin/master-tables', label: 'Tablas Maestras', icon: 'bi-table' },
     { path: '/admin/config',        label: 'Configuración',   icon: 'bi-gear' },
     { path: '/admin/audit',          label: 'Auditoría',       icon: 'bi-shield-check' },
+    { path: '/admin/backup',         label: 'Respaldos',       icon: 'bi-database-fill-up' },
   ];
 
   ngOnInit(): void {

@@ -55,6 +55,10 @@ export const routes: Routes = [
         path: 'audit',
         loadComponent: () => import('./components/administration/admin-audit/admin-audit.component').then(m => m.AdminAuditComponent)
       },
+      {
+        path: 'backup',
+        loadComponent: () => import('./components/administration/admin-backup/admin-backup.component').then(m => m.AdminBackupComponent)
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

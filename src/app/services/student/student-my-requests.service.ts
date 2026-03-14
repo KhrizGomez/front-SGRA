@@ -36,6 +36,13 @@ export interface CancelRequestResponseDTO {
   message: string;
 }
 
+export interface StudentRequestResourcesDTO {
+  requestId: number;
+  studentFiles: string[];
+  teacherResources: string[];
+  virtualLink: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class StudentMyRequestsService {
   private readonly baseUrl = environment.apiUrl;
@@ -81,6 +88,13 @@ export class StudentMyRequestsService {
     return this.http.put<CancelRequestResponseDTO>(
       `${this.baseUrl}/student/requests/${requestId}/cancel`,
       {},
+      this.httpOptions
+    ).pipe(catchError(this.handleError));
+  }
+
+  getRequestResources(requestId: number): Observable<StudentRequestResourcesDTO> {
+    return this.http.get<StudentRequestResourcesDTO>(
+      `${this.baseUrl}/student/requests/${requestId}/resources`,
       this.httpOptions
     ).pipe(catchError(this.handleError));
   }

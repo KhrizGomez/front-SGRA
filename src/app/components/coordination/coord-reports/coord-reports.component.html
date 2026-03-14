@@ -87,33 +87,49 @@
           <!-- Valor según tipo -->
           @if (periodType() === 'PERIOD') {
             <label class="form-label small text-muted">Período académico</label>
-            <select
-              class="form-select form-select-sm"
-              [ngModel]="periodValue()"
-              (ngModelChange)="periodValue.set($event)"
-            >
-              <option value="">Período actual</option>
-              <option value="2025-2">2025-2</option>
-              <option value="2025-1">2025-1</option>
-              <option value="2024-2">2024-2</option>
-              <option value="2024-1">2024-1</option>
-              <option value="2023-2">2023-2</option>
-              <option value="2023-1">2023-1</option>
-            </select>
+            @if (isLoadingPeriods()) {
+              <div class="d-flex align-items-center gap-2 text-muted small py-1">
+                <span class="spinner-border spinner-border-sm"></span> Cargando períodos…
+              </div>
+            } @else if (availablePeriods().length === 0) {
+              <div class="alert alert-warning py-2 px-3 small mb-0">
+                <i class="bi bi-exclamation-triangle me-1"></i>No hay períodos académicos registrados.
+              </div>
+            } @else {
+              <select
+                class="form-select form-select-sm"
+                [ngModel]="periodValue()"
+                (ngModelChange)="periodValue.set($event)"
+              >
+                <option value="">Todos los períodos</option>
+                @for (p of availablePeriods(); track p.idperiodo) {
+                  <option [value]="p.periodo">{{ p.periodo }}</option>
+                }
+              </select>
+            }
           }
           @if (periodType() === 'YEAR') {
             <label class="form-label small text-muted">Año</label>
-            <select
-              class="form-select form-select-sm"
-              [ngModel]="periodValue()"
-              (ngModelChange)="periodValue.set($event)"
-            >
-              <option value="">Año actual</option>
-              <option value="2026">2026</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-            </select>
+            @if (isLoadingPeriods()) {
+              <div class="d-flex align-items-center gap-2 text-muted small py-1">
+                <span class="spinner-border spinner-border-sm"></span> Cargando años…
+              </div>
+            } @else if (availableYears().length === 0) {
+              <div class="alert alert-warning py-2 px-3 small mb-0">
+                <i class="bi bi-exclamation-triangle me-1"></i>No hay años disponibles.
+              </div>
+            } @else {
+              <select
+                class="form-select form-select-sm"
+                [ngModel]="periodValue()"
+                (ngModelChange)="periodValue.set($event)"
+              >
+                <option value="">Todos los años</option>
+                @for (y of availableYears(); track y) {
+                  <option [value]="y">{{ y }}</option>
+                }
+              </select>
+            }
           }
           @if (periodType() === 'WEEKLY') {
             <label class="form-label small text-muted">Semana</label>
@@ -122,7 +138,14 @@
               class="form-control form-control-sm"
               [ngModel]="periodValue()"
               (ngModelChange)="periodValue.set($event)"
+              [min]="periodDateRange().min"
+              [max]="periodDateRange().max"
             />
+            @if (periodDateRange().min) {
+              <small class="text-muted mt-1 d-block">
+                Rango disponible: {{ periodDateRange().min }} — {{ periodDateRange().max }}
+              </small>
+            }
           }
           @if (periodType() === 'MONTHLY') {
             <label class="form-label small text-muted">Mes</label>
@@ -131,7 +154,14 @@
               class="form-control form-control-sm"
               [ngModel]="periodValue()"
               (ngModelChange)="periodValue.set($event)"
+              [min]="periodDateRange().min"
+              [max]="periodDateRange().max"
             />
+            @if (periodDateRange().min) {
+              <small class="text-muted mt-1 d-block">
+                Rango disponible: {{ periodDateRange().min }} — {{ periodDateRange().max }}
+              </small>
+            }
           }
         </div>
       </div>
@@ -325,9 +355,15 @@
             Vista Previa —
             <span [style.color]="activeConfig().color">{{ activeConfig().label }}</span>
           </h6>
-          <span class="ms-auto badge small" [class]="serverRows().length ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle'">
-            <i class="bi me-1" [class]="serverRows().length ? 'bi-check-circle' : 'bi-eye'"></i>
-            {{ serverRows().length ? (serverRows().length + ' registros') : 'Datos de muestra' }}
+          <span class="ms-auto badge small"
+            [class]="serverRows().length ? 'bg-success-subtle text-success border border-success-subtle'
+              : hasLoadedPreview() ? 'bg-danger-subtle text-danger border border-danger-subtle'
+              : 'bg-secondary-subtle text-secondary border border-secondary-subtle'">
+            <i class="bi me-1"
+              [class]="serverRows().length ? 'bi-check-circle'
+                : hasLoadedPreview() ? 'bi-inbox'
+                : 'bi-hourglass-split'"></i>
+            {{ serverRows().length ? (serverRows().length + ' registros') : (hasLoadedPreview() ? 'Sin datos' : 'Cargando…') }}
           </span>
         </div>
 
@@ -350,14 +386,14 @@
           }
 
           <!-- Gráfico -->
-          @if (showChart() && !isLoadingPreview()) {
+          @if (showChart() && !isLoadingPreview() && serverRows().length) {
             <div class="chart-container mb-4" [class.chart-pie]="selectedChartType() === 'PIE'">
               <canvas #chartCanvas></canvas>
             </div>
           }
 
           <!-- Tabla -->
-          @if (showTable() && !isLoadingPreview()) {
+          @if (showTable() && !isLoadingPreview() && serverRows().length) {
             <div class="table-responsive preview-table-wrap">
               <table class="table table-hover table-sm align-middle mb-0">
                 <thead>
@@ -391,9 +427,24 @@
               </table>
             </div>
 
-            <div class="small mt-2 text-end" [class]="serverRows().length ? 'text-success' : 'text-muted'">
-              <i class="bi me-1" [class]="serverRows().length ? 'bi-check-circle' : 'bi-info-circle'"></i>
-              {{ serverRows().length ? (serverRows().length + ' registros cargados del servidor.') : 'Vista previa con datos de muestra. El reporte descargado incluirá los datos reales.' }}
+            <div class="small mt-2 text-end text-success">
+              <i class="bi bi-check-circle me-1"></i>
+              {{ serverRows().length + ' registros cargados del servidor.' }}
+            </div>
+          }
+
+          <!-- Sin datos del servidor -->
+          @if (!isLoadingPreview() && hasLoadedPreview() && !serverRows().length && (showChart() || showTable())) {
+            <div class="empty-preview d-flex flex-column align-items-center justify-content-center gap-3">
+              <i class="bi bi-inbox display-4 text-muted opacity-50"></i>
+              <div class="text-center">
+                <p class="fw-semibold text-muted mb-1">No hay datos disponibles</p>
+                <p class="text-muted small mb-0">
+                  No existen registros para generar el reporte de
+                  <strong>{{ activeConfig().label }}</strong>
+                  con los criterios seleccionados.
+                </p>
+              </div>
             </div>
           }
 
