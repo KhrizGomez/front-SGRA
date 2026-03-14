@@ -1,4 +1,4 @@
-import {
+  import {
   Component,
   computed,
   effect,
@@ -12,6 +12,8 @@ import {
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import {
   ChartTypeKey,
@@ -320,29 +322,67 @@ export class CoordReportsComponent implements OnDestroy {
     this.isDownloading.set(true);
     this.downloadFormat.set('PDF');
     this.downloadError.set('');
-    this.reportService
-      .downloadReport({
-        type: this.selectedTypeKey(),
-        format: 'PDF',
-        periodType: this.periodType() || undefined,
-        periodValue: this.periodValue() || undefined,
-        columns: this.selectedColumnKeys(),
-      })
-      .subscribe({
-        next: blob => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `reporte-${this.selectedTypeKey().toLowerCase()}.pdf`;
-          a.click();
-          URL.revokeObjectURL(url);
-          this.isDownloading.set(false);
-        },
-        error: () => {
-          this.isDownloading.set(false);
-          this.downloadError.set('No se pudo generar el PDF. Intente de nuevo.');
-        },
-      });
+
+    try {
+      const config   = this.activeConfig();
+      const rows     = this.previewRows();
+      const cols     = this.visibleColumns();
+
+      const doc       = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin    = 14;
+
+      // ── Encabezado ────────────────────────────────────────────────────────
+      doc.setFontSize(16);
+      doc.setTextColor(27, 117, 5);
+      doc.text(`Reporte – ${config.label}`, margin, 18);
+
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      const periodLabel = this.periodValue()
+        ? `Período: ${this.periodValue()}`
+        : 'Período: Todos';
+      doc.text(periodLabel, margin, 26);
+      doc.text(
+        `Generado: ${new Date().toLocaleDateString('es')}`,
+        pageWidth - margin, 26,
+        { align: 'right' }
+      );
+
+      let cursorY = 33;
+
+      // ── Gráfico ───────────────────────────────────────────────────────────
+      if (this.showChart() && this.chartInstance && this.chartCanvasRef?.nativeElement) {
+        const canvas  = this.chartCanvasRef.nativeElement;
+        const imgData = canvas.toDataURL('image/png');
+        // Ancho máximo del gráfico: la mitad de la página para no aplastarlo
+        const maxW  = pageWidth - margin * 2;
+        const chartW = Math.min(maxW, 160);
+        const chartH = (canvas.height / canvas.width) * chartW;
+        const imgX  = margin + (maxW - chartW) / 2;
+        doc.addImage(imgData, 'PNG', imgX, cursorY, chartW, chartH);
+        cursorY += chartH + 6;
+      }
+
+      // ── Tabla ─────────────────────────────────────────────────────────────
+      if (this.showTable() && rows.length) {
+        autoTable(doc, {
+          startY: cursorY,
+          head: [cols.map(c => c.label)],
+          body: rows.map(row => cols.map(c => String(row[c.key] ?? ''))),
+          styles:     { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: [27, 117, 5], textColor: 255, fontStyle: 'bold' },
+          alternateRowStyles: { fillColor: [240, 248, 240] },
+          margin: { left: margin, right: margin },
+        });
+      }
+
+      doc.save(`reporte-${this.selectedTypeKey().toLowerCase()}.pdf`);
+      this.isDownloading.set(false);
+    } catch {
+      this.isDownloading.set(false);
+      this.downloadError.set('No se pudo generar el PDF. Intente de nuevo.');
+    }
   }
 
   exportExcel(): void {
