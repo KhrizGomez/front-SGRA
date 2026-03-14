@@ -7,14 +7,32 @@
   flex-shrink: 0;
 }
 
-.rule-card {
-  border: 1px solid #e9ecef;
-}
-
 .table th {
   font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: #6c757d;
+}
+
+/* Formulario nueva programación */
+.new-schedule-form {
+  background: #f8faf9;
+  border: 1px dashed #b2dfcc;
+}
+
+/* Filas de programaciones */
+.schedule-row {
+  border: 1px solid #e9ecef;
+  transition: background 0.15s;
+}
+
+.schedule-active {
+  background: #f8faf9;
+  border-color: #b2dfcc;
+}
+
+.schedule-inactive {
+  background: #f8f9fa;
+  opacity: 0.75;
 }
