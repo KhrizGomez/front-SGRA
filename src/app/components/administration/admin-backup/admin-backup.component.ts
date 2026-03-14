@@ -30,9 +30,12 @@ export class AdminBackupComponent implements OnInit {
   history     = signal<BackupHistoryItem[]>([]);
   isLoading   = signal(true);
   isRunning   = signal(false);
-  downloading      = signal<string | null>(null);
-  deleting         = signal<string | null>(null);
-  confirmingDelete = signal<string | null>(null);
+  downloading       = signal<string | null>(null);
+  deleting          = signal<string | null>(null);
+  confirmingDelete  = signal<string | null>(null);
+  restoring         = signal<string | null>(null);
+  confirmingRestore = signal<string | null>(null);
+  restoreCountdown  = signal<number | null>(null);
 
   // ── KPIs (derivados de history, siempre en sincronía) ──────────────────────
   totalCount = computed(() => this.history().length);
@@ -190,7 +193,37 @@ export class AdminBackupComponent implements OnInit {
     });
   }
 
+  confirmRestore(fileName: string): void {
+    this.confirmingDelete.set(null);
+    this.confirmingRestore.set(fileName);
+  }
+
+  cancelRestore(): void {
+    this.confirmingRestore.set(null);
+  }
+
+  restoreBackup(fileName: string): void {
+    if (this.restoring() === fileName) return;
+    this.confirmingRestore.set(null);
+    this.restoring.set(fileName);
+    this.backupService.restore(fileName).subscribe({
+      next: (result) => {
+        this.restoring.set(null);
+        if (result.success) {
+          this.iniciarCountdownRecarga();
+        } else {
+          this.toastService.show(false, result.message);
+        }
+      },
+      error: () => {
+        this.restoring.set(null);
+        this.toastService.show(false, 'Error al restaurar la base de datos.');
+      }
+    });
+  }
+
   confirmDelete(fileName: string): void {
+    this.confirmingRestore.set(null);
     this.confirmingDelete.set(fileName);
   }
 
@@ -269,6 +302,23 @@ export class AdminBackupComponent implements OnInit {
       },
       error: () => { this.deletingId.set(null); this.toastService.show(false, 'Error al eliminar.'); }
     });
+  }
+
+  // ── Post-restore: countdown y recarga ──────────────────────────────────────
+
+  private iniciarCountdownRecarga(): void {
+    this.toastService.show(true, 'Base de datos restaurada exitosamente. Recargando aplicación...');
+    let segundos = 5;
+    this.restoreCountdown.set(segundos);
+    const tick = setInterval(() => {
+      segundos--;
+      if (segundos <= 0) {
+        clearInterval(tick);
+        window.location.reload();
+      } else {
+        this.restoreCountdown.set(segundos);
+      }
+    }, 1000);
   }
 
   // ── Helpers de UI ──────────────────────────────────────────────────────────

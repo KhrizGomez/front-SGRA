@@ -34,6 +34,10 @@ export class AdminBackupService {
     return this.http.delete<void>(`${this.apiUrl}/admin/backup/history/${encodeURIComponent(fileName)}`);
   }
 
+  restore(fileName: string): Observable<BackupResult> {
+    return this.http.post<BackupResult>(`${this.apiUrl}/admin/backup/restore/${encodeURIComponent(fileName)}`, {});
+  }
+
   // Programaciones automáticas
   listSchedules(): Observable<BackupScheduleEntry[]> {
     return this.http.get<BackupScheduleEntry[]>(`${this.apiUrl}/admin/backup/schedules`);
