@@ -19,3 +19,15 @@ export interface PgDumpValidation {
   available: boolean;
   version: string;
 }
+
+export interface BackupScheduleEntry {
+  id?: number;
+  habilitado: boolean;
+  frecuencia: 'DIARIO' | 'SEMANAL' | 'MENSUAL';
+  diaSemana?: string | null;
+  diaMes?: number | null;
+  hora: number;
+  minuto: number;
+  fechaUltimaEjecucion?: string | null;
+  resultadoUltimaEjecucion?: string | null;
+}

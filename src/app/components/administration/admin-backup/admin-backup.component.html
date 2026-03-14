@@ -5,8 +5,8 @@
     <div>
       <h3 class="mb-1">Respaldos del Sistema</h3>
       <p class="text-muted mb-0">
-        Crea copias de seguridad de la base de datos.
-        Los archivos se almacenan en Azure Blob Storage
+        Crea copias de seguridad de la base de datos —
+        almacenadas en Azure Blob Storage
         <span class="badge bg-light text-secondary border small fw-normal">backups-sgra</span>
       </p>
     </div>
@@ -68,6 +68,173 @@
     </div>
   </div>
 
+  <!-- Programaciones automáticas -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"
+         style="cursor:pointer" (click)="schedulesOpen.set(!schedulesOpen())">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-calendar-check text-success"></i>
+        <h6 class="mb-0 fw-semibold">Respaldo Automático</h6>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-success d-flex align-items-center gap-1"
+                (click)="$event.stopPropagation(); openForm()" [disabled]="showForm()">
+          <i class="bi bi-plus-lg"></i> Agregar
+        </button>
+        <i class="bi transition-transform"
+           [class.bi-chevron-up]="schedulesOpen()"
+           [class.bi-chevron-down]="!schedulesOpen()"></i>
+      </div>
+    </div>
+
+    @if (schedulesOpen()) {
+    <div class="card-body">
+
+      <!-- Formulario nueva programación -->
+      @if (showForm()) {
+        <div class="new-schedule-form p-3 rounded-3 mb-3">
+          <p class="fw-semibold small mb-3">Nueva Programación</p>
+          <div class="row g-2 align-items-end">
+
+            <!-- Frecuencia -->
+            <div class="col-12 col-md-3">
+              <label class="form-label small mb-1">Frecuencia</label>
+              <select class="form-select form-select-sm" [(ngModel)]="form.frecuencia">
+                <option value="DIARIO">Diario</option>
+                <option value="SEMANAL">Semanal</option>
+                <option value="MENSUAL">Mensual</option>
+              </select>
+            </div>
+
+            <!-- Día de la semana (solo SEMANAL) -->
+            @if (form.frecuencia === 'SEMANAL') {
+              <div class="col-12 col-md-3">
+                <label class="form-label small mb-1">Día de la semana</label>
+                <select class="form-select form-select-sm" [(ngModel)]="form.diaSemana">
+                  @for (d of diasSemana; track d.value) {
+                    <option [value]="d.value">{{ d.label }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            <!-- Día del mes (solo MENSUAL) -->
+            @if (form.frecuencia === 'MENSUAL') {
+              <div class="col-12 col-md-3">
+                <label class="form-label small mb-1">Día del mes</label>
+                <select class="form-select form-select-sm" [(ngModel)]="form.diaMes">
+                  @for (d of diasMes; track d) {
+                    <option [value]="d">{{ d }}</option>
+                  }
+                </select>
+              </div>
+            }
+
+            <!-- Hora -->
+            <div class="col-6 col-md-2">
+              <label class="form-label small mb-1">Hora</label>
+              <select class="form-select form-select-sm" [(ngModel)]="form.hora">
+                @for (h of horas; track h) {
+                  <option [value]="h">{{ h | number:'2.0' }}:00</option>
+                }
+              </select>
+            </div>
+
+            <!-- Minuto -->
+            <div class="col-6 col-md-2">
+              <label class="form-label small mb-1">Minuto</label>
+              <select class="form-select form-select-sm" [(ngModel)]="form.minuto">
+                @for (m of minutos; track m) {
+                  <option [value]="m">:{{ m | number:'2.0' }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Botones -->
+            <div class="col-12 col-md-auto d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-success" (click)="saveSchedule()" [disabled]="isSaving()">
+                @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Guardar
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelForm()">
+                Cancelar
+              </button>
+            </div>
+
+          </div>
+          <!-- Vista previa del cron -->
+          <p class="text-muted small mt-2 mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Vista previa: <strong>{{ describeSchedule(form) }}</strong>
+          </p>
+        </div>
+      }
+
+      <!-- Lista de programaciones -->
+      @if (isLoadingScheds()) {
+        <div class="text-center py-3 text-muted small">
+          <span class="spinner-border spinner-border-sm me-2"></span> Cargando...
+        </div>
+      } @else if (schedules().length === 0 && !showForm()) {
+        <p class="text-muted small text-center py-3 mb-0">
+          <i class="bi bi-calendar-x me-1"></i>
+          No hay programaciones configuradas. Usa "Agregar" para crear una.
+        </p>
+      } @else {
+        <div class="d-flex flex-column gap-2">
+          @for (entry of schedules(); track entry.id) {
+            <div class="schedule-row d-flex align-items-center gap-3 px-3 py-2 rounded-3"
+                 [class.schedule-active]="entry.habilitado"
+                 [class.schedule-inactive]="!entry.habilitado">
+
+              <!-- Toggle -->
+              <div class="form-check form-switch mb-0 flex-shrink-0">
+                <input class="form-check-input" type="checkbox" role="switch"
+                       [checked]="entry.habilitado"
+                       [disabled]="togglingId() === entry.id"
+                       (change)="toggleSchedule(entry)">
+              </div>
+
+              <!-- Descripción -->
+              <div class="flex-grow-1">
+                <span class="fw-semibold small">{{ describeSchedule(entry) }}</span>
+
+                @if (entry.fechaUltimaEjecucion) {
+                  <span class="ms-3 small text-muted">
+                    Última:
+                    <span [class.text-success]="lastRunOk(entry)" [class.text-danger]="!lastRunOk(entry)">
+                      {{ entry.fechaUltimaEjecucion }}
+                      <i class="bi" [class.bi-check-circle-fill]="lastRunOk(entry)"
+                                    [class.bi-exclamation-triangle-fill]="!lastRunOk(entry)"></i>
+                    </span>
+                  </span>
+                }
+              </div>
+
+              <!-- Badge estado -->
+              <span class="badge" [class.bg-success]="entry.habilitado" [class.bg-secondary]="!entry.habilitado">
+                {{ entry.habilitado ? 'Activa' : 'Inactiva' }}
+              </span>
+
+              <!-- Eliminar -->
+              <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0"
+                      (click)="deleteSchedule(entry)"
+                      [disabled]="deletingId() === entry.id"
+                      title="Eliminar programación">
+                @if (deletingId() === entry.id) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  <i class="bi bi-trash3"></i>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    }
+  </div>
+
   <!-- Historial -->
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
@@ -85,15 +252,14 @@
               <th class="ps-3">Archivo</th>
               <th>Tamaño</th>
               <th>Fecha</th>
-              <th class="text-center pe-3">Descargar</th>
+              <th class="text-center pe-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @if (isLoading()) {
               <tr>
                 <td colspan="4" class="text-center py-4 text-muted">
-                  <span class="spinner-border spinner-border-sm me-2"></span>
-                  Cargando historial...
+                  <span class="spinner-border spinner-border-sm me-2"></span>Cargando historial...
                 </td>
               </tr>
             } @else if (history().length === 0) {
@@ -112,22 +278,43 @@
                       <span class="fw-medium small">{{ item.fileName }}</span>
                     </div>
                   </td>
-                  <td>
-                    <span class="badge bg-light text-dark border">{{ formatSize(item.fileSizeBytes) }}</span>
-                  </td>
+                  <td><span class="badge bg-light text-dark border">{{ formatSize(item.fileSizeBytes) }}</span></td>
                   <td class="text-muted small">{{ item.createdAt }}</td>
-                  <td class="text-center pe-3">
-                    <button type="button"
-                            class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1"
-                            (click)="downloadBackup(item.fileName)"
-                            [disabled]="downloading() === item.fileName"
-                            title="Descargar respaldo">
-                      @if (downloading() === item.fileName) {
-                        <span class="spinner-border spinner-border-sm"></span>
-                      } @else {
-                        <i class="bi bi-download"></i>
-                      }
-                    </button>
+                  <td class="text-end pe-3">
+                    @if (confirmingDelete() === item.fileName) {
+                      <div class="d-inline-flex align-items-center gap-2">
+                        <span class="small text-danger fw-semibold">¿Eliminar?</span>
+                        <button type="button" class="btn btn-sm btn-danger"
+                                (click)="deleteBackup(item.fileName)">Sí</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                (click)="cancelDelete()">No</button>
+                      </div>
+                    } @else {
+                      <div class="d-inline-flex gap-1">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-success d-inline-flex align-items-center"
+                                (click)="downloadBackup(item.fileName)"
+                                [disabled]="downloading() === item.fileName || deleting() === item.fileName"
+                                title="Descargar respaldo">
+                          @if (downloading() === item.fileName) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <i class="bi bi-download"></i>
+                          }
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                                (click)="confirmDelete(item.fileName)"
+                                [disabled]="deleting() === item.fileName || downloading() === item.fileName"
+                                title="Eliminar respaldo">
+                          @if (deleting() === item.fileName) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <i class="bi bi-trash3"></i>
+                          }
+                        </button>
+                      </div>
+                    }
                   </td>
                 </tr>
               }
