@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminBackupService } from '../../../services/administration/admin-backup/admin-backup.service';
@@ -16,6 +16,10 @@ import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../
 export class AdminBackupComponent implements OnInit {
   private backupService = inject(AdminBackupService);
   private toastService  = inject(ToastService);
+  private cdr = inject(ChangeDetectorRef);
+  private readonly historyCacheKey = 'sgra_admin_backup_history';
+  private optimisticAdds = new Set<string>();
+  private optimisticDeletes = new Set<string>();
 
   // ── Estado general ──────────────────────────────────────────────────────────
   pgDump      = signal<PgDumpValidation | null>(null);
@@ -63,6 +67,7 @@ export class AdminBackupComponent implements OnInit {
   // ─────────────────────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
+    this.restoreHistoryCache();
     this.loadValidation();
     this.loadHistory();
     this.loadSchedules();
@@ -78,7 +83,24 @@ export class AdminBackupComponent implements OnInit {
   loadHistory(): void {
     this.isLoading.set(true);
     this.backupService.history().subscribe({
-      next:  (data) => { this.history.set(data);  this.isLoading.set(false); },
+      next:  (data) => {
+        const list = Array.isArray(data) ? data : [];
+        if (list.length === 0 && this.history().length > 0) {
+          this.isLoading.set(false);
+          return;
+        }
+        if (list.length === 0) {
+          const cached = this.readHistoryCache();
+          if (cached.length > 0) {
+            this.setHistory(cached, false);
+            this.isLoading.set(false);
+            return;
+          }
+        }
+        const merged = this.mergeHistory(list);
+        this.setHistory(merged, merged.length > 0);
+        this.isLoading.set(false);
+      },
       error: ()     => { this.isLoading.set(false); }
     });
   }
@@ -101,6 +123,18 @@ export class AdminBackupComponent implements OnInit {
         this.isRunning.set(false);
         if (result.success) {
           this.toastService.show(true, `Respaldo completado: ${result.fileName} (${this.formatSize(result.fileSizeBytes)})`);
+          if (result.fileName) {
+            const newItem: BackupHistoryItem = {
+              fileName: result.fileName,
+              blobUrl: result.blobUrl ?? '',
+              fileSizeBytes: result.fileSizeBytes ?? 0,
+              createdAt: result.executedAt ?? '—'
+            };
+            this.optimisticAdds.add(result.fileName);
+            this.optimisticDeletes.delete(result.fileName);
+            const next = [newItem, ...this.history().filter(h => h.fileName !== result.fileName)];
+            this.setHistory(next, true);
+          }
           this.loadHistory();
         } else {
           this.toastService.show(false, result.message);
@@ -138,7 +172,9 @@ export class AdminBackupComponent implements OnInit {
     this.deleting.set(fileName);
     this.backupService.deleteBackup(fileName).subscribe({
       next: () => {
-        this.history.update(list => list.filter(h => h.fileName !== fileName));
+        this.updateHistory(list => list.filter(h => h.fileName !== fileName), true);
+        this.optimisticDeletes.add(fileName);
+        this.optimisticAdds.delete(fileName);
         this.deleting.set(null);
         this.toastService.show(true, 'Respaldo eliminado.');
       },
@@ -231,5 +267,89 @@ export class AdminBackupComponent implements OnInit {
 
   private emptyForm(): BackupScheduleEntry {
     return { habilitado: true, frecuencia: 'DIARIO', hora: 2, minuto: 0, diaSemana: 'SUN', diaMes: 1 };
+  }
+
+  private restoreHistoryCache(): void {
+    const cached = this.readHistoryCache();
+    if (cached.length > 0) {
+      this.setHistory(cached, false);
+      this.isLoading.set(false);
+    }
+  }
+
+  private readHistoryCache(): BackupHistoryItem[] {
+    try {
+      const raw = sessionStorage.getItem(this.historyCacheKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private writeHistoryCache(list: BackupHistoryItem[]): void {
+    try {
+      sessionStorage.setItem(this.historyCacheKey, JSON.stringify(list));
+    } catch {
+      // ignore cache errors
+    }
+  }
+
+  private setHistory(list: BackupHistoryItem[], writeCache: boolean): void {
+    this.history.set([...list]);
+    if (writeCache) this.writeHistoryCache(list);
+    this.cdr.markForCheck();
+  }
+
+  private updateHistory(
+    updater: (list: BackupHistoryItem[]) => BackupHistoryItem[],
+    writeCache: boolean
+  ): void {
+    const next = updater(this.history());
+    this.setHistory(next, writeCache);
+  }
+
+  private mergeHistory(serverList: BackupHistoryItem[]): BackupHistoryItem[] {
+    const current = this.history();
+    const serverByName = new Map<string, BackupHistoryItem>();
+    for (const item of serverList) serverByName.set(item.fileName, item);
+
+    for (const name of Array.from(this.optimisticDeletes)) {
+      if (serverByName.has(name)) {
+        serverByName.delete(name);
+      } else {
+        this.optimisticDeletes.delete(name);
+      }
+    }
+
+    for (const name of Array.from(this.optimisticAdds)) {
+      if (serverByName.has(name)) {
+        this.optimisticAdds.delete(name);
+      } else {
+        const local = current.find(h => h.fileName === name);
+        if (local) serverByName.set(name, local);
+      }
+    }
+
+    const merged: BackupHistoryItem[] = [];
+    const seen = new Set<string>();
+
+    for (const item of serverList) {
+      const resolved = serverByName.get(item.fileName);
+      if (resolved && !seen.has(resolved.fileName)) {
+        merged.push(resolved);
+        seen.add(resolved.fileName);
+      }
+    }
+
+    for (const name of this.optimisticAdds) {
+      const resolved = serverByName.get(name);
+      if (resolved && !seen.has(resolved.fileName)) {
+        merged.unshift(resolved);
+        seen.add(resolved.fileName);
+      }
+    }
+
+    return merged;
   }
 }
