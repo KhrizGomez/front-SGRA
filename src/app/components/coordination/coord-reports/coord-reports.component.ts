@@ -385,33 +385,121 @@ export class CoordReportsComponent implements OnDestroy {
     }
   }
 
-  exportExcel(): void {
+  async exportExcel(): Promise<void> {
     this.isDownloading.set(true);
     this.downloadFormat.set('EXCEL');
     this.downloadError.set('');
-    this.reportService
-      .downloadReport({
-        type: this.selectedTypeKey(),
-        format: 'EXCEL',
-        periodType: this.periodType() || undefined,
-        periodValue: this.periodValue() || undefined,
-        columns: this.selectedColumnKeys(),
-      })
-      .subscribe({
-        next: blob => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `reporte-${this.selectedTypeKey().toLowerCase()}.xlsx`;
-          a.click();
-          URL.revokeObjectURL(url);
-          this.isDownloading.set(false);
-        },
-        error: () => {
-          this.isDownloading.set(false);
-          this.downloadError.set('El servidor no tiene disponible la descarga en Excel por el momento.');
-        },
+
+    try {
+      const ExcelJS  = await import('exceljs');
+      const config   = this.activeConfig();
+      const rows     = this.previewRows();
+      const cols     = this.visibleColumns();
+
+      const workbook  = new ExcelJS.Workbook();
+      workbook.creator = 'SGRA';
+      workbook.created = new Date();
+
+      const sheet = workbook.addWorksheet(config.label, {
+        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
       });
+
+      // ── Título ──────────────────────────────────────────────────────────
+      const lastColLetter = this.excelColLetter(Math.max(cols.length, 1));
+      sheet.mergeCells(`A1:${lastColLetter}1`);
+      const titleCell = sheet.getCell('A1');
+      titleCell.value     = `Reporte – ${config.label}`;
+      titleCell.font      = { bold: true, size: 15, color: { argb: 'FF1B7505' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      sheet.getRow(1).height = 24;
+
+      sheet.mergeCells(`A2:${lastColLetter}2`);
+      const periodCell    = sheet.getCell('A2');
+      periodCell.value    = this.periodValue() ? `Período: ${this.periodValue()}` : 'Período: Todos';
+      periodCell.font     = { size: 10, color: { argb: 'FF505050' } };
+      periodCell.alignment = { horizontal: 'center' };
+
+      let nextRow = 4; // fila donde empezará la imagen o la tabla
+
+      // ── Gráfico ──────────────────────────────────────────────────────────
+      if (this.showChart() && this.chartInstance && this.chartCanvasRef?.nativeElement) {
+        const canvas   = this.chartCanvasRef.nativeElement;
+        const dataUrl  = canvas.toDataURL('image/png');
+        const base64   = dataUrl.split(',')[1];
+        const imageId  = workbook.addImage({ base64, extension: 'png' });
+
+        const imgW  = 560;
+        const imgH  = Math.round((canvas.height / canvas.width) * imgW);
+        // cada fila ≈ 20px; reservar filas suficientes para que la imagen no se monte con la tabla
+        const rowsNeeded = Math.ceil(imgH / 20) + 1;
+
+        sheet.addImage(imageId, {
+          tl: { col: 0, row: nextRow - 1 },  // base 0 en ExcelJS
+          ext: { width: imgW, height: imgH },
+        });
+        nextRow += rowsNeeded;
+      }
+
+      // ── Cabecera de tabla ─────────────────────────────────────────────
+      if (this.showTable() && rows.length) {
+        const headerRow = sheet.getRow(nextRow);
+        cols.forEach((col, i) => {
+          const cell     = headerRow.getCell(i + 1);
+          cell.value     = col.label;
+          cell.font      = { bold: true, color: { argb: 'FFFFFFFF' } };
+          cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B7505' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.border    = { bottom: { style: 'thin', color: { argb: 'FF0D5A03' } } };
+        });
+        headerRow.height = 18;
+        nextRow++;
+
+        // ── Filas de datos ─────────────────────────────────────────────
+        rows.forEach((row, idx) => {
+          const dataRow = sheet.getRow(nextRow);
+          cols.forEach((col, i) => {
+            const cell     = dataRow.getCell(i + 1);
+            cell.value     = row[col.key] ?? '';
+            cell.alignment = { horizontal: 'center' };
+            if (idx % 2 === 1) {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F8F0' } };
+            }
+          });
+          nextRow++;
+        });
+
+        // Ajustar ancho de columnas
+        cols.forEach((col, i) => {
+          sheet.getColumn(i + 1).width = Math.max(col.label.length + 6, 14);
+        });
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob   = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href    = url;
+      a.download = `reporte-${this.selectedTypeKey().toLowerCase()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      this.isDownloading.set(false);
+    } catch {
+      this.isDownloading.set(false);
+      this.downloadError.set('No se pudo generar el Excel. Intente de nuevo.');
+    }
+  }
+
+  /** Convierte número de columna (1-based) a letra(s) de Excel: 1→A, 27→AA, etc. */
+  private excelColLetter(n: number): string {
+    let result = '';
+    while (n > 0) {
+      n--;
+      result = String.fromCharCode(65 + (n % 26)) + result;
+      n      = Math.floor(n / 26);
+    }
+    return result;
   }
 
   // ── Helpers para el template ─────────────────────────────────────────────
