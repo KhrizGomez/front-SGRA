@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -10,7 +10,6 @@ import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../
 @Component({
   selector: 'app-admin-backup',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-backup.component.html',
   styleUrl: './admin-backup.component.css',
@@ -18,7 +17,6 @@ import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../
 export class AdminBackupComponent implements OnInit {
   private backupService = inject(AdminBackupService);
   private toastService  = inject(ToastService);
-  private cdr           = inject(ChangeDetectorRef);
   private destroyRef    = inject(DestroyRef);
   private readonly historyCacheKey  = 'sgra_admin_backup_history';
   private readonly POLL_INTERVAL_MS = 15_000;
@@ -380,7 +378,6 @@ export class AdminBackupComponent implements OnInit {
   private setHistory(list: BackupHistoryItem[], writeCache: boolean): void {
     this.history.set([...list]);
     if (writeCache) this.writeHistoryCache(list);
-    this.cdr.detectChanges();
   }
 
   private updateHistory(
