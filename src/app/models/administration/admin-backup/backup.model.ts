@@ -31,3 +31,9 @@ export interface BackupScheduleEntry {
   fechaUltimaEjecucion?: string | null;
   resultadoUltimaEjecucion?: string | null;
 }
+
+export interface BackupLocalConfig {
+  ruta: string;
+  idusuario: number | null;
+  fechaConfiguracion: string | null;
+}
