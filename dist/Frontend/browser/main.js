@@ -1,21 +1,21 @@
 import {
   ToastComponent
-} from "./chunk-KCGY4BR2.js";
+} from "./chunk-N5R3SXJP.js";
 import {
   AuthService
-} from "./chunk-7NSLUCCU.js";
+} from "./chunk-LDIU7UUJ.js";
 import {
   Router,
   RouterOutlet,
   bootstrapApplication,
   provideRouter
-} from "./chunk-FI7NBRUV.js";
-import "./chunk-CDOKGMOL.js";
+} from "./chunk-JLABSWHE.js";
+import "./chunk-B6KECOTC.js";
 import {
   provideHttpClient,
   withFetch,
   withInterceptors
-} from "./chunk-J4U5MJXD.js";
+} from "./chunk-CAIBJNNP.js";
 import {
   Component,
   catchError,
@@ -28,8 +28,8 @@ import {
   ɵsetClassDebugInfo,
   ɵɵdefineComponent,
   ɵɵelement
-} from "./chunk-QLTODTZN.js";
-import "./chunk-DOECEMG6.js";
+} from "./chunk-UPYVF73X.js";
+import "./chunk-4AJYGB4N.js";
 
 // src/app/core/guards/auth.guard.ts
 var authGuard = (route) => {
@@ -100,147 +100,151 @@ var routes = [
   },
   {
     path: "login",
-    loadComponent: () => import("./chunk-JAD2IESV.js").then((m) => m.LoginComponent),
+    loadComponent: () => import("./chunk-YEIMSIAV.js").then((m) => m.LoginComponent),
     canActivate: [loginGuard]
   },
   {
     path: "forgot-password",
-    loadComponent: () => import("./chunk-OGGYRQPF.js").then((m) => m.ForgotPasswordComponent),
+    loadComponent: () => import("./chunk-XZUEWIQU.js").then((m) => m.ForgotPasswordComponent),
     canActivate: [loginGuard]
   },
   {
     path: "change-password",
-    loadComponent: () => import("./chunk-6EDV75T5.js").then((m) => m.ChangePasswordComponent),
+    loadComponent: () => import("./chunk-EDJJLRTK.js").then((m) => m.ChangePasswordComponent),
     canActivate: [authGuard]
   },
   {
     path: "admin",
-    loadComponent: () => import("./chunk-AAVIG7UY.js").then((m) => m.AdminLayoutComponent),
+    loadComponent: () => import("./chunk-KCDKKF6I.js").then((m) => m.AdminLayoutComponent),
     canActivate: [authGuard, roleGuard(["admin", "administrador"])],
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-QCDGICZN.js").then((m) => m.AdminDashboardComponent)
+        loadComponent: () => import("./chunk-HNLNP7ML.js").then((m) => m.AdminDashboardComponent)
       },
       {
         path: "users",
-        loadComponent: () => import("./chunk-E6QCNAWA.js").then((m) => m.AdminUserManagementComponent)
+        loadComponent: () => import("./chunk-5EGI54PN.js").then((m) => m.AdminUserManagementComponent)
       },
       {
         path: "master-tables",
-        loadComponent: () => import("./chunk-X7HGM7NE.js").then((m) => m.AdminMasterTablesComponent)
+        loadComponent: () => import("./chunk-2VBZC6DQ.js").then((m) => m.AdminMasterTablesComponent)
       },
       {
         path: "permissions",
-        loadComponent: () => import("./chunk-AYN2JBNL.js").then((m) => m.AdminPermissionManagementComponent)
+        loadComponent: () => import("./chunk-MP5XPNJI.js").then((m) => m.AdminPermissionManagementComponent)
       },
       {
         path: "roles",
-        loadComponent: () => import("./chunk-ML6BNHKW.js").then((m) => m.AdminRoleManagementComponent)
+        loadComponent: () => import("./chunk-ZWRXZVR7.js").then((m) => m.AdminRoleManagementComponent)
       },
       {
         path: "config",
-        loadComponent: () => import("./chunk-BEPWIHOF.js").then((m) => m.AdminEmailConfigComponent)
+        loadComponent: () => import("./chunk-4BXTX5W6.js").then((m) => m.AdminEmailConfigComponent)
       },
       {
         path: "audit",
-        loadComponent: () => import("./chunk-YWG4K54D.js").then((m) => m.AdminAuditComponent)
+        loadComponent: () => import("./chunk-NULZR37O.js").then((m) => m.AdminAuditComponent)
+      },
+      {
+        path: "backup",
+        loadComponent: () => import("./chunk-3YJAO2MY.js").then((m) => m.AdminBackupComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },
   {
     path: "teacher",
-    loadComponent: () => import("./chunk-UFQRJYDN.js").then((m) => m.TeacherLayoutComponent),
+    loadComponent: () => import("./chunk-YV75EANH.js").then((m) => m.TeacherLayoutComponent),
     canActivate: [authGuard, roleGuard(["teacher", "docente"])],
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-2BAU3ILK.js").then((m) => m.TeacherDashboardComponent)
+        loadComponent: () => import("./chunk-LCSGZXP3.js").then((m) => m.TeacherDashboardComponent)
       },
       {
         path: "requests",
-        loadComponent: () => import("./chunk-VXZXS6OP.js").then((m) => m.TeacherRequestsComponent)
+        loadComponent: () => import("./chunk-DYYXKGM2.js").then((m) => m.TeacherRequestsComponent)
       },
       {
         path: "history",
-        loadComponent: () => import("./chunk-JIJWIAJ4.js").then((m) => m.TeacherHistoryComponent)
+        loadComponent: () => import("./chunk-DDEY5CMF.js").then((m) => m.TeacherHistoryComponent)
       },
       {
         path: "preferences",
-        loadComponent: () => import("./chunk-D2GMIOE3.js").then((m) => m.TeacherPreferencesComponent)
+        loadComponent: () => import("./chunk-BOKVS6G6.js").then((m) => m.TeacherPreferencesComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },
   {
     path: "student",
-    loadComponent: () => import("./chunk-UKZ5ZDKB.js").then((m) => m.StudentLayoutComponent),
+    loadComponent: () => import("./chunk-ZBZ4B5KY.js").then((m) => m.StudentLayoutComponent),
     canActivate: [authGuard, roleGuard(["student", "estudiante"])],
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-7EG6DS4J.js").then((m) => m.StudentDashboardComponent)
+        loadComponent: () => import("./chunk-47EQHEJT.js").then((m) => m.StudentDashboardComponent)
       },
       {
         path: "new-request",
-        loadComponent: () => import("./chunk-RSK3WUQM.js").then((m) => m.StudentNewRequestComponent)
+        loadComponent: () => import("./chunk-ZRI5J3HV.js").then((m) => m.StudentNewRequestComponent)
       },
       {
         path: "my-requests",
-        loadComponent: () => import("./chunk-ZHLA4R5P.js").then((m) => m.StudentMyRequestsComponent)
+        loadComponent: () => import("./chunk-EABGFDL7.js").then((m) => m.StudentMyRequestsComponent)
       },
       {
         path: "history",
-        loadComponent: () => import("./chunk-J6RGHIIO.js").then((m) => m.StudentHistoryComponent)
+        loadComponent: () => import("./chunk-CJEDVC5C.js").then((m) => m.StudentHistoryComponent)
       },
       {
         path: "preferences",
-        loadComponent: () => import("./chunk-6POA6BTA.js").then((m) => m.StudentPreferencesComponent)
+        loadComponent: () => import("./chunk-6IAHNDFL.js").then((m) => m.StudentPreferencesComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },
   {
     path: "coordinator",
-    loadComponent: () => import("./chunk-DC755ZFZ.js").then((m) => m.CoordLayoutComponent),
+    loadComponent: () => import("./chunk-O5YC254O.js").then((m) => m.CoordLayoutComponent),
     canActivate: [authGuard, roleGuard(["coordinator", "coordinador"])],
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-E66ZY6TE.js").then((m) => m.CoordDashboardComponent)
+        loadComponent: () => import("./chunk-NVBMILS4.js").then((m) => m.CoordDashboardComponent)
       },
       {
         path: "dataload",
-        loadComponent: () => import("./chunk-5ICQ4RT4.js").then((m) => m.CoordDataloadComponent)
+        loadComponent: () => import("./chunk-AGACZG2T.js").then((m) => m.CoordDataloadComponent)
       },
       {
         path: "physicalspaces",
-        loadComponent: () => import("./chunk-RE35DEEM.js").then((m) => m.CoordPhysicalspacesComponent)
+        loadComponent: () => import("./chunk-YNMWZCZN.js").then((m) => m.CoordPhysicalspacesComponent)
       },
       {
         path: "reports",
-        loadComponent: () => import("./chunk-NUDYVHU5.js").then((m) => m.CoordReportsComponent)
+        loadComponent: () => import("./chunk-HWROWHZA.js").then((m) => m.CoordReportsComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },
   {
     path: "workAreaManagement",
-    loadComponent: () => import("./chunk-34L5BBCX.js").then((m) => m.WorkAreaManagerLayoutComponent),
+    loadComponent: () => import("./chunk-M4NIH72P.js").then((m) => m.WorkAreaManagerLayoutComponent),
     canActivate: [authGuard, roleGuard(["workAreaManagement", "Gestor de Espacios Fisicos"])],
     children: [
       {
         path: "dashboard",
-        loadComponent: () => import("./chunk-2BVYOLBL.js").then((m) => m.WorkAreaManagerDashboardComponent)
+        loadComponent: () => import("./chunk-JJD5SRNS.js").then((m) => m.WorkAreaManagerDashboardComponent)
       },
       {
         path: "management-requests",
-        loadComponent: () => import("./chunk-NA63WZ6R.js").then((m) => m.WorkAreaManagerManagementOfInPersonRequestsComponent)
+        loadComponent: () => import("./chunk-FO3DTH6V.js").then((m) => m.WorkAreaManagerManagementOfInPersonRequestsComponent)
       },
       {
         path: "schedule",
-        loadComponent: () => import("./chunk-4TCDNIEI.js").then((m) => m.WamScheduleComponent)
+        loadComponent: () => import("./chunk-B364J32J.js").then((m) => m.WamScheduleComponent)
       },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]

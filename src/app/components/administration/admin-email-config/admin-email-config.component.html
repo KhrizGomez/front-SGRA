@@ -3,11 +3,10 @@
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
       <h3 class="mb-1">Configuración</h3>
-      <p class="text-muted mb-0">Administra la configuración de correo electrónico y periodos académicos.</p>
+      <p class="text-muted mb-0">Administra la configuración de correo electrónico, periodos académicos y logos institucionales.</p>
     </div>
   </div>
 
-  <!-- Tabs -->
   <ul class="nav nav-tabs mb-3" id="configTab" role="tablist">
     <li class="nav-item" role="presentation">
       <button class="nav-link active" id="email-tab" data-bs-toggle="pill"
@@ -23,11 +22,17 @@
         <i class="bi bi-calendar-range me-2"></i>Periodos
       </button>
     </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="logo-tab" data-bs-toggle="pill"
+              data-bs-target="#logo-config" type="button" role="tab"
+              aria-controls="logo-config" aria-selected="false">
+        <i class="bi bi-image me-2"></i>Logos
+      </button>
+    </li>
   </ul>
 
   <div class="tab-content" id="configTabContent">
 
-    <!-- Tab: Correo -->
     <div class="tab-pane fade show active" id="email-config" role="tabpanel" aria-labelledby="email-tab">
 
       <div class="d-flex justify-content-end mb-3">
@@ -37,7 +42,6 @@
         </button>
       </div>
 
-      <!-- Filtros -->
       <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtros de búsqueda">
         <div class="card-body">
           <div class="row g-2 align-items-end">
@@ -58,7 +62,6 @@
         </div>
       </div>
 
-      <!-- Tabla -->
       <div class="card border-0 shadow-sm">
         <div class="card-body">
           <app-admin-email-config-table
@@ -70,7 +73,6 @@
       </div>
     </div>
 
-    <!-- Tab: Periodos -->
     <div class="tab-pane fade" id="periods-config" role="tabpanel" aria-labelledby="periods-tab">
 
       <div class="d-flex justify-content-end mb-3">
@@ -80,7 +82,6 @@
         </button>
       </div>
 
-      <!-- Filtros -->
       <div class="card border-0 shadow-sm mb-3">
         <div class="card-body">
           <div class="row g-2 align-items-end">
@@ -101,7 +102,6 @@
         </div>
       </div>
 
-      <!-- Tabla -->
       <div class="card border-0 shadow-sm">
         <div class="card-body">
           <app-admin-period-table [periods]="periods" [isLoading]="isLoadingPeriods"
@@ -110,16 +110,18 @@
       </div>
     </div>
 
+    <div class="tab-pane fade" id="logo-config" role="tabpanel" aria-labelledby="logo-tab">
+      <app-admin-institution-logo-table></app-admin-institution-logo-table>
+    </div>
+
   </div>
 </div>
 
-<!-- Modal Correo -->
 <app-admin-email-config-modal
   [configIdToEdit]="selectedConfigId"
   (emailConfigSaved)="loadEmailConfigs()">
 </app-admin-email-config-modal>
 
-<!-- Modal Periodos -->
 <app-admin-period-create-modal
   (periodSaved)="loadPeriods()"
   [periodToEdit]="selectedPeriodToEdit">

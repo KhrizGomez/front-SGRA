@@ -1,65 +1,161 @@
-<section class="container-fluid" aria-label="Auditoría de accesos">
+<div class="container-fluid">
 
   <header class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
-      <h3 class="mb-1">Auditoría de Accesos</h3>
-      <p class="text-muted mb-0">Registro de intentos de acceso al sistema</p>
+      <h3 class="mb-1">Auditoría</h3>
+      <p class="text-muted mb-0">Registro de accesos al sistema y cambios en los datos.</p>
     </div>
-    <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2"
-            (click)="loadAuditRecords()" aria-label="Actualizar registros">
-      <i class="bi bi-arrow-clockwise"></i> Actualizar
-    </button>
   </header>
 
-  <div class="card border-0 shadow-sm mb-3">
-    <div class="card-body">
-      <div class="row g-2 align-items-end">
-        <div class="col-12">
-          <label for="searchAudit" class="form-label mb-1">Buscar</label>
-          <input id="searchAudit" type="text" class="form-control"
-                placeholder="Buscar por usuario, IP, navegador o acción..."
-                [formControl]="searchControl">
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="auditTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="access-audit-tab" data-bs-toggle="pill"
+              data-bs-target="#access-audit" type="button" role="tab"
+              aria-controls="access-audit" aria-selected="true">
+        <i class="bi bi-shield-check me-2"></i>Auditoría de Accesos
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="data-audit-tab" data-bs-toggle="pill"
+              data-bs-target="#data-audit" type="button" role="tab"
+              aria-controls="data-audit" aria-selected="false">
+        <i class="bi bi-database-gear me-2"></i>Auditoría de Datos
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="auditTabContent">
+
+    <!-- Tab: Auditoría de Accesos -->
+    <section class="tab-pane fade show active" id="access-audit" role="tabpanel"
+             aria-labelledby="access-audit-tab">
+
+      <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2"
+                (click)="loadAuditRecords()" aria-label="Actualizar registros de acceso">
+          <i class="bi bi-arrow-clockwise"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtro de auditoría de accesos">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-12">
+              <label for="searchAccessAudit" class="form-label mb-1">Buscar</label>
+              <input id="searchAccessAudit" type="text" class="form-control"
+                    placeholder="Buscar por usuario, IP, navegador, acción o S.O...."
+                    [formControl]="searchControl">
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-      <app-admin-audit-table
-        [records]="paginatedRecords"
-        [isLoading]="isLoading"
-        (forceLogoutRequest)="handleForceLogout($event)">
-      </app-admin-audit-table>
-    </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <app-admin-audit-table
+            [records]="paginatedRecords"
+            [isLoading]="isLoading"
+            (forceLogoutRequest)="handleForceLogout($event)">
+          </app-admin-audit-table>
+        </div>
 
-    @if (!isLoading && filteredRecords.length > pageSize) {
-      <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-3 py-2">
-        <small class="text-muted">
-          Mostrando {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredRecords.length ? filteredRecords.length : currentPage * pageSize }}
-          de {{ filteredRecords.length }} registros
-        </small>
-        <nav aria-label="Paginación de auditoría">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" [class.disabled]="currentPage === 1">
-              <button class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior">
-                <i class="bi bi-chevron-left"></i>
-              </button>
-            </li>
-            @for (page of pages; track page) {
-              <li class="page-item" [class.active]="page === currentPage">
-                <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
-              </li>
-            }
-            <li class="page-item" [class.disabled]="currentPage === totalPages">
-              <button class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente">
-                <i class="bi bi-chevron-right"></i>
-              </button>
-            </li>
-          </ul>
-        </nav>
+        @if (!isLoading && filteredRecords.length > pageSize) {
+          <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-3 py-2">
+            <small class="text-muted">
+              Mostrando {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredRecords.length ? filteredRecords.length : currentPage * pageSize }}
+              de {{ filteredRecords.length }} registros
+            </small>
+            <nav aria-label="Paginación de auditoría de accesos">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+                @for (page of pages; track page) {
+                  <li class="page-item" [class.active]="page === currentPage">
+                    <button class="page-link" (click)="goToPage(page)">{{ page }}</button>
+                  </li>
+                }
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        }
       </div>
-    }
-  </div>
+    </section>
 
-</section>
+    <!-- Tab: Auditoría de Datos -->
+    <section class="tab-pane fade" id="data-audit" role="tabpanel"
+             aria-labelledby="data-audit-tab">
+
+      <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2"
+                (click)="loadDataAuditRecords()" aria-label="Actualizar registros de datos">
+          <i class="bi bi-arrow-clockwise"></i> Actualizar
+        </button>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtro de auditoría de datos">
+        <div class="card-body">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-8">
+              <label for="searchDataAudit" class="form-label mb-1">Buscar</label>
+              <input id="searchDataAudit" type="text" class="form-control"
+                    placeholder="Buscar por usuario, acción o tabla afectada..."
+                    [formControl]="searchDataControl">
+            </div>
+            <div class="col-12 col-md-4">
+              <label for="dateFilterDataAudit" class="form-label mb-1">Filtrar por fecha</label>
+              <input id="dateFilterDataAudit" type="date" class="form-control"
+                    [formControl]="dateFilterControl">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <app-admin-data-audit-table
+            [records]="paginatedDataRecords"
+            [isLoading]="isLoadingData">
+          </app-admin-data-audit-table>
+        </div>
+
+        @if (!isLoadingData && filteredDataRecords.length > dataPageSize) {
+          <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center px-3 py-2">
+            <small class="text-muted">
+              Mostrando {{ (currentDataPage - 1) * dataPageSize + 1 }}–{{ currentDataPage * dataPageSize > filteredDataRecords.length ? filteredDataRecords.length : currentDataPage * dataPageSize }}
+              de {{ filteredDataRecords.length }} registros
+            </small>
+            <nav aria-label="Paginación de auditoría de datos">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" [class.disabled]="currentDataPage === 1">
+                  <button class="page-link" (click)="goToDataPage(currentDataPage - 1)" aria-label="Anterior">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                </li>
+                @for (page of dataPages; track page) {
+                  <li class="page-item" [class.active]="page === currentDataPage">
+                    <button class="page-link" (click)="goToDataPage(page)">{{ page }}</button>
+                  </li>
+                }
+                <li class="page-item" [class.disabled]="currentDataPage === totalDataPages">
+                  <button class="page-link" (click)="goToDataPage(currentDataPage + 1)" aria-label="Siguiente">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        }
+      </div>
+    </section>
+
+  </div>
+</div>

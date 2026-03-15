@@ -17634,6 +17634,28 @@ fieldset:disabled .btn {
     84;
   --bs-link-color: #198754;
   --bs-link-hover-color: #146c43;
+  --t-font:
+    "Inter",
+    "Segoe UI",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  --t-xs: .72rem;
+  --t-sm: .8rem;
+  --t-base: .9rem;
+  --t-md: 1rem;
+  --t-lg: 1.1rem;
+  --t-xl: 1.4rem;
+  --t-stat: 1.9rem;
+  --t-normal: 400;
+  --t-medium: 500;
+  --t-semi: 600;
+  --t-bold: 700;
+  --t-heading: #1a1a2e;
+  --t-body: #343a40;
+  --t-muted: #6c757d;
+  --t-light: #9ca3af;
+  --t-accent: #1B7505;
 }
 body {
   background: var(--sgra-bg);
@@ -17681,6 +17703,28 @@ a {
 }
 a:hover {
   color: #146c43;
+}
+app-teacher-dashboard h3,
+app-teacher-requests h3,
+app-teacher-history h3,
+app-teacher-preferences h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--t-heading);
+  line-height: 1.3;
+  letter-spacing: -.01em;
+}
+app-teacher-dashboard .text-muted.mb-0,
+app-teacher-requests .text-muted.mb-0,
+app-teacher-history .text-muted.mb-0,
+app-teacher-preferences .text-muted.mb-0 {
+  font-size: var(--t-sm);
+}
+app-teacher-dashboard small,
+app-teacher-requests small,
+app-teacher-history small,
+app-teacher-preferences small {
+  font-size: var(--t-xs);
 }
 app-admin-layout {
   display: block;
