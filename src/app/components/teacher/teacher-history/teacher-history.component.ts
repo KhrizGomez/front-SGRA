@@ -9,12 +9,12 @@ import {
   TeacherHistoryItemDTO,
   SessionParticipantDTO,
   TeacherSessionHistoryItemDTO,
-  TeacherSessionHistoryPageDTO,
-  TeacherSessionHistoryDetailDTO,
+  TeacherSessionHistoryPageDTO, TeacherSessionHistoryDetailDTO,
   HistoryParticipantDTO,
 } from '../../../models/teacher/teacher-request.model';
 
 type ActiveModal = 'none' | 'detail' | 'performed';
+type SessionLinkUI = { url: string; name?: string; type: 'VIRTUAL' | 'MATERIAL' };
 
 @Component({
   selector: 'app-teacher-history',
@@ -158,6 +158,7 @@ export class TeacherHistoryComponent implements OnInit {
       next: detail => {
         this.historyDetail        = detail;
         this.historyDetailLoading = false;
+        this.loadResources(item.scheduledId);
         this.cdr.detectChanges();
       },
       error: err => {
@@ -267,6 +268,11 @@ export class TeacherHistoryComponent implements OnInit {
     this.participants          = [];
     this.participantsError     = null;
     this.activeModal           = 'detail';
+    this.isEditingLink         = false;
+    this.isAddingLink          = false;
+    this.newLinkUrl            = '';
+    this.newLinkName           = '';
+    this.loadResources(row.scheduledId);
   }
 
   openPerformed(row: TeacherHistoryItemDTO): void {
@@ -330,14 +336,51 @@ export class TeacherHistoryComponent implements OnInit {
 
   // ── File selection ──────────────────────────────────────────────────────────
 
+  private currentScheduledId(): number | null {
+    return this.selected?.scheduledId ?? this.selectedHistory?.scheduledId ?? null;
+  }
+
+  private currentVirtualLink(): string | null {
+    return this.selected?.virtualLink ?? this.historyDetail?.virtualLink ?? null;
+  }
+
+  private setCurrentVirtualLink(url: string | null): void {
+    if (this.selected) this.selected.virtualLink = url;
+    if (this.historyDetail) this.historyDetail.virtualLink = url;
+  }
+
   // ── Submissions ─────────────────────────────────────────────────────────────
   submitVirtualLink(): void {
-    if (!this.selected) return;
+    const id = this.currentScheduledId();
+    if (!id) return;
+    const prevUrl = this.currentVirtualLink();
+
     this.busy = true;
-    this.sessSvc.setVirtualLink(this.selected.scheduledId, { url: this.virtualLinkUrl }).subscribe({
-      next: res => { this.busy = false; this.toast.show(true, `Enlace virtual registrado. ${res.message}`); this.closeModal(); },
-      error: err => { this.busy = false; this.toast.show(false, err?.message || 'Error al registrar enlace'); this.cdr.detectChanges(); }
+    const saveNew = () => this.sessSvc.addSessionLink(id, { url: this.virtualLinkUrl, type: 'VIRTUAL' }).subscribe({
+      next: res => {
+        this.busy = false;
+        this.toast.show(true, `Reunión registrada. ${res.message}`);
+        this.setCurrentVirtualLink(this.virtualLinkUrl);
+        this.isEditingLink = false;
+        this.refreshLinks(id);
+      },
+      error: err => {
+        this.busy = false;
+        this.toast.show(false, err?.message || 'Error al guardar reunión');
+        this.cdr.detectChanges();
+      }
     });
+
+    // Si ya existe un link de reunión distinto, eliminarlo primero para evitar duplicados.
+    if (prevUrl && prevUrl !== this.virtualLinkUrl) {
+      this.sessSvc.deleteSessionLink(id, prevUrl).subscribe({
+        next: () => saveNew(),
+        error: () => saveNew() // Si no se pudo borrar, intentamos guardar igualmente.
+      });
+      return;
+    }
+
+    saveNew();
   }
 
   submitPerformed(): void {
@@ -381,5 +424,278 @@ export class TeacherHistoryComponent implements OnInit {
     return sessionType === 'Grupal' ? 'sess-badge--grupal' : 'sess-badge--individual';
   }
 
-}
+  private parseDateOnly(dateStr: string): Date | null {
+    const raw = (dateStr || '').slice(0, 10); // soporta YYYY-MM-DD o ISO
+    const [y, m, d] = raw.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  }
 
+  private parseTimeMinutes(timeStr: string): number | null {
+    const match = (timeStr || '').match(/^(\d{2}):(\d{2})/);
+    if (!match) return null;
+    const hh = Number(match[1]);
+    const mm = Number(match[2]);
+    if (Number.isNaN(hh) || Number.isNaN(mm)) return null;
+    return hh * 60 + mm;
+  }
+
+  canFinalizeSession(row: TeacherHistoryItemDTO | null): boolean {
+    if (!row) return false;
+    if (row.statusName !== 'Programado') return false;
+
+    const sessionDate = this.parseDateOnly(row.scheduledDate);
+    const startMinutes = this.parseTimeMinutes(row.startTime);
+    if (!sessionDate || startMinutes === null) return false;
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (today.getTime() > sessionDate.getTime()) return true;
+    if (today.getTime() < sessionDate.getTime()) return false;
+
+    // Mismo día: habilitar solo desde la hora de inicio en adelante
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return nowMinutes >= startMinutes;
+  }
+
+  finalizeSessionTooltip(row: TeacherHistoryItemDTO | null): string {
+    if (!row) return 'Sesión no disponible';
+    if (row.statusName !== 'Programado') {
+      return "La sesión debe estar en estado 'Programado' para finalizarla";
+    }
+
+    const sessionDate = this.parseDateOnly(row.scheduledDate);
+    const startMinutes = this.parseTimeMinutes(row.startTime);
+    if (!sessionDate || startMinutes === null) {
+      return 'No se pudo validar la fecha/hora de la sesión';
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (today.getTime() < sessionDate.getTime()) {
+      return 'Solo puedes finalizar la sesión en la fecha programada';
+    }
+    if (today.getTime() === sessionDate.getTime()) {
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      if (nowMinutes < startMinutes) {
+        return `Se habilita desde las ${row.startTime}`;
+      }
+    }
+    return 'Finalizar sesión';
+  }
+
+  // ── Session Resources ─────────────────────────────────────────────────────
+  requestResources: string[] = [];
+  sessionResources: string[] = [];
+  sessionLinks: SessionLinkUI[] = []; // Enlaces extra (material)
+  loadingResources = false;
+  uploadingResource = false;
+
+  // Nuevo estado para la edición del enlace virtual
+  isEditingLink = false;
+
+  private normalizeLinks(rawLinks: any[]): SessionLinkUI[] {
+    return (rawLinks || [])
+      .map((item: any): SessionLinkUI | null => {
+        if (typeof item === 'string') {
+          if (item.startsWith('virtual_link:')) {
+            const url = item.replace('virtual_link:', '').trim();
+            return url ? { url, type: 'VIRTUAL' } : null;
+          }
+          if (item.startsWith('link:')) {
+            const url = item.replace('link:', '').trim();
+            return url ? { url, type: 'MATERIAL' } : null;
+          }
+          if (item.startsWith('http://') || item.startsWith('https://')) {
+            return { url: item, type: 'MATERIAL' };
+          }
+          return null;
+        }
+
+        if (item && typeof item === 'object') {
+          const url = String(item.url ?? item.linkUrl ?? '').trim();
+          if (!url) return null;
+          const t = String(item.type ?? '').toUpperCase();
+          const isVirtual = t.includes('VIRTUAL') || t === 'VIRTUAL_LINK';
+          return {
+            url,
+            name: item.name ?? item.label,
+            type: isVirtual ? 'VIRTUAL' : 'MATERIAL'
+          };
+        }
+
+        return null;
+      })
+      .filter((x: SessionLinkUI | null): x is SessionLinkUI => !!x);
+  }
+
+  loadResources(scheduledId: number): void {
+    this.loadingResources = true;
+    this.requestResources = [];
+    this.sessionResources = [];
+    this.sessionLinks     = [];
+
+    forkJoin({
+      req:   this.sessSvc.getRequestResources(scheduledId).pipe(catchError(() => of([]))),
+      files: this.sessSvc.getSessionResources(scheduledId).pipe(catchError(() => of([]))),
+      links: this.sessSvc.getSessionLinks(scheduledId).pipe(catchError(() => of([])))
+    }).subscribe({
+      next: res => {
+        this.requestResources = res.req;
+        this.sessionResources = (res.files || []).filter((f: string) => {
+          const v = (f ?? '').toLowerCase();
+          return !v.startsWith('link:') && !v.startsWith('virtual_link:');
+        });
+
+        const normalized = this.normalizeLinks(res.links || []);
+        const virtual = normalized.find(l => l.type === 'VIRTUAL');
+        this.sessionLinks = normalized.filter(l => l.type === 'MATERIAL');
+
+        this.setCurrentVirtualLink(virtual?.url ?? null);
+
+        this.loadingResources = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  handleFileInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.uploadResource(input.files[0]);
+      input.value = ''; // clear input
+    }
+  }
+
+  uploadResource(file: File): void {
+    const id = this.selected?.scheduledId ?? this.selectedHistory?.scheduledId;
+    if (!id) return;
+
+    this.uploadingResource = true;
+    this.sessSvc.uploadSessionResource(id, file).subscribe({
+      next: () => {
+        this.toast.show(true, 'Recurso subido correctamente');
+        this.uploadingResource = false;
+        // Refresh session resources
+        this.sessSvc.getSessionResources(id).subscribe(res => {
+          this.sessionResources = res;
+          this.cdr.detectChanges();
+        });
+      },
+      error: err => {
+        this.toast.show(false, err?.message || 'Error al subir recurso');
+        this.uploadingResource = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ── Resource Links as Files ───────────────────────────────────────────────
+  isAddingLink = false;
+  newLinkUrl = '';
+  newLinkName = '';
+
+  // Doble confirmación para eliminación de recursos (archivos)
+  showDeleteResourceModal = false;
+  deleteResourceTargetUrl: string | null = null;
+  deleteResourceTargetKind: 'resource' | 'link' = 'resource';
+
+  toggleAddLink(): void {
+    this.isAddingLink = !this.isAddingLink;
+    this.newLinkUrl = '';
+    this.newLinkName = '';
+  }
+
+  saveLinkAsResource(): void {
+    if (!this.newLinkUrl || !this.newLinkName) return;
+    const id = this.currentScheduledId();
+    if (!id) return;
+
+    this.uploadingResource = true;
+    this.sessSvc.addSessionLink(id, { url: this.newLinkUrl, name: this.newLinkName, type: 'MATERIAL' }).subscribe({
+      next: res => {
+        this.toast.show(true, `Enlace guardado. ${res.message}`);
+        this.uploadingResource = false;
+        this.newLinkUrl = '';
+        this.newLinkName = '';
+        this.isAddingLink = false;
+
+        // Recargar recursos (específicamente links)
+        this.refreshLinks(id);
+      },
+      error: err => {
+        this.uploadingResource = false;
+        this.toast.show(false, err?.message || 'Error al guardar enlace');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Helper para recargar solo links (se puede llamar tras borrar o agregar)
+  private refreshLinks(id: number): void {
+    this.sessSvc.getSessionLinks(id).subscribe(allLinks => {
+      const normalized = this.normalizeLinks(allLinks || []);
+      const virtual = normalized.find(l => l.type === 'VIRTUAL');
+      this.setCurrentVirtualLink(virtual?.url ?? null);
+      this.sessionLinks = normalized.filter(l => l.type === 'MATERIAL');
+      this.cdr.detectChanges();
+    });
+  }
+
+  deleteLink(url: string): void {
+    this.deleteResourceTargetUrl = url;
+    this.deleteResourceTargetKind = 'link';
+    this.showDeleteResourceModal = true;
+  }
+
+  deleteResource(fileUrl: string): void {
+    this.deleteResourceTargetUrl = fileUrl;
+    this.deleteResourceTargetKind = 'resource';
+    this.showDeleteResourceModal = true;
+  }
+
+  cancelDeleteResourceModal(): void {
+    this.showDeleteResourceModal = false;
+    this.deleteResourceTargetUrl = null;
+    this.deleteResourceTargetKind = 'resource';
+  }
+
+  confirmDeleteResource(): void {
+    const targetUrl = this.deleteResourceTargetUrl;
+    if (!targetUrl) return;
+    const id = this.currentScheduledId();
+    if (!id) return;
+
+    this.busy = true;
+    if (this.deleteResourceTargetKind === 'link') {
+      this.sessSvc.deleteSessionLink(id, targetUrl).subscribe({
+        next: () => {
+          this.busy = false;
+          this.toast.show(true, 'Enlace eliminado');
+          this.cancelDeleteResourceModal();
+          this.refreshLinks(id);
+        },
+        error: err => {
+          this.busy = false;
+          this.toast.show(false, err?.message || 'Error al eliminar enlace');
+        }
+      });
+      return;
+    }
+
+    this.sessSvc.deleteSessionResource(id, targetUrl).subscribe({
+      next: () => {
+        this.busy = false;
+        this.toast.show(true, 'Archivo eliminado');
+        this.cancelDeleteResourceModal();
+        this.loadResources(id);
+      },
+      error: err => {
+        this.busy = false;
+        this.toast.show(false, err?.message || 'Error al eliminar archivo');
+      }
+    });
+  }
+
+}

@@ -202,7 +202,7 @@
       <div class="modal-content border">
         <div class="modal-header border-bottom">
           <div class="d-flex align-items-center gap-3">
-            <div class="modal-icon bg-secondary-subtle text-secondary"><i class="bi bi-file-earmark-person-fill"></i></div>
+            <div class="modal-icon bg-success-subtle text-success"><i class="bi bi-file-earmark-person-fill"></i></div>
             <div>
               <h5 class="modal-title fw-bold mb-0">Solicitud <span class="text-muted fw-normal fs-6 ms-1">#{{ selected.requestId }}</span></h5>
               <small class="text-muted">{{ selected.subjectName }}</small>
@@ -231,10 +231,10 @@
           }
           @if (selected.statusId === 2) {
             <button class="btn btn-outline-danger me-auto" (click)="openCancel(selected)"><i class="bi bi-ban me-1"></i>Cancelar</button>
-            <button class="btn btn-outline-warning" (click)="openReschedule(selected)"><i class="bi bi-calendar2-event-fill me-1"></i>Reprogramar</button>
+            <button class="btn btn-outline-success" (click)="openReschedule(selected)"><i class="bi bi-calendar2-event-fill me-1"></i>Reprogramar</button>
           }
           @if (selected.statusId !== 1 && selected.statusId !== 2) {
-            <button class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+            <button class="btn btn-outline-secondary" (click)="closeModal()">Cerrar</button>
           }
         </div>
       </div>

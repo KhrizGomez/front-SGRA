@@ -46,12 +46,14 @@ export interface WorkAreaTypeDTO {
 
 export interface AcceptRescheduleBodyDTO {
   scheduledDate: string;        // YYYY-MM-DD
-  startTime: string;            // HH:mm
-  endTime: string;              // HH:mm
+  startTime: string;            // HH:mm (legacy frontend)
+  endTime: string;              // HH:mm (legacy frontend)
+  timeSlotId?: number | null;   // contrato actual backend
   modalityId: number;
   estimatedDuration: string;    // HH:mm
   reason?: string;
-  workAreaTypeId: number | null; // obligatorio cuando modalityId = 2 (presencial), null si no
+  workAreaTypeId: number | null; // legacy frontend
+  workAreaId?: number | null;    // contrato actual backend
 }
 
 // ─── Reject / Cancel body ─────────────────────────────────────────────────────

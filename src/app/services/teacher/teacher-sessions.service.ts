@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import {
-  VirtualLinkBodyDTO,
   RegisterAttendanceBodyDTO,
   ApiActionResponseDTO,
   TeacherHistoryItemDTO,
@@ -18,15 +17,6 @@ export class TeacherSessionsService {
   private readonly opts = { withCredentials: true };
 
   constructor(private http: HttpClient) {}
-
-  /** RF13 – Register or update virtual meeting link */
-  setVirtualLink(scheduledId: number, body: VirtualLinkBodyDTO): Observable<ApiActionResponseDTO> {
-    return this.http.put<ApiActionResponseDTO>(
-      `${this.baseUrl}/teacher/sessions/${scheduledId}/virtual-link`,
-      body,
-      this.opts
-    ).pipe(catchError(this.handleError));
-  }
 
   /** RF16 – Mark attendance for session participants */
   registerAttendance(scheduledId: number, body: RegisterAttendanceBodyDTO): Observable<ApiActionResponseDTO> {
@@ -88,6 +78,117 @@ export class TeacherSessionsService {
       `${this.baseUrl}/teacher/sessions/${scheduledId}/participants`,
       body,
       this.opts
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * GET Resources from Student Request
+   * Tries: /api/teacher/scheduled-resources/{id}/request-resources
+   * Fallback: /api/teacher/sessions/{id}/request-resources
+   */
+  getRequestResources(scheduledId: number): Observable<string[]> {
+    const urlMain = `${this.baseUrl}/teacher/scheduled-resources/${scheduledId}/request-resources`;
+    const urlFallback = `${this.baseUrl}/teacher/sessions/${scheduledId}/request-resources`;
+
+    return this.http.get<string[]>(urlMain, this.opts).pipe(
+      catchError(err => {
+        // Si es 404, intentar la ruta alternativa (sessions)
+        if (err.status === 404) {
+          return this.http.get<string[]>(urlFallback, this.opts);
+        }
+        return throwError(() => this.handleError(err));
+      }),
+      catchError(this.handleError) // Catch final
+    );
+  }
+
+  /**
+   * GET Resources from Teacher Session
+   * Tries: /api/teacher/scheduled-resources/{id}
+   * Fallback: /api/teacher/sessions/{id}/resources
+   */
+  getSessionResources(scheduledId: number): Observable<string[]> {
+    const urlMain = `${this.baseUrl}/teacher/scheduled-resources/${scheduledId}`;
+    const urlFallback = `${this.baseUrl}/teacher/sessions/${scheduledId}/resources`;
+
+    return this.http.get<string[]>(urlMain, this.opts).pipe(
+      catchError(err => {
+        if (err.status === 404) {
+          return this.http.get<string[]>(urlFallback, this.opts);
+        }
+        return throwError(() => this.handleError(err));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * POST Upload resource for Session
+   * Tries: /api/teacher/scheduled-resources/{id}
+   * Fallback: /api/teacher/sessions/{id}/resources
+   */
+  uploadSessionResource(scheduledId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // NOTA: No establecer Content-Type manualmente para que el browser ponga el boundary
+
+    const urlMain = `${this.baseUrl}/teacher/scheduled-resources/${scheduledId}`;
+    const urlFallback = `${this.baseUrl}/teacher/sessions/${scheduledId}/resources`;
+
+    return this.http.post<any>(urlMain, formData, { withCredentials: true }).pipe(
+      catchError(err => {
+        if (err.status === 404) {
+           return this.http.post<any>(urlFallback, formData, { withCredentials: true });
+        }
+        return throwError(() => this.handleError(err));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * DELETE /api/teacher/sessions/{scheduledId}/resources?fileUrl=...
+   * Elimina un archivo de recurso específico
+   */
+  deleteSessionResource(scheduledId: number, fileUrl: string): Observable<ApiActionResponseDTO> {
+    return this.http.delete<ApiActionResponseDTO>(
+      `${this.baseUrl}/teacher/sessions/${scheduledId}/resources`,
+      { ...this.opts, params: { fileUrl } }
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * GET /api/teacher/sessions/{scheduledId}/links
+   * Obtiene todos los enlaces (virtuales o de material)
+   */
+  getSessionLinks(scheduledId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/teacher/sessions/${scheduledId}/links`,
+      this.opts
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * POST /api/teacher/sessions/{scheduledId}/links
+   * Agrega un nuevo enlace
+   */
+  addSessionLink(scheduledId: number, body: { url: string; name?: string; type: string }): Observable<ApiActionResponseDTO> {
+    return this.http.post<ApiActionResponseDTO>(
+      `${this.baseUrl}/teacher/sessions/${scheduledId}/links`,
+      body,
+      this.opts
+    ).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * DELETE /api/teacher/sessions/{scheduledId}/links?url=...
+   * Elimina un enlace específico
+   */
+  deleteSessionLink(scheduledId: number, url: string): Observable<ApiActionResponseDTO> {
+    return this.http.delete<ApiActionResponseDTO>(
+      `${this.baseUrl}/teacher/sessions/${scheduledId}/links`,
+      { ...this.opts, params: { url } }
     ).pipe(catchError(this.handleError));
   }
 
