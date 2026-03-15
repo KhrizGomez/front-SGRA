@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/student/student-dashboard/student-dashboard.component.css"],
-  "sourcesContent": [".icon-wrapper {\r\n  width: 48px;\r\n  height: 48px;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n}\r\n\r\n.bg-pending { background-color: #f59e0b; }\r\n.bg-accepted { background-color: #3b82f6; }\r\n.bg-upcoming { background-color: #8b5cf6; }\r\n.bg-finished { background-color: #198754; }\r\n.bg-cancelled { background-color: #dc3545; }\r\n.bg-invitation { background-color: #0d6efd; }\r\n\r\n.quick-card {\r\n  border-radius: 14px;\r\n  cursor: pointer;\r\n  transition: transform .15s ease, box-shadow .15s ease;\r\n}\r\n\r\n.quick-card:hover {\r\n  transform: translateY(-2px);\r\n}\r\n\r\n.quick-link {\r\n  color: #198754;\r\n  font-weight: 600;\r\n  user-select: none;\r\n}\r\n\r\n"],
-  "mappings": ";AAAA,CAAC;AACC,SAAO;AACP,UAAQ;AACR,WAAS;AACT,eAAa;AACb,mBAAiB;AACnB;AAEA,CAAC;AAAa,oBAAkB;AAAS;AACzC,CAAC;AAAc,oBAAkB;AAAS;AAC1C,CAAC;AAAc,oBAAkB;AAAS;AAC1C,CAAC;AAAc,oBAAkB;AAAS;AAC1C,CAAC;AAAe,oBAAkB;AAAS;AAC3C,CAAC;AAAgB,oBAAkB;AAAS;AAE5C,CAAC;AACC,iBAAe;AACf,UAAQ;AACR,cAAY,UAAU,KAAK,IAAI,EAAE,WAAW,KAAK;AACnD;AAEA,CANC,UAMU;AACT,aAAW,WAAW;AACxB;AAEA,CAAC;AACC,SAAO;AACP,eAAa;AACb,uBAAa;AAAb,eAAa;AACf;",
-  "names": []
-}
