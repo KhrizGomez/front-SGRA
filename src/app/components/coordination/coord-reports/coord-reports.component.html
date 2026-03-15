@@ -57,7 +57,7 @@
   </div>
 
   <!-- ── Fila principal: configuración + vista previa ───────────────────── -->
-  <div class="row g-4">
+  <div class="row g-4 align-items-stretch">
 
     <!-- ── Panel izquierdo: opciones ─────────────────────────────────── -->
     <div class="col-12 col-lg-4">
@@ -344,8 +344,8 @@
     </div><!-- /col izquierdo -->
 
     <!-- ── Panel derecho: vista previa ────────────────────────────────── -->
-    <div class="col-12 col-lg-8">
-      <div class="card border-0 shadow-sm h-100">
+    <div class="col-12 col-lg-8 d-flex flex-column">
+      <div class="card border-0 shadow-sm flex-grow-1 d-flex flex-column">
         <div class="card-header bg-white border-bottom py-3 d-flex align-items-center gap-2">
           <div
             class="preview-badge-dot"
@@ -367,7 +367,7 @@
           </span>
         </div>
 
-        <div class="card-body preview-body">
+        <div class="card-body preview-body d-flex flex-column">
 
           <!-- Spinner de carga -->
           @if (isLoadingPreview()) {
@@ -385,6 +385,43 @@
             </div>
           }
 
+          <!-- ── Encabezado formal del documento (simulación del reporte) ── -->
+          @if (!isLoadingPreview() && serverRows().length) {
+            <div class="report-doc-header mb-4">
+              <div class="d-flex align-items-start gap-3">
+
+                <!-- Logo -->
+                @if (institutionLogo()?.logoUrl) {
+                  <img
+                    [src]="institutionLogo()!.logoUrl"
+                    alt="Logo institución"
+                    class="report-doc-logo"
+                  />
+                } @else {
+                  <div class="report-doc-logo-placeholder d-flex align-items-center justify-content-center">
+                    <i class="bi bi-building fs-3 text-muted"></i>
+                  </div>
+                }
+
+                <!-- Institución + tipo -->
+                <div class="flex-grow-1">
+                  <div class="report-doc-inst-name">
+                    {{ institutionLogo()?.institutionName || 'NOMBRE DE LA INSTITUCIÓN' }}
+                  </div>
+                  <div class="report-doc-subtitle">{{ activeConfig().label }}</div>
+                </div>
+
+                <!-- Período + fecha (derecha) -->
+                <div class="report-doc-meta text-end">
+                  <div class="report-doc-meta-label">Día que se generó el reporte</div>
+                  <div class="report-doc-meta-value">{{ today | date:'dd/MM/yyyy' }}</div>
+                </div>
+
+              </div>
+              <hr class="report-doc-divider mt-3 mb-0" />
+            </div>
+          }
+
           <!-- Gráfico -->
           @if (showChart() && !isLoadingPreview() && serverRows().length) {
             <div class="chart-container mb-4" [class.chart-pie]="selectedChartType() === 'PIE'">
@@ -395,7 +432,7 @@
           <!-- Tabla -->
           @if (showTable() && !isLoadingPreview() && serverRows().length) {
             <div class="table-responsive preview-table-wrap">
-              <table class="table table-hover table-sm align-middle mb-0">
+              <table class="table table-sm align-middle mb-0">
                 <thead>
                   <tr>
                     @for (col of visibleColumns(); track col.key) {
@@ -407,7 +444,7 @@
                   @for (row of previewRows(); track $index) {
                     <tr>
                       @for (col of visibleColumns(); track col.key) {
-                        <td>
+                        <td [class.fw-semibold]="$first">
                           @if (col.key === 'genero') {
                             <span
                               class="badge"

@@ -66,11 +66,30 @@ export class CoordReportService {
 
   /**
    * Obtiene el logo de la institución del usuario autenticado.
-   * GET /api/security/institution-logo/current
+   * Intenta primero GET /api/security/institution-logo/current;
+   * si falla, cae en GET /api/general/institutions/list-institution-logo
+   * y toma la primera institución activa.
    */
   getInstitutionLogo(): Observable<InstitutionLogoDTO | null> {
     return this.http.get<InstitutionLogoDTO>(
       `${environment.apiUrl}/security/institution-logo/current`
+    ).pipe(
+      catchError(() =>
+        this.http.get<Array<{ iidinstitucion: number; inombreinstitucion: string; iestado: boolean; iurllogo: string | null }>>(
+          `${environment.apiUrl}/general/institutions/list-institution-logo`
+        ).pipe(
+          map(list => {
+            const inst = list?.find(i => i.iestado) ?? list?.[0];
+            if (!inst) return null;
+            return {
+              institutionId:   inst.iidinstitucion,
+              institutionName: inst.inombreinstitucion,
+              logoUrl:         inst.iurllogo ?? '',
+            } as InstitutionLogoDTO;
+          }),
+          catchError(() => of(null))
+        )
+      )
     );
   }
 
