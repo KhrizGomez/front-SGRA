@@ -154,20 +154,20 @@
 
 .preview-body {
   overflow-y: auto;
-  max-height: calc(100vh - 280px);
-  min-height: 360px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Contenedor del gráfico ─────────────────────────────────────────────── */
 .chart-container {
   position: relative;
-  height: 280px;
+  height: 320px;
   width: 100%;
 }
 
 /* Gráfico de pastel: más grande para mayor legibilidad */
 .chart-container.chart-pie {
-  height: 420px;
+  height: 460px;
 }
 
 .chart-container canvas {
@@ -176,25 +176,109 @@
 }
 
 /* ── Tabla de vista previa ──────────────────────────────────────────────── */
+/* Encabezado formal del documento (vista previa) */
+.report-doc-header {
+  background: linear-gradient(135deg, #f5fbf4 0%, #edf7ec 100%);
+  border: 1px solid #c8e6c9;
+  border-left: 4px solid var(--sgra-primary);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.report-doc-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 0.4rem;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  padding: 2px;
+}
+
+.report-doc-logo-placeholder {
+  width: 56px;
+  height: 56px;
+  border: 2px dashed #ccc;
+  border-radius: 0.5rem;
+  flex-shrink: 0;
+  background: #f9f9f9;
+}
+
+.report-doc-inst-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--sgra-primary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.report-doc-subtitle {
+  font-size: 0.82rem;
+  color: #444;
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+.report-doc-meta {
+  min-width: 155px;
+  white-space: normal;
+  max-width: 200px;
+  text-align: right;
+}
+
+.report-doc-meta-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  font-weight: 600;
+}
+
+.report-doc-meta-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.report-doc-divider {
+  border: 0;
+  border-top: 2px solid var(--sgra-primary);
+  opacity: 0.25;
+}
+
 .preview-table-wrap {
   border-radius: 0.5rem;
   overflow: hidden;
   border: 1px solid #dee2e6;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .preview-table-wrap thead th {
-  background-color: #f0faf0;
-  color: #155e04;
-  font-weight: 600;
-  font-size: 0.8rem;
+  background-color: var(--sgra-primary);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   white-space: nowrap;
-  border-bottom: 2px solid #c3e6c3;
+  padding: 0.6rem 0.75rem;
+  border-bottom: none;
+}
+
+.preview-table-wrap tbody tr:nth-child(even) td {
+  background-color: #f8fcf8;
+}
+
+.preview-table-wrap tbody tr:hover td {
+  background-color: #edf7ec !important;
 }
 
 .preview-table-wrap tbody td {
   font-size: 0.875rem;
+  border-color: #e9f5e9;
+  padding: 0.5rem 0.75rem;
 }
 
 /* ── Badge género ───────────────────────────────────────────────────────── */
@@ -216,15 +300,15 @@
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 991.98px) {
   .preview-body {
-    max-height: none;
+    min-height: 400px;
   }
 
   .chart-container {
-    height: 220px;
+    height: 240px;
   }
 
   .chart-container.chart-pie {
-    height: 340px;
+    height: 360px;
   }
 }
 

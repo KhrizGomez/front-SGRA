@@ -50,6 +50,7 @@ export class CoordReportsComponent implements OnDestroy {
 
   // ── Estado de configuración ──────────────────────────────────────────
   readonly configs: ReportConfig[] = REPORT_CONFIGS;
+  readonly today = new Date();
 
   selectedTypeKey = signal<ReportTypeKey>('BY_SUBJECT');
   selectedChartType = signal<ChartTypeKey>('BAR');
@@ -381,59 +382,75 @@ export class CoordReportsComponent implements OnDestroy {
       const rows     = this.previewRows();
       const cols     = this.visibleColumns();
 
-      const doc       = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const margin    = 14;
+      const doc      = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageW    = doc.internal.pageSize.getWidth();   // 297 mm
+      const pageH    = doc.internal.pageSize.getHeight();  // 210 mm
+      const margin   = 15;
 
-      // ── Logo + Encabezado ─────────────────────────────────────────────────
-      const logoBase64 = this.logoImageBase64();
-      const institutionName = this.institutionLogo()?.institutionName;
-      let headerStartX = margin;
-      let cursorY = 18;
+      const green:     [number, number, number] = [27, 117, 5];
+      const darkGray:  [number, number, number] = [40, 40, 40];
+      const medGray:   [number, number, number] = [100, 100, 100];
+      const lightGray: [number, number, number] = [210, 210, 210];
+      const white:     [number, number, number] = [255, 255, 255];
+      const headerBg:  [number, number, number] = [245, 251, 244];
+
+      // ── Banda de fondo del encabezado ─────────────────────────────────────
+      doc.setFillColor(...headerBg);
+      doc.rect(0, 0, pageW, 42, 'F');
+
+      // ── Logo institucional ────────────────────────────────────────────────
+      const logoBase64      = this.logoImageBase64();
+      const institutionName = this.institutionLogo()?.institutionName ?? '';
+      let textX = margin;
 
       if (logoBase64) {
-        const logoH = 18;
-        const logoW = 18;
-        doc.addImage(logoBase64, 'PNG', margin, 8, logoW, logoH);
-        headerStartX = margin + logoW + 4;
+        doc.addImage(logoBase64, 'PNG', margin, 7, 24, 24);
+        textX = margin + 28;
       }
 
-      doc.setFontSize(16);
-      doc.setTextColor(27, 117, 5);
-      doc.text(`Reporte – ${config.label}`, headerStartX, cursorY);
-
+      // ── Nombre de la institución ──────────────────────────────────────────
       if (institutionName) {
-        doc.setFontSize(10);
-        doc.setTextColor(60, 60, 60);
-        doc.text(institutionName, headerStartX, cursorY + 6);
-        cursorY += 6;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.setTextColor(...green);
+        doc.text(institutionName.toUpperCase(), textX, 17);
       }
 
-      doc.setFontSize(10);
-      doc.setTextColor(80, 80, 80);
+      // ── Subtítulo: tipo de reporte ────────────────────────────────────────
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(...darkGray);
+      doc.text(`Reporte: ${config.label}`, textX, institutionName ? 24 : 17);
+
+      // ── Período (derecha) ─────────────────────────────────────────────────
       const periodLabel = this.periodValue()
         ? `Período: ${this.periodValue()}`
         : 'Período: Todos';
-      doc.text(periodLabel, headerStartX, cursorY + 6);
+      doc.setFontSize(8.5);
+      doc.setTextColor(...medGray);
+      doc.text(periodLabel, pageW - margin, 16, { align: 'right' });
       doc.text(
-        `Generado: ${new Date().toLocaleDateString('es')}`,
-        pageWidth - margin, cursorY + 6,
-        { align: 'right' }
+        `Generado: ${new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}`,
+        pageW - margin, 23, { align: 'right' }
       );
 
-      cursorY = Math.max(cursorY + 12, 33);
+      // ── Línea separadora verde ────────────────────────────────────────────
+      doc.setDrawColor(...green);
+      doc.setLineWidth(0.7);
+      doc.line(margin, 42, pageW - margin, 42);
+
+      let cursorY = 48;
 
       // ── Gráfico ───────────────────────────────────────────────────────────
       if (this.showChart() && this.chartInstance && this.chartCanvasRef?.nativeElement) {
         const canvas  = this.chartCanvasRef.nativeElement;
         const imgData = canvas.toDataURL('image/png');
-        // Ancho máximo del gráfico: la mitad de la página para no aplastarlo
-        const maxW  = pageWidth - margin * 2;
-        const chartW = Math.min(maxW, 160);
-        const chartH = (canvas.height / canvas.width) * chartW;
-        const imgX  = margin + (maxW - chartW) / 2;
+        const maxW    = pageW - margin * 2;
+        const chartW  = Math.min(maxW * 0.62, 155);
+        const chartH  = Math.min((canvas.height / canvas.width) * chartW, pageH * 0.44);
+        const imgX    = margin + (maxW - chartW) / 2;
         doc.addImage(imgData, 'PNG', imgX, cursorY, chartW, chartH);
-        cursorY += chartH + 6;
+        cursorY += chartH + 7;
       }
 
       // ── Tabla ─────────────────────────────────────────────────────────────
@@ -442,14 +459,57 @@ export class CoordReportsComponent implements OnDestroy {
           startY: cursorY,
           head: [cols.map(c => c.label)],
           body: rows.map(row => cols.map(c => String(row[c.key] ?? ''))),
-          styles:     { fontSize: 9, cellPadding: 3 },
-          headStyles: { fillColor: [27, 117, 5], textColor: 255, fontStyle: 'bold' },
-          alternateRowStyles: { fillColor: [240, 248, 240] },
+          styles: {
+            fontSize: 8.5,
+            cellPadding: { top: 3, bottom: 3, left: 4, right: 4 },
+            lineColor: lightGray,
+            lineWidth: 0.1,
+          },
+          headStyles: {
+            fillColor: green,
+            textColor: white,
+            fontStyle: 'bold',
+            halign: 'center',
+            fontSize: 8.5,
+          },
+          alternateRowStyles: { fillColor: [240, 250, 240] },
+          columnStyles: { 0: { fontStyle: 'bold', textColor: darkGray } },
           margin: { left: margin, right: margin },
+          tableLineColor: lightGray,
+          tableLineWidth: 0.15,
+          didDrawPage: (data) => {
+            // ── Pie de página ───────────────────────────────────────────────
+            const totalPages = (doc as any).internal.getNumberOfPages();
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(...medGray);
+            doc.setDrawColor(...lightGray);
+            doc.setLineWidth(0.3);
+            doc.line(margin, pageH - 9, pageW - margin, pageH - 9);
+            doc.text('SGRA · Sistema de Gestión de Refuerzos Académicos', margin, pageH - 5);
+            doc.text(
+              `Página ${data.pageNumber} de ${totalPages}`,
+              pageW - margin, pageH - 5, { align: 'right' }
+            );
+          },
         });
+      } else {
+        // Pie de página cuando no hay tabla
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...medGray);
+        doc.setDrawColor(...lightGray);
+        doc.setLineWidth(0.3);
+        doc.line(margin, pageH - 9, pageW - margin, pageH - 9);
+        doc.text('SGRA · Sistema de Gestión de Refuerzos Académicos', margin, pageH - 5);
+        doc.text(
+          `Página 1 de 1`,
+          pageW - margin, pageH - 5, { align: 'right' }
+        );
       }
 
-      doc.save(`reporte-${this.selectedTypeKey().toLowerCase()}.pdf`);
+      const safeName = config.label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+      doc.save(`reporte-${safeName}.pdf`);
       this.isDownloading.set(false);
     } catch {
       this.isDownloading.set(false);
@@ -468,119 +528,239 @@ export class CoordReportsComponent implements OnDestroy {
       const rows     = this.previewRows();
       const cols     = this.visibleColumns();
 
-      const workbook  = new ExcelJS.Workbook();
+      const workbook = new ExcelJS.Workbook();
       workbook.creator = 'SGRA';
       workbook.created = new Date();
 
       const sheet = workbook.addWorksheet(config.label, {
-        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
+        pageSetup: {
+          orientation: 'landscape',
+          fitToPage: true,
+          fitToWidth: 1,
+          paperSize: 9,  // A4
+        },
       });
 
-      // ── Logo institucional ───────────────────────────────────────────────
-      const lastColLetter = this.excelColLetter(Math.max(cols.length, 1));
-      let nextRow = 1;
+      // ── Constantes de color (ARGB) ────────────────────────────────────────
+      const C_BG_HEADER = 'FFF5FBF4';   // verde muy pálido — fondo encabezado
+      const C_GREEN     = 'FF1B7505';   // verde principal
+      const C_DARK      = 'FF282828';   // gris oscuro texto
+      const C_MED       = 'FF646464';   // gris medio texto secundario
+      const C_LGRAY     = 'FFD2D2D2';   // gris claro bordes
+      const C_WHITE     = 'FFFFFFFF';
+      const C_ALT       = 'FFF8FCF8';   // verde muy pálido filas alternas
 
+      const colCount  = Math.max(cols.length, 1);
+      const lastColL  = this.excelColLetter(colCount);
+
+      // ── Ancho de columnas ─────────────────────────────────────────────────
+      // Columna A reservada para el logo: ~70 px → 10 unidades (1u ≈ 7 px)
+      // las filas 1+2 suman 30+24 = 54 pts ≈ 72 px, así queda casi cuadrada
+      sheet.getColumn(1).width = 10;
+      cols.forEach((col, i) => {
+        if (i === 0) return; // col A ya fijada
+        sheet.getColumn(i + 1).width = Math.max(col.label.length + 8, 16);
+      });
+      // Primera columna de datos también con ancho suficiente
+      if (colCount >= 1) {
+        sheet.getColumn(2).width = Math.max((cols[0]?.label.length ?? 4) + 8, 16);
+      }
+
+      // ── Helper: aplica fondo verde pálido a toda una fila ────────────────
+      const fillHeaderRow = (r: number) => {
+        for (let c = 1; c <= colCount; c++) {
+          sheet.getCell(r, c).fill = {
+            type: 'pattern', pattern: 'solid', fgColor: { argb: C_BG_HEADER },
+          };
+        }
+      };
+
+      // ── Helper: fusiona sólo si start ≠ end ──────────────────────────────
+      const safeMerge = (addr: string) => {
+        const [a, b] = addr.split(':');
+        if (a !== b) sheet.mergeCells(addr);
+      };
+
+      // ── Columnas de texto dentro del encabezado ───────────────────────────
+      // Col A (1) → reservada para el logo / relleno
+      // Cols B…(last-1) → institución / subtítulo (izquierda)
+      // Col last        → fecha / período (derecha)
+      const textStartL = this.excelColLetter(2);                             // B
+      const textEndL   = colCount >= 3 ? this.excelColLetter(colCount - 1)  // penúltima
+                                       : lastColL;
+
+      // ── Fila 1: nombre institución  +  fecha ─────────────────────────────
+      fillHeaderRow(1);
+      sheet.getRow(1).height = 30;
+
+      if (colCount >= 3) {
+        safeMerge(`${textStartL}1:${textEndL}1`);
+      }
+      const instName = this.institutionLogo()?.institutionName ?? '';
+      const instCell = sheet.getCell(`${textStartL}1`);
+      instCell.value     = instName ? instName.toUpperCase() : 'NOMBRE DE LA INSTITUCIÓN';
+      instCell.font      = { bold: true, size: 13, color: { argb: C_GREEN } };
+      instCell.alignment = { horizontal: 'left', vertical: 'middle' };
+
+      if (colCount >= 2) {
+        const dateCell     = sheet.getCell(1, colCount);
+        dateCell.value     = new Date().toLocaleDateString('es-ES', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+        });
+        dateCell.font      = { bold: true, size: 10, color: { argb: C_DARK } };
+        dateCell.alignment = { horizontal: 'right', vertical: 'middle' };
+      }
+
+      // ── Fila 2: tipo de reporte  +  período ──────────────────────────────
+      fillHeaderRow(2);
+      sheet.getRow(2).height = 24;
+
+      if (colCount >= 3) {
+        safeMerge(`${textStartL}2:${textEndL}2`);
+      }
+      const subCell     = sheet.getCell(`${textStartL}2`);
+      subCell.value     = `Reporte: ${config.label}`;
+      subCell.font      = { size: 10, color: { argb: C_DARK } };
+      subCell.alignment = { horizontal: 'left', vertical: 'middle' };
+
+      if (colCount >= 2) {
+        const perCell     = sheet.getCell(2, colCount);
+        perCell.value     = this.periodValue() ? `Período: ${this.periodValue()}` : 'Período: Todos';
+        perCell.font      = { size: 9, italic: true, color: { argb: C_MED } };
+        perCell.alignment = { horizontal: 'right', vertical: 'middle' };
+      }
+
+      // ── Fila 3: franja separadora verde (como la línea del PDF) ──────────
+      sheet.getRow(3).height = 4;
+      for (let c = 1; c <= colCount; c++) {
+        sheet.getCell(3, c).fill = {
+          type: 'pattern', pattern: 'solid', fgColor: { argb: C_GREEN },
+        };
+      }
+
+      // ── Fila 4: espacio vacío después del header ──────────────────────────
+      sheet.getRow(4).height = 8;
+
+      // ── Logo institucional: llena A1:A2 con proporciones correctas ────────
       const logoBase64Excel = this.logoImageBase64();
       if (logoBase64Excel) {
-        const base64Data = logoBase64Excel.split(',')[1];
+        const base64Data  = logoBase64Excel.split(',')[1];
         const logoImageId = workbook.addImage({ base64: base64Data, extension: 'png' });
         sheet.addImage(logoImageId, {
           tl: { col: 0, row: 0 },
-          ext: { width: 80, height: 80 },
-        });
-        // Reservar espacio para el logo (aprox 4 filas)
-        nextRow = 5;
+          br: { col: 1, row: 2 },
+          editAs: 'twoCell',
+        } as any);
       }
 
-      // ── Nombre de institución ────────────────────────────────────────────
-      const instName = this.institutionLogo()?.institutionName;
-      if (instName) {
-        sheet.mergeCells(`A${nextRow}:${lastColLetter}${nextRow}`);
-        const instCell = sheet.getCell(`A${nextRow}`);
-        instCell.value     = instName;
-        instCell.font      = { bold: true, size: 12, color: { argb: 'FF3C3C3C' } };
-        instCell.alignment = { horizontal: 'center', vertical: 'middle' };
-        sheet.getRow(nextRow).height = 20;
-        nextRow++;
-      }
-
-      // ── Título ──────────────────────────────────────────────────────────
-      sheet.mergeCells(`A${nextRow}:${lastColLetter}${nextRow}`);
-      const titleCell = sheet.getCell(`A${nextRow}`);
-      titleCell.value     = `Reporte – ${config.label}`;
-      titleCell.font      = { bold: true, size: 15, color: { argb: 'FF1B7505' } };
-      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getRow(nextRow).height = 24;
-      nextRow++;
-
-      sheet.mergeCells(`A${nextRow}:${lastColLetter}${nextRow}`);
-      const periodCell    = sheet.getCell(`A${nextRow}`);
-      periodCell.value    = this.periodValue() ? `Período: ${this.periodValue()}` : 'Período: Todos';
-      periodCell.font     = { size: 10, color: { argb: 'FF505050' } };
-      periodCell.alignment = { horizontal: 'center' };
-      nextRow += 2; // fila donde empezará la imagen o la tabla
+      let nextRow = 5;
 
       // ── Gráfico ──────────────────────────────────────────────────────────
       if (this.showChart() && this.chartInstance && this.chartCanvasRef?.nativeElement) {
-        const canvas   = this.chartCanvasRef.nativeElement;
-        const dataUrl  = canvas.toDataURL('image/png');
-        const base64   = dataUrl.split(',')[1];
-        const imageId  = workbook.addImage({ base64, extension: 'png' });
-
-        const imgW  = 560;
-        const imgH  = Math.round((canvas.height / canvas.width) * imgW);
-        // cada fila ≈ 20px; reservar filas suficientes para que la imagen no se monte con la tabla
-        const rowsNeeded = Math.ceil(imgH / 20) + 1;
+        const canvas      = this.chartCanvasRef.nativeElement;
+        const dataUrl     = canvas.toDataURL('image/png');
+        const base64      = dataUrl.split(',')[1];
+        const imageId     = workbook.addImage({ base64, extension: 'png' });
+        const imgW        = 560;
+        const imgH        = Math.round((canvas.height / canvas.width) * imgW);
+        const rowsNeeded  = Math.ceil(imgH / 20) + 1;
 
         sheet.addImage(imageId, {
-          tl: { col: 0, row: nextRow - 1 },  // base 0 en ExcelJS
+          tl: { col: 0, row: nextRow - 1 },
           ext: { width: imgW, height: imgH },
         });
         nextRow += rowsNeeded;
       }
 
-      // ── Cabecera de tabla ─────────────────────────────────────────────
+      // ── Espacio entre gráfico y tabla ─────────────────────────────────────
+      if (this.showChart() && this.showTable() && rows.length) {
+        sheet.getRow(nextRow).height = 8;
+        nextRow++;
+      }
+
+      // ── Cabecera de tabla ─────────────────────────────────────────────────
       if (this.showTable() && rows.length) {
-        const headerRow = sheet.getRow(nextRow);
+        const headerRow   = sheet.getRow(nextRow);
+        headerRow.height  = 20;
         cols.forEach((col, i) => {
           const cell     = headerRow.getCell(i + 1);
           cell.value     = col.label;
-          cell.font      = { bold: true, color: { argb: 'FFFFFFFF' } };
-          cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B7505' } };
+          cell.font      = { bold: true, color: { argb: C_WHITE }, size: 9 };
+          cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: C_GREEN } };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
-          cell.border    = { bottom: { style: 'thin', color: { argb: 'FF0D5A03' } } };
+          cell.border    = {
+            top:    { style: 'thin',   color: { argb: C_LGRAY } },
+            bottom: { style: 'medium', color: { argb: 'FF0D5A03' } },
+            left:   { style: 'thin',   color: { argb: C_LGRAY } },
+            right:  { style: 'thin',   color: { argb: C_LGRAY } },
+          };
         });
-        headerRow.height = 18;
         nextRow++;
 
-        // ── Filas de datos ─────────────────────────────────────────────
+        // ── Filas de datos ────────────────────────────────────────────────
         rows.forEach((row, idx) => {
-          const dataRow = sheet.getRow(nextRow);
+          const dataRow    = sheet.getRow(nextRow);
+          dataRow.height   = 16;
+          const isEvenRow  = idx % 2 === 1;
           cols.forEach((col, i) => {
             const cell     = dataRow.getCell(i + 1);
             cell.value     = row[col.key] ?? '';
-            cell.alignment = { horizontal: 'center' };
-            if (idx % 2 === 1) {
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F8F0' } };
+            cell.font      = {
+              bold: i === 0,
+              size: 9,
+              color: { argb: C_DARK },
+            };
+            cell.alignment = { horizontal: i === 0 ? 'left' : 'center', vertical: 'middle' };
+            if (isEvenRow) {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C_ALT } };
             }
+            cell.border = {
+              bottom: { style: 'hair', color: { argb: C_LGRAY } },
+              left:   { style: 'thin', color: { argb: C_LGRAY } },
+              right:  { style: 'thin', color: { argb: C_LGRAY } },
+            };
           });
           nextRow++;
         });
 
-        // Ajustar ancho de columnas
-        cols.forEach((col, i) => {
-          sheet.getColumn(i + 1).width = Math.max(col.label.length + 6, 14);
-        });
+        // ── Fila de totales / cierre de tabla (borde inferior) ────────────
+        for (let c = 1; c <= colCount; c++) {
+          sheet.getCell(nextRow - 1, c).border = {
+            ...sheet.getCell(nextRow - 1, c).border,
+            bottom: { style: 'thin', color: { argb: C_LGRAY } },
+          };
+        }
       }
 
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob   = new Blob([buffer], {
+      // ── Fila de pie de hoja ───────────────────────────────────────────────
+      nextRow += 1;
+      for (let c = 1; c <= colCount; c++) {
+        sheet.getCell(nextRow, c).border = {
+          top: { style: 'thin', color: { argb: C_LGRAY } },
+        };
+      }
+      safeMerge(`A${nextRow}:${lastColL}${nextRow}`);
+      const footerCell     = sheet.getCell(`A${nextRow}`);
+      footerCell.value     = 'SGRA · Sistema de Gestión de Refuerzos Académicos';
+      footerCell.font      = { size: 8, italic: true, color: { argb: C_MED } };
+      footerCell.alignment = { horizontal: 'center' };
+      sheet.getRow(nextRow).height = 14;
+
+      // ── Footer de impresión (cabecera/pie de página al imprimir) ──────────
+      sheet.headerFooter = {
+        oddFooter: `&LSGRA · Sistema de Gestión de Refuerzos Académicos&RPágina &P de &N`,
+      };
+
+      // ── Guardar ───────────────────────────────────────────────────────────
+      const buffer   = await workbook.xlsx.writeBuffer();
+      const blob     = new Blob([buffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-      const url = URL.createObjectURL(blob);
-      const a   = document.createElement('a');
-      a.href    = url;
-      a.download = `reporte-${this.selectedTypeKey().toLowerCase()}.xlsx`;
+      const url      = URL.createObjectURL(blob);
+      const a        = document.createElement('a');
+      a.href         = url;
+      const safeName = config.label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+      a.download     = `reporte-${safeName}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
       this.isDownloading.set(false);
