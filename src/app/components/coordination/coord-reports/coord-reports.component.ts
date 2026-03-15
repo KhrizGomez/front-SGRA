@@ -17,6 +17,7 @@ import autoTable from 'jspdf-autotable';
 
 import {
   ChartTypeKey,
+  InstitutionLogoDTO,
   PeriodType,
   ReportColumn,
   ReportConfig,
@@ -65,6 +66,10 @@ export class CoordReportsComponent implements OnDestroy {
   isLoadingPreview = signal(false);
   previewError = signal('');
   hasLoadedPreview = signal(false);
+
+  // ── Logo de la institución del usuario ──────────────────────
+  institutionLogo = signal<InstitutionLogoDTO | null>(null);
+  private logoImageBase64 = signal<string | null>(null);
 
   // ── Columnas seleccionadas (mapa key → seleccionado) ──────────────────────
   columnSelection = signal<Record<string, boolean>>({});
@@ -135,10 +140,58 @@ export class CoordReportsComponent implements OnDestroy {
 
     // Cargar períodos disponibles una vez al iniciar
     this.loadAvailablePeriods();
+
+    // Cargar logo de la institución del usuario
+    this.loadInstitutionLogo();
   }
 
   ngOnDestroy(): void {
     this.destroyChart();
+  }
+
+  // ── Carga del logo institucional ─────────────────────────────
+  private loadInstitutionLogo(): void {
+    this.reportService.getInstitutionLogo().subscribe({
+      next: logo => {
+        console.log('[Logo] DTO recibido:', logo);
+        this.institutionLogo.set(logo);
+        if (logo?.logoUrl) {
+          // Si el backend ya devuelve base64 directamente, usarlo sin fetch
+          if (logo.logoUrl.startsWith('data:')) {
+            console.log('[Logo] URL ya es base64, usando directamente');
+            this.logoImageBase64.set(logo.logoUrl);
+            return;
+          }
+          // Normalizar URL absoluta → ruta relativa para que pase por el proxy
+          let url = logo.logoUrl;
+          try {
+            const parsed = new URL(url);
+            url = parsed.pathname + parsed.search;
+            console.log('[Logo] URL absoluta normalizada a:', url);
+          } catch {
+            // Ya es relativa, dejamos como está
+          }
+          console.log('[Logo] Cargando imagen desde:', url);
+          this.preloadLogoAsBase64(url);
+        } else {
+          console.warn('[Logo] logoUrl vacío o nulo en el DTO');
+        }
+      },
+      error: (err) => {
+        console.error('[Logo] Error al obtener DTO del logo:', err?.status, err?.message);
+        this.institutionLogo.set(null);
+      },
+    });
+  }
+
+  private preloadLogoAsBase64(url: string): void {
+    this.reportService.getInstitutionLogoBase64(url).subscribe({
+      next: base64 => {
+        console.log('[Logo] base64 obtenido:', base64 ? 'OK (' + base64.length + ' chars)' : 'null');
+        this.logoImageBase64.set(base64);
+      },
+      error: (err) => console.error('[Logo] Error al cargar imagen:', err),
+    });
   }
 
   // ── Carga de períodos disponibles ────────────────────────────
@@ -332,24 +385,43 @@ export class CoordReportsComponent implements OnDestroy {
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin    = 14;
 
-      // ── Encabezado ────────────────────────────────────────────────────────
+      // ── Logo + Encabezado ─────────────────────────────────────────────────
+      const logoBase64 = this.logoImageBase64();
+      const institutionName = this.institutionLogo()?.institutionName;
+      let headerStartX = margin;
+      let cursorY = 18;
+
+      if (logoBase64) {
+        const logoH = 18;
+        const logoW = 18;
+        doc.addImage(logoBase64, 'PNG', margin, 8, logoW, logoH);
+        headerStartX = margin + logoW + 4;
+      }
+
       doc.setFontSize(16);
       doc.setTextColor(27, 117, 5);
-      doc.text(`Reporte – ${config.label}`, margin, 18);
+      doc.text(`Reporte – ${config.label}`, headerStartX, cursorY);
+
+      if (institutionName) {
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        doc.text(institutionName, headerStartX, cursorY + 6);
+        cursorY += 6;
+      }
 
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
       const periodLabel = this.periodValue()
         ? `Período: ${this.periodValue()}`
         : 'Período: Todos';
-      doc.text(periodLabel, margin, 26);
+      doc.text(periodLabel, headerStartX, cursorY + 6);
       doc.text(
         `Generado: ${new Date().toLocaleDateString('es')}`,
-        pageWidth - margin, 26,
+        pageWidth - margin, cursorY + 6,
         { align: 'right' }
       );
 
-      let cursorY = 33;
+      cursorY = Math.max(cursorY + 12, 33);
 
       // ── Gráfico ───────────────────────────────────────────────────────────
       if (this.showChart() && this.chartInstance && this.chartCanvasRef?.nativeElement) {
@@ -404,22 +476,49 @@ export class CoordReportsComponent implements OnDestroy {
         pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
       });
 
-      // ── Título ──────────────────────────────────────────────────────────
+      // ── Logo institucional ───────────────────────────────────────────────
       const lastColLetter = this.excelColLetter(Math.max(cols.length, 1));
-      sheet.mergeCells(`A1:${lastColLetter}1`);
-      const titleCell = sheet.getCell('A1');
+      let nextRow = 1;
+
+      const logoBase64Excel = this.logoImageBase64();
+      if (logoBase64Excel) {
+        const base64Data = logoBase64Excel.split(',')[1];
+        const logoImageId = workbook.addImage({ base64: base64Data, extension: 'png' });
+        sheet.addImage(logoImageId, {
+          tl: { col: 0, row: 0 },
+          ext: { width: 80, height: 80 },
+        });
+        // Reservar espacio para el logo (aprox 4 filas)
+        nextRow = 5;
+      }
+
+      // ── Nombre de institución ────────────────────────────────────────────
+      const instName = this.institutionLogo()?.institutionName;
+      if (instName) {
+        sheet.mergeCells(`A${nextRow}:${lastColLetter}${nextRow}`);
+        const instCell = sheet.getCell(`A${nextRow}`);
+        instCell.value     = instName;
+        instCell.font      = { bold: true, size: 12, color: { argb: 'FF3C3C3C' } };
+        instCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        sheet.getRow(nextRow).height = 20;
+        nextRow++;
+      }
+
+      // ── Título ──────────────────────────────────────────────────────────
+      sheet.mergeCells(`A${nextRow}:${lastColLetter}${nextRow}`);
+      const titleCell = sheet.getCell(`A${nextRow}`);
       titleCell.value     = `Reporte – ${config.label}`;
       titleCell.font      = { bold: true, size: 15, color: { argb: 'FF1B7505' } };
       titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-      sheet.getRow(1).height = 24;
+      sheet.getRow(nextRow).height = 24;
+      nextRow++;
 
-      sheet.mergeCells(`A2:${lastColLetter}2`);
-      const periodCell    = sheet.getCell('A2');
+      sheet.mergeCells(`A${nextRow}:${lastColLetter}${nextRow}`);
+      const periodCell    = sheet.getCell(`A${nextRow}`);
       periodCell.value    = this.periodValue() ? `Período: ${this.periodValue()}` : 'Período: Todos';
       periodCell.font     = { size: 10, color: { argb: 'FF505050' } };
       periodCell.alignment = { horizontal: 'center' };
-
-      let nextRow = 4; // fila donde empezará la imagen o la tabla
+      nextRow += 2; // fila donde empezará la imagen o la tabla
 
       // ── Gráfico ──────────────────────────────────────────────────────────
       if (this.showChart() && this.chartInstance && this.chartCanvasRef?.nativeElement) {
