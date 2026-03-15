@@ -22,16 +22,17 @@
       </p>
     </div>
     <button type="button"
-            class="btn btn-success d-flex align-items-center gap-2"
+            class="btn btn-success d-flex align-items-center justify-content-center gap-2"
+            style="min-width: 185px"
             (click)="triggerBackup()"
             [disabled]="isRunning() || pgDump()?.available === false"
             [title]="pgDump()?.available === false ? 'pg_dump no disponible en el servidor' : ''">
       @if (isRunning()) {
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Ejecutando respaldo...
+        <span>Ejecutando respaldo...</span>
       } @else {
         <i class="bi bi-database-fill-up"></i>
-        Crear Respaldo Ahora
+        <span>Crear Respaldo Ahora</span>
       }
     </button>
   </header>
