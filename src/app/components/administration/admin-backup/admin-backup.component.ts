@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -10,7 +10,6 @@ import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../
 @Component({
   selector: 'app-admin-backup',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-backup.component.html',
   styleUrl: './admin-backup.component.css',
@@ -18,10 +17,9 @@ import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../
 export class AdminBackupComponent implements OnInit {
   private backupService = inject(AdminBackupService);
   private toastService  = inject(ToastService);
-  private cdr           = inject(ChangeDetectorRef);
   private destroyRef    = inject(DestroyRef);
   private readonly historyCacheKey  = 'sgra_admin_backup_history';
-  private readonly POLL_INTERVAL_MS = 30_000;
+  private readonly POLL_INTERVAL_MS = 15_000;
   private optimisticAdds = new Set<string>();
   private optimisticDeletes = new Set<string>();
 
@@ -169,7 +167,8 @@ export class AdminBackupComponent implements OnInit {
             const next = [newItem, ...this.history().filter(h => h.fileName !== result.fileName)];
             this.setHistory(next, true);
           }
-          this.loadHistory();
+          // Delay para dar tiempo a Azure de registrar el nuevo blob antes de refrescar
+          setTimeout(() => this.loadHistory(), 1500);
         } else {
           this.toastService.show(false, result.message);
         }
@@ -307,8 +306,8 @@ export class AdminBackupComponent implements OnInit {
   // ── Post-restore: countdown y recarga ──────────────────────────────────────
 
   private iniciarCountdownRecarga(): void {
-    this.toastService.show(true, 'Base de datos restaurada exitosamente. Recargando aplicación...');
-    let segundos = 5;
+    this.toastService.show(true, 'Base de datos restaurada exitosamente. Recargando aplicación...', 10_000);
+    let segundos = 8;
     this.restoreCountdown.set(segundos);
     const tick = setInterval(() => {
       segundos--;
@@ -379,7 +378,6 @@ export class AdminBackupComponent implements OnInit {
   private setHistory(list: BackupHistoryItem[], writeCache: boolean): void {
     this.history.set([...list]);
     if (writeCache) this.writeHistoryCache(list);
-    this.cdr.markForCheck();
   }
 
   private updateHistory(
