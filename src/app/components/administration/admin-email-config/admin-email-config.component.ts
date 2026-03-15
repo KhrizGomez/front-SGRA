@@ -10,6 +10,7 @@ import { GPeriod } from '../../../models/administration/admin-periods/GPeriod.mo
 import { AdminPeriodsService } from '../../../services/administration/admin-periods/admin-periods.service';
 import { AdminPeriodTableComponent } from '../admin-periods/admin-period-table/admin-period-table.component';
 import { AdminPeriodCreateModalComponent } from '../admin-periods/admin-period-create-modal/admin-period-create-modal.component';
+import { AdminInstitutionLogoTableComponent } from './admin-institution-logo-table/admin-institution-logo-table.component';
 
 declare var bootstrap: any;
 
@@ -23,6 +24,7 @@ declare var bootstrap: any;
     AdminEmailConfigModalComponent,
     AdminPeriodTableComponent,
     AdminPeriodCreateModalComponent,
+    AdminInstitutionLogoTableComponent,
   ],
   templateUrl: './admin-email-config.component.html',
   styleUrl: './admin-email-config.component.css',

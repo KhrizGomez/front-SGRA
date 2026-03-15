@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuditAccess } from '../../../models/administration/admin-audit/audit-access.model';
+import { DataAudit } from '../../../models/administration/admin-audit/data-audit.model';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,16 @@ export class AdminAuditService {
     }
 
     return this.http.get<AuditAccess[]>(`${this.apiUrl}/security/audit/list-access-audit`, { params });
+  }
+
+  getDataAuditList(date?: string): Observable<DataAudit[]> {
+    let params = new HttpParams();
+
+    if (date) {
+      params = params.set('date', date);
+    }
+
+    return this.http.get<DataAudit[]>(`${this.apiUrl}/security/audit/list-data-audit`, { params });
   }
 
   forceLogout(auditId: number): Observable<{ message?: string; error?: string }> {

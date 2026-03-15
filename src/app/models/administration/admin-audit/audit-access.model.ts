@@ -3,8 +3,9 @@ export interface AuditAccess {
   ausuario: string;
   adireccionip: string;
   anavegador: string;
+  afechaacceso: string;
+  afechacierre: string | null;
+  aaccion: string;
   aso: string;
   asesion: string;
-  afechaacceso: string;
-  aaccion: string;
 }

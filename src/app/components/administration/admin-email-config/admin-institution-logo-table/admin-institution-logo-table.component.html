@@ -1,0 +1,140 @@
+<div class="d-flex justify-content-end mb-3">
+  <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2" (click)="loadInstitutions()"
+    aria-label="Actualizar logos">
+    <i class="bi bi-arrow-clockwise"></i> Actualizar
+  </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtros de logos institucionales">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-8">
+        <label for="searchLogoInput" class="form-label mb-1">Buscar</label>
+        <input type="text" class="form-control" id="searchLogoInput" placeholder="Buscar por nombre de institución..."
+          [formControl]="searchControl">
+      </div>
+      <div class="col-12 col-md-4">
+        <label for="logoStatusFilter" class="form-label mb-1">Estado</label>
+        <select class="form-select" id="logoStatusFilter" [formControl]="statusControl">
+          <option value="">Todos</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" aria-label="Tabla de logos institucionales">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="py-3 ps-3">Institución</th>
+            <th scope="col" class="py-3">Estado</th>
+            <th scope="col" class="py-3 text-center">Logo</th>
+            <th scope="col" class="py-3 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+          <tr>
+            <td colspan="4" class="text-center py-5">
+              <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+              <p class="text-muted mt-2 mb-0">Cargando instituciones...</p>
+            </td>
+          </tr>
+          } @else {
+          @for (inst of filteredInstitutions; track inst.iidinstitucion) {
+          <tr>
+            <td class="fw-medium ps-3">{{ inst.inombreinstitucion }}</td>
+            <td>
+              <span class="badge rounded-pill px-3" [ngClass]="{
+                          'bg-success-subtle text-success': inst.iestado,
+                          'bg-danger-subtle text-danger': !inst.iestado
+                        }">
+                {{ inst.iestado ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="text-center">
+              @if (inst.iurllogo) {
+              <img [src]="inst.iurllogo" [alt]="'Logo de ' + inst.inombreinstitucion"
+                class="institution-logo rounded border" loading="lazy">
+              } @else {
+              <span class="text-muted d-flex align-items-center justify-content-center gap-1">
+                <i class="bi bi-image fs-5 opacity-50"></i>
+                <small>Sin logo</small>
+              </span>
+              }
+            </td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                (click)="openLogoModal(inst)" [title]="inst.iurllogo ? 'Editar logo' : 'Asignar logo'">
+                <i class="bi" [ngClass]="inst.iurllogo ? 'bi-pencil-square' : 'bi-upload'"></i>
+                {{ inst.iurllogo ? 'Editar' : 'Asignar' }}
+              </button>
+            </td>
+          </tr>
+          } @empty {
+          <tr>
+            <td colspan="4" class="text-center py-5 text-muted">
+              <i class="bi bi-building fs-1 d-block mb-2 opacity-50"></i>
+              No se encontraron instituciones.
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="assignLogoModal" tabindex="-1" aria-labelledby="assignLogoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="assignLogoModalLabel">
+          @if (selectedInstitution) {
+          {{ selectedInstitution.iurllogo ? 'Editar' : 'Asignar' }} Logo — {{ selectedInstitution.inombreinstitucion }}
+          }
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        @if (previewUrl) {
+        <div class="text-center mb-3">
+          <img [src]="previewUrl" alt="Vista previa del logo" class="img-fluid rounded border"
+            style="max-height: 160px; object-fit: contain;">
+        </div>
+        } @else {
+        <div class="text-center mb-3 text-muted">
+          <i class="bi bi-image fs-1 d-block opacity-50"></i>
+          <small>Sin logo actual</small>
+        </div>
+        }
+
+        <div class="mb-3">
+          <label for="logoFileInput" class="form-label">Seleccionar imagen</label>
+          <input type="file" class="form-control" id="logoFileInput" accept="image/*" (change)="onFileSelected($event)">
+          <div class="form-text">Formatos aceptados: JPG, PNG, SVG, WEBP.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary d-flex align-items-center gap-2"
+          [disabled]="!selectedFile || isSubmitting" (click)="submitLogo()">
+          @if (isSubmitting) {
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+          Guardando...
+          } @else {
+          <i class="bi bi-check-lg"></i> Guardar
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

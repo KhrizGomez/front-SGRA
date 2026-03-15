@@ -6,8 +6,10 @@
         <th scope="col" class="py-3">Dirección IP</th>
         <th scope="col" class="py-3">Navegador</th>
         <th scope="col" class="py-3">S.O.</th>
-        <th scope="col" class="py-3">Fecha</th>
-        <th scope="col" class="py-3">Hora</th>
+        <th scope="col" class="py-3">Fecha Acceso</th>
+        <th scope="col" class="py-3">Hora Acceso</th>
+        <th scope="col" class="py-3">Fecha Cierre</th>
+        <th scope="col" class="py-3">Hora Cierre</th>
         <th scope="col" class="py-3">Acción</th>
         <th scope="col" class="py-3 text-center">Sesión</th>
       </tr>
@@ -15,7 +17,7 @@
     <tbody>
       @if (isLoading) {
         <tr>
-          <td colspan="8" class="text-center py-5">
+          <td colspan="10" class="text-center py-5">
             <div class="spinner-border text-success" role="status">
               <span class="visually-hidden">Cargando...</span>
             </div>
@@ -41,6 +43,8 @@
             </td>
             <td class="text-muted">{{ record.afechaacceso | date:'dd/MM/yyyy' }}</td>
             <td class="text-muted">{{ record.afechaacceso | date:'HH:mm:ss' }}</td>
+            <td class="text-muted">{{ record.afechacierre ? (record.afechacierre | date:'dd/MM/yyyy') : '—' }}</td>
+            <td class="text-muted">{{ record.afechacierre ? (record.afechacierre | date:'HH:mm:ss') : '—' }}</td>
             <td>
               <span class="badge rounded-pill px-3"
                     [ngClass]="{
@@ -67,7 +71,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="8" class="text-center py-5 text-muted">
+            <td colspan="10" class="text-center py-5 text-muted">
               <i class="bi bi-shield-check fs-1 d-block mb-2 opacity-50"></i>
               No se encontraron registros de auditoría.
             </td>

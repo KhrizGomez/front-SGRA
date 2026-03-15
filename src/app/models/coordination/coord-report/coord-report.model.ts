@@ -55,3 +55,10 @@ export interface ReportPreviewParams {
 
 // ─── Respuesta de vista previa (filas genéricas) ────────────────────────────
 export type ReportPreviewRow = Record<string, string | number>;
+
+// ─── Logo de institución del usuario autenticado ────────────────────────────
+export interface InstitutionLogoDTO {
+  institutionId: number;
+  logoUrl: string;
+  institutionName: string;
+}

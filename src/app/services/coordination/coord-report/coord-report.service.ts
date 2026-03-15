@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
+  InstitutionLogoDTO,
   PeriodType,
   ReportConfig,
   ReportParams,
@@ -61,6 +62,32 @@ export class CoordReportService {
    */
   getReportConfigs(): ReportConfig[] {
     return REPORT_CONFIGS;
+  }
+
+  /**
+   * Obtiene el logo de la institución del usuario autenticado.
+   * GET /api/security/institution-logo/current
+   */
+  getInstitutionLogo(): Observable<InstitutionLogoDTO | null> {
+    return this.http.get<InstitutionLogoDTO>(
+      `${environment.apiUrl}/security/institution-logo/current`
+    );
+  }
+
+  /**
+   * Descarga la imagen del logo como base64 usando HttpClient
+   * (pasa por el interceptor de credenciales, evitando problemas de CORS/auth).
+   */
+  getInstitutionLogoBase64(logoUrl: string): Observable<string | null> {
+    return this.http.get(logoUrl, { responseType: 'blob' }).pipe(
+      switchMap(blob => new Observable<string | null>(observer => {
+        const reader = new FileReader();
+        reader.onload  = () => { observer.next(reader.result as string); observer.complete(); };
+        reader.onerror = () => { observer.next(null); observer.complete(); };
+        reader.readAsDataURL(blob);
+      })),
+      catchError(() => of(null))
+    );
   }
 }
 

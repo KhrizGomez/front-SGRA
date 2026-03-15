@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GEmailConfig, GEmailConfigCUD, GEmailConfigDetail } from '../../../models/administration/admin-email-config/GEmailConfig.model';
+import { InstitutionLogo } from '../../../models/administration/admin-email-config/InstitutionLogo.model';
 import { SpResponse } from '../../../models/administration/SpResponse.model';
 
 @Injectable({
@@ -35,5 +36,23 @@ export class AdminEmailConfigService {
 
   updateEmailConfig(data: GEmailConfigCUD): Observable<SpResponse> {
     return this.http.put<SpResponse>(`${this.apiUrl}/security/email-config/update`, data);
+  }
+
+  getInstitutionLogos(): Observable<InstitutionLogo[]> {
+    return this.http.get<InstitutionLogo[]>(`${this.apiUrl}/general/institutions/list-institution-logo`);
+  }
+
+  assignLogoInstitution(institutionId: number, file: File): Observable<SpResponse> {
+    const formData = new FormData();
+    formData.append('institution', new Blob([JSON.stringify({ lidinstitucion: institutionId })], { type: 'application/json' }));
+    formData.append('file', file);
+    return this.http.post<SpResponse>(`${this.apiUrl}/general/institutions/assign-logo`, formData);
+  }
+
+  updateLogoInstitution(institutionId: number, file: File): Observable<SpResponse> {
+    const formData = new FormData();
+    formData.append('institution', new Blob([JSON.stringify({ lidinstitucion: institutionId })], { type: 'application/json' }));
+    formData.append('file', file);
+    return this.http.put<SpResponse>(`${this.apiUrl}/general/institutions/update-logo`, formData);
   }
 }
