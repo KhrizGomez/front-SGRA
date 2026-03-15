@@ -1,11 +1,11 @@
-import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { interval } from 'rxjs';
+import { firstValueFrom, interval } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminBackupService } from '../../../services/administration/admin-backup/admin-backup.service';
 import { ToastService } from '../../../services/shared/toast.service';
-import { BackupHistoryItem, BackupScheduleEntry, PgDumpValidation } from '../../../models/administration/admin-backup/backup.model';
+import { BackupHistoryItem, BackupLocalConfig, BackupScheduleEntry, PgDumpValidation } from '../../../models/administration/admin-backup/backup.model';
 
 @Component({
   selector: 'app-admin-backup',
@@ -18,9 +18,10 @@ export class AdminBackupComponent implements OnInit {
   private backupService = inject(AdminBackupService);
   private toastService  = inject(ToastService);
   private destroyRef    = inject(DestroyRef);
+  private cdr           = inject(ChangeDetectorRef);
   private readonly historyCacheKey  = 'sgra_admin_backup_history';
   private readonly POLL_INTERVAL_MS = 15_000;
-  private optimisticAdds = new Set<string>();
+  private optimisticAdds    = new Set<string>();
   private optimisticDeletes = new Set<string>();
 
   // ── Estado general ──────────────────────────────────────────────────────────
@@ -41,6 +42,12 @@ export class AdminBackupComponent implements OnInit {
   totalSize  = computed(() =>
     this.formatSize(this.history().reduce((acc, h) => acc + (h.fileSizeBytes ?? 0), 0))
   );
+
+  // ── Configuración ruta local (server-side) ──────────────────────────────────
+  localConfig    = signal<BackupLocalConfig | null>(null);
+  localRuta      = '';
+  isEditingRuta  = signal(false);
+  isSavingRuta   = signal(false);
 
   // ── Programaciones ─────────────────────────────────────────────────────────
   schedulesOpen    = signal(true);
@@ -76,8 +83,8 @@ export class AdminBackupComponent implements OnInit {
     this.loadValidation();
     this.loadHistory();
     this.loadSchedules();
+    this.loadLocalConfig();
 
-    // Auto-refresh: detecta respaldos automáticos sin que el usuario presione "Actualizar"
     interval(this.POLL_INTERVAL_MS)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.pollHistory());
@@ -111,18 +118,16 @@ export class AdminBackupComponent implements OnInit {
         this.setHistory(merged, merged.length > 0);
         this.isLoading.set(false);
       },
-      error: ()     => { this.isLoading.set(false); }
+      error: () => { this.isLoading.set(false); }
     });
   }
 
-  /** Refresca historial y programaciones en segundo plano sin mostrar spinner. */
   private pollHistory(): void {
     this.backupService.history().subscribe({
       next: (data) => {
         const list = Array.isArray(data) ? data : [];
         if (list.length === 0) return;
         const merged = this.mergeHistory(list);
-        // Solo actualiza si hay cambios reales para evitar renders innecesarios
         const current = this.history();
         const changed = merged.length !== current.length ||
           merged.some((item, i) => item.fileName !== current[i]?.fileName);
@@ -130,7 +135,6 @@ export class AdminBackupComponent implements OnInit {
       },
       error: () => {}
     });
-    // También refresca las programaciones para ver última ejecución actualizada
     this.backupService.listSchedules().subscribe({
       next:  (data) => this.schedules.set(data),
       error: () => {}
@@ -145,29 +149,78 @@ export class AdminBackupComponent implements OnInit {
     });
   }
 
+  // ── Configuración ruta local ────────────────────────────────────────────────
+
+  loadLocalConfig(): void {
+    this.backupService.getLocalConfig().subscribe({
+      next:  (cfg) => this.localConfig.set(cfg),
+      error: ()    => this.localConfig.set(null)
+    });
+  }
+
+  editRuta(): void {
+    this.localRuta = this.localConfig()?.ruta ?? '';
+    this.isEditingRuta.set(true);
+  }
+
+  cancelEditRuta(): void {
+    this.isEditingRuta.set(false);
+    this.localRuta = '';
+  }
+
+  saveLocalConfig(): void {
+    const ruta = this.localRuta.trim();
+    if (!ruta) { this.toastService.show(false, 'La ruta no puede estar vacía.'); return; }
+    this.isSavingRuta.set(true);
+    this.backupService.saveLocalConfig(ruta).subscribe({
+      next: (saved) => {
+        this.localConfig.set(saved);
+        this.isEditingRuta.set(false);
+        this.localRuta = '';
+        this.isSavingRuta.set(false);
+        this.toastService.show(true, `Ruta configurada: ${saved.ruta}`);
+      },
+      error: () => {
+        this.isSavingRuta.set(false);
+        this.toastService.show(false, 'No se pudo guardar la ruta.');
+      }
+    });
+  }
+
   // ── Backup manual ──────────────────────────────────────────────────────────
 
-  triggerBackup(): void {
+  async triggerBackup(): Promise<void> {
     if (this.isRunning()) return;
+
+    // Seleccionar carpeta PRIMERO (dentro del gesto de usuario)
+    let dirHandle: any = null;
+    try {
+      dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' });
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        this.toastService.show(false, 'No se pudo seleccionar la carpeta de destino.');
+      }
+      return;
+    }
+
     this.isRunning.set(true);
     this.backupService.trigger().subscribe({
-      next: (result) => {
+      next: async (result) => {
         this.isRunning.set(false);
         if (result.success) {
           this.toastService.show(true, `Respaldo completado: ${result.fileName} (${this.formatSize(result.fileSizeBytes)})`);
           if (result.fileName) {
             const newItem: BackupHistoryItem = {
               fileName: result.fileName,
-              blobUrl: result.blobUrl ?? '',
+              blobUrl:  result.blobUrl ?? '',
               fileSizeBytes: result.fileSizeBytes ?? 0,
               createdAt: result.executedAt ?? '—'
             };
             this.optimisticAdds.add(result.fileName);
             this.optimisticDeletes.delete(result.fileName);
-            const next = [newItem, ...this.history().filter(h => h.fileName !== result.fileName)];
-            this.setHistory(next, true);
+            this.setHistory([newItem, ...this.history().filter(h => h.fileName !== result.fileName)], true);
+            await this.guardarEnDir(dirHandle, result.fileName);
           }
-          // Delay para dar tiempo a Azure de registrar el nuevo blob antes de refrescar
           setTimeout(() => this.loadHistory(), 1500);
         } else {
           this.toastService.show(false, result.message);
@@ -181,15 +234,52 @@ export class AdminBackupComponent implements OnInit {
     });
   }
 
+  private async guardarEnDir(dirHandle: any, fileName: string): Promise<void> {
+    try {
+      const blob       = await firstValueFrom(this.backupService.downloadBlob(fileName));
+      const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+      const writable   = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      this.toastService.show(true, `Copia local guardada en "${dirHandle.name}"`);
+    } catch (err) {
+      console.error('[backup local]', err);
+      this.toastService.show(false, `No se pudo guardar la copia local en "${dirHandle.name}".`);
+    }
+  }
+
   // ── Descarga y eliminación ─────────────────────────────────────────────────
 
-  downloadBackup(fileName: string): void {
+  async downloadBackup(fileName: string): Promise<void> {
     if (this.downloading() === fileName) return;
+
+    // Selector de archivo PRIMERO (dentro del gesto de usuario)
+    let fileHandle: any = null;
+    try {
+      fileHandle = await (window as any).showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{ description: 'PostgreSQL Backup', accept: { 'application/octet-stream': ['.backup'] } }]
+      });
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        this.toastService.show(false, 'No se pudo abrir el selector de archivo.');
+      }
+      return;
+    }
+
     this.downloading.set(fileName);
-    this.backupService.getDownloadUrl(fileName).subscribe({
-      next:  (res) => { this.downloading.set(null); window.open(res.url, '_blank'); },
-      error: ()    => { this.downloading.set(null); this.toastService.show(false, 'No se pudo generar el enlace.'); }
-    });
+    try {
+      const blob     = await firstValueFrom(this.backupService.downloadBlob(fileName));
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      this.toastService.show(true, 'Respaldo descargado correctamente.');
+    } catch (err) {
+      console.error('[download]', err);
+      this.toastService.show(false, 'Error al descargar el respaldo.');
+    } finally {
+      this.downloading.set(null);
+    }
   }
 
   confirmRestore(fileName: string): void {
@@ -251,6 +341,10 @@ export class AdminBackupComponent implements OnInit {
   // ── Programaciones ─────────────────────────────────────────────────────────
 
   openForm(): void {
+    if (!this.localConfig()) {
+      this.toastService.show(false, 'Configura primero la ruta local para respaldos automáticos antes de agregar una programación.');
+      return;
+    }
     this.form = this.emptyForm();
     this.showForm.set(true);
   }
@@ -370,14 +464,13 @@ export class AdminBackupComponent implements OnInit {
   private writeHistoryCache(list: BackupHistoryItem[]): void {
     try {
       sessionStorage.setItem(this.historyCacheKey, JSON.stringify(list));
-    } catch {
-      // ignore cache errors
-    }
+    } catch { }
   }
 
   private setHistory(list: BackupHistoryItem[], writeCache: boolean): void {
     this.history.set([...list]);
     if (writeCache) this.writeHistoryCache(list);
+    this.cdr.markForCheck();
   }
 
   private updateHistory(
