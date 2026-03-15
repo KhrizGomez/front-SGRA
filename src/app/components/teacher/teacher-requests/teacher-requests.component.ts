@@ -61,7 +61,6 @@ export class TeacherRequestsComponent implements OnInit {
   todayStr = new Date().toISOString().split('T')[0];
 
   // Custom 24h time pickers
-  timeMinutes: string[] = ['00', '15', '30', '45'];
   startHour: number | null = null; startMin = '00'; startMinNum: number | null = null;
   endHour:   number | null = null; endMin   = '00'; endMinNum:   number | null = null;
 
@@ -120,13 +119,6 @@ export class TeacherRequestsComponent implements OnInit {
     }
   }
 
-  durationLabel(value: string): string {
-    const [h, m] = value.split(':').map(Number);
-    if (h === 0) return `${m} min`;
-    if (m === 0) return `${h} h`;
-    return `${h}h ${m}min`;
-  }
-
   // Reject/Cancel
   reasonText = '';
 
@@ -162,7 +154,6 @@ export class TeacherRequestsComponent implements OnInit {
     });
   }
 
-  clearFilters(): void { this.filters = { statusId: null }; this.page = 1; this.load(); }
   goTo(p: number):     void { this.page = p; this.load(); }
 
   private updateChips(): void {
@@ -242,12 +233,32 @@ export class TeacherRequestsComponent implements OnInit {
     return base && pres;
   }
 
+  private buildSchedulePayload(): AcceptRescheduleBodyDTO & { timeSlotId?: number | null; workAreaId?: number | null } {
+    const f = this.scheduleForm;
+    const fx = f as any;
+    return {
+      scheduledDate: f.scheduledDate,
+      modalityId: f.modalityId,
+      estimatedDuration: f.estimatedDuration,
+      reason: f.reason?.trim() ? f.reason.trim() : undefined,
+
+      // Contrato actual backend
+      timeSlotId: fx.timeSlotId ?? undefined,
+      workAreaId: f.workAreaTypeId ?? fx.workAreaId ?? null,
+
+      // Compatibilidad con contrato legacy usado en el frontend actual
+      startTime: f.startTime,
+      endTime: f.endTime,
+      workAreaTypeId: f.workAreaTypeId,
+    };
+  }
+
   // Submit: Accept/Reschedule (RF10, RF11)
   submitSchedule(): void {
     if (!this.selected) return;
     this.busy = true;
     const id   = this.selected.requestId;
-    const body: AcceptRescheduleBodyDTO = { ...this.scheduleForm };
+    const body = this.buildSchedulePayload();
     const obs  = this.activeModal === 'accept'
       ? this.reqSvc.acceptRequest(id, body)
       : this.reqSvc.rescheduleRequest(id, body);

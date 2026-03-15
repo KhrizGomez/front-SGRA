@@ -569,46 +569,208 @@
           <!-- ── Programado / Aceptada / Espera espacio ───────────────────── -->
           @if (selected.statusName === 'Programado' || selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
             <hr class="my-3">
-            <div class="mb-2">
-              <h6 class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1 text-info"></i>Enlace virtual</h6>
-              <div class="input-group">
-                <input type="url" class="form-control border" [(ngModel)]="virtualLinkUrl"
-                       placeholder="https://meet.google.com/..."/>
-                <button class="btn btn-info text-white border" (click)="submitVirtualLink()"
-                        [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)"
-                        title="Guardar enlace">
-                  @if (busy) {
-                    <span class="spinner-border spinner-border-sm"></span>
-                  } @else {
-                    <i class="bi bi-floppy-fill"></i>
-                  }
-                </button>
+            <div class="mb-3">
+              <h6 class="fw-bold mb-3 d-flex align-items-center">
+                <i class="bi bi-laptop me-2 text-primary"></i>Aula Virtual y Recursos
+              </h6>
+
+              <!-- Recursos del Estudiante -->
+              <div class="mb-4">
+                <h6 class="text-muted small fw-bold mb-2 text-uppercase">
+                  <i class="bi bi-folder-symlink me-1"></i>Recursos del Estudiante
+                </h6>
+                @if (loadingResources) {
+                  <div class="d-flex align-items-center text-muted small ms-2">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+                  </div>
+                } @else if (requestResources.length === 0) {
+                  <div class="text-muted small ms-2 fst-italic">Sin archivos adjuntos.</div>
+                } @else {
+                  <div class="list-group list-group-flush border rounded-2">
+                    @for (url of requestResources; track url) {
+                      <div class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center text-truncate me-2">
+                          <i class="bi bi-file-earmark-text me-2 text-secondary"></i>
+                          <span class="text-truncate">{{ url.split('/').pop() }}</span>
+                        </div>
+                        <a [href]="url" target="_blank" class="btn btn-sm btn-outline-success border-0 py-0" title="Descargar">
+                          <i class="bi bi-download"></i>
+                        </a>
+                      </div>
+                    }
+                  </div>
+                }
               </div>
-              @if (virtualLinkUrl && !isValidUrl(virtualLinkUrl)) {
-                <div class="text-danger small mt-1">
-                  <i class="bi bi-exclamation-triangle me-1"></i>Ingresa una URL válida (debe comenzar con https://).
+
+              <!-- Sección unificada de recursos -->
+              <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h6 class="text-muted small fw-bold mb-0 text-uppercase">
+                    <i class="bi bi-collection-play me-1"></i>Enlaces y Recursos
+                  </h6>
+                  <div class="d-flex gap-2">
+                    <!-- Botón Definir Reunión (solo si no existe) -->
+                    @if (!selected.virtualLink && !isEditingLink) {
+                      <button class="btn btn-sm btn-outline-success border-0 py-0 px-2" style="background:#f0fff4; color:var(--t-accent)"
+                              (click)="isEditingLink = true; virtualLinkUrl = ''" [disabled]="uploadingResource">
+                        <small class="fw-bold"><i class="bi bi-camera-video me-1"></i>Reunión</small>
+                      </button>
+                    }
+
+                    <!-- Botones Recursos -->
+                    <button class="btn btn-sm btn-outline-success border-0 py-0 px-2" style="background:#f0fff4"
+                            (click)="toggleAddLink()" [disabled]="uploadingResource">
+                      <small class="fw-semibold"><i class="bi bi-link-45deg me-1"></i>Enlace Extra</small>
+                    </button>
+                    <label class="btn btn-sm btn-outline-success border-0 py-0 px-2" style="background:#f0fff4" [class.disabled]="uploadingResource">
+                       <small class="fw-semibold">
+                         <i class="bi" [class.bi-file-earmark-plus]="!uploadingResource" [class.bi-hourglass-split]="uploadingResource"></i>
+                         {{ uploadingResource ? 'Subiendo...' : 'Archivo' }}
+                       </small>
+                       <input type="file" hidden (change)="handleFileInput($event)" [disabled]="uploadingResource">
+                    </label>
+                  </div>
                 </div>
-              }
+
+                <!-- Formulario: Enlace de Reunión Principal -->
+                @if (isEditingLink) {
+                  <div class="card p-3 mb-3 bg-success-subtle border-success-subtle">
+                     <h6 class="small fw-bold text-success mb-2"><i class="bi bi-camera-video me-1"></i>Definir Videoconferencia</h6>
+                     <div class="input-group mb-2">
+                        <span class="input-group-text bg-white text-success"><i class="bi bi-link-45deg"></i></span>
+                        <input type="url" class="form-control" [(ngModel)]="virtualLinkUrl"
+                               placeholder="https://meet.google.com/..." [disabled]="busy"/>
+                     </div>
+                     <div class="d-flex gap-2 justify-content-end">
+                       <button class="btn btn-sm btn-outline-secondary bg-white" (click)="isEditingLink = false" [disabled]="busy">Cancelar</button>
+                       <button class="btn btn-sm btn-success" (click)="submitVirtualLink()"
+                               [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)">
+                         Guardar Reunión
+                       </button>
+                     </div>
+                     @if (virtualLinkUrl && !isValidUrl(virtualLinkUrl)) {
+                        <div class="text-danger small mt-1">
+                          <i class="bi bi-exclamation-triangle me-1"></i>URL inválida (debe iniciar con https://).
+                        </div>
+                     }
+                  </div>
+                }
+
+                <!-- Formulario: Nuevo Enlace Extra (Recurso) -->
+                @if (isAddingLink) {
+                  <div class="card p-3 mb-3 bg-light border-0">
+                    <h6 class="small fw-bold text-muted mb-2"><i class="bi bi-link me-1"></i>Nuevo enlace adicional</h6>
+                    <div class="mb-2">
+                      <input type="text" class="form-control form-control-sm mb-2" [(ngModel)]="newLinkName" placeholder="Título (ej. Video explicativo)" [disabled]="uploadingResource">
+                      <input type="url" class="form-control form-control-sm" [(ngModel)]="newLinkUrl" placeholder="https://..." [disabled]="uploadingResource">
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                      <button class="btn btn-sm btn-outline-secondary" (click)="toggleAddLink()" [disabled]="uploadingResource">Cancelar</button>
+                      <button class="btn btn-sm btn-success text-white" (click)="saveLinkAsResource()"
+                              [disabled]="uploadingResource || !newLinkUrl || !newLinkName">
+                        Guardar Recurso
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                @if (loadingResources && sessionResources.length === 0 && sessionLinks.length === 0) {
+                  <div class="text-muted small ms-2">Cargando...</div>
+                } @else if (sessionResources.length === 0 && sessionLinks.length === 0 && !selected.virtualLink && !isAddingLink && !isEditingLink) {
+                  <div class="text-muted small ms-2 fst-italic">No has subido enlaces ni recursos.</div>
+                } @else {
+                  <div class="list-group list-group-flush border rounded-2">
+
+                    <!-- 1. Enlace de Reunión (si existe) -> Destacado -->
+                    @if (selected.virtualLink) {
+                      <div class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between bg-success-subtle">
+                        <div class="d-flex align-items-center text-truncate me-2">
+                          <span class="badge bg-success me-2"><i class="bi bi-camera-video-fill"></i></span>
+                          <div class="d-flex flex-column text-truncate">
+                            <span class="fw-bold text-success" style="font-size:0.85rem">Enlace de Reunión</span>
+                            <a [href]="selected.virtualLink" target="_blank" class="text-truncate text-decoration-none text-muted">
+                              {{ selected.virtualLink }}
+                            </a>
+                          </div>
+                        </div>
+                        <div class="d-flex gap-1 align-items-center">
+                           <a [href]="selected.virtualLink" target="_blank" class="btn btn-sm btn-success border-0 py-0" title="Unirse">
+                             Unirse
+                           </a>
+                           <button class="btn btn-sm btn-outline-success border-0 py-0" title="Editar enlace"
+                                   (click)="isEditingLink = true; virtualLinkUrl = selected.virtualLink!">
+                           <i class="bi bi-pencil-square"></i>
+                           </button>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- 2. Enlaces extra -->
+                    @for (link of sessionLinks; track link.url) {
+                      <div class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center text-truncate me-2">
+                          <i class="bi bi-link-45deg me-2 text-success fs-6"></i>
+                          <a [href]="link.url" target="_blank" class="text-truncate text-decoration-none text-dark fw-medium">
+                            {{ link.name || link.url }}
+                          </a>
+                        </div>
+                        <div class="d-flex gap-1">
+                          <a [href]="link.url" target="_blank" class="btn btn-sm btn-outline-secondary border-0 py-0" title="Abrir enlace">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                          </a>
+                          <button class="btn btn-sm btn-outline-danger border-0 py-0" title="Eliminar enlace" (click)="deleteLink(link.url)">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- 3. Lista de Recursos (archivos) -->
+                    @for (url of sessionResources; track url) {
+                      <div class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center text-truncate me-2">
+                          <!-- Icono dinámico según extensión -->
+                          @if (url.toLowerCase().endsWith('.url')) {
+                            <i class="bi bi-link-45deg me-2 text-success fs-6"></i>
+                          } @else if (url.toLowerCase().endsWith('.pdf')) {
+                            <i class="bi bi-file-earmark-pdf me-2 text-danger fs-6"></i>
+                          } @else {
+                            <i class="bi bi-file-earmark-text me-2 text-secondary fs-6"></i>
+                          }
+                          <span class="text-truncate text-dark fw-medium">{{ url.split('/').pop()?.replace('.url', '') }}</span>
+                        </div>
+                        <div class="d-flex gap-1">
+                          <a [href]="url" target="_blank" class="btn btn-sm btn-outline-success border-0 py-0" title="Descargar archivo">
+                            <i class="bi bi-download"></i>
+                          </a>
+                          <button class="btn btn-sm btn-outline-danger border-0 py-0" title="Eliminar archivo" (click)="deleteResource(url)">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
             </div>
           }
 
         </div>
         <div class="modal-footer border-top flex-shrink-0">
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cerrar</button>
-          <button class="btn btn-outline-primary"
+          <button class="btn btn-outline-success"
                   (click)="openAttendance()"
                   [disabled]="busy || showAttendance || selected.statusName !== 'Programado'"
                   [title]="selected.statusName !== 'Programado' ? 'Solo puedes tomar asistencia cuando la sesión esté en estado Programado' : 'Tomar asistencia'">
             <i class="bi bi-person-check-fill me-1"></i>Asistencia
           </button>
-          @if (selected.statusName === 'Programado') {
-            <button class="btn btn-success" (click)="openPerformed(selected)" [disabled]="busy">
-              <i class="bi bi-stop-circle-fill me-1"></i>Finalizar aula virtual
-            </button>
-          } @else if (selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
-            <button class="btn btn-success" disabled
-                    title="La sesión debe estar en estado 'Programado' para poder finalizarla">
-              <i class="bi bi-stop-circle-fill me-1"></i>Finalizar aula virtual
+          @if (selected.statusName === 'Programado' || selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {
+            <button class="btn btn-success"
+                    (click)="openPerformed(selected)"
+                    [disabled]="busy || !canFinalizeSession(selected)"
+                    [title]="finalizeSessionTooltip(selected)">
+              <i class="bi bi-stop-circle-fill me-1"></i>Finalizar sesión
             </button>
           }
         </div>
@@ -661,7 +823,7 @@
           <div class="modal-footer border-top flex-shrink-0">
             <button class="btn btn-outline-secondary btn-sm" (click)="closeAttendance()" [disabled]="busy">Cancelar
             </button>
-            <button class="btn btn-primary btn-sm" (click)="saveAttendanceList()"
+            <button class="btn btn-success btn-sm" (click)="saveAttendanceList()"
                     [disabled]="busy || loadingParticipants || participants.length === 0">
               @if (busy) {
                 <span class="spinner-border spinner-border-sm me-1"></span>
@@ -672,6 +834,40 @@
         </div>
       }
 
+    </div>
+  </div>
+}
+
+<!-- MODAL: Doble confirmación para eliminar recurso/enlace -->
+@if (showDeleteResourceModal) {
+  <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,.45)">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content border">
+        <div class="modal-header border-bottom">
+          <h6 class="modal-title fw-bold mb-0 text-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar eliminación
+          </h6>
+          <button class="btn-close" (click)="cancelDeleteResourceModal()" [disabled]="busy"></button>
+        </div>
+
+        <div class="modal-body small">
+          <p class="mb-2">¿Seguro que deseas eliminar este {{ deleteResourceTargetKind === 'link' ? 'enlace' : 'archivo' }}?</p>
+          <div class="p-2 rounded bg-light border text-break fw-semibold">
+            {{ deleteResourceTargetUrl?.split('/')?.pop() || deleteResourceTargetUrl }}
+          </div>
+          <p class="text-muted mb-0 mt-2">Esta acción no se puede deshacer.</p>
+        </div>
+
+        <div class="modal-footer border-top">
+          <button class="btn btn-outline-secondary btn-sm" (click)="cancelDeleteResourceModal()" [disabled]="busy">Cancelar</button>
+          <button class="btn btn-danger btn-sm" (click)="confirmDeleteResource()" [disabled]="busy">
+            @if (busy) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Sí, eliminar
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 }
@@ -879,19 +1075,157 @@
             }
 
             <!-- Recursos -->
-            @if (historyDetail.resources && historyDetail.resources.length > 0) {
-              <h6 class="fw-semibold mb-3">
-                <i class="bi bi-paperclip me-2 text-secondary"></i>Recursos adjuntos
-              </h6>              <div class="list-group list-group-flush rounded-3 border overflow-hidden">
-                @for (url of historyDetail.resources; track url) {
-                  <a [href]="url" target="_blank" rel="noopener"
-                     class="list-group-item list-group-item-action d-flex align-items-center gap-2 px-3 py-2 small">
-                    <i class="bi bi-file-earmark-arrow-down text-primary"></i>
-                    <span class="text-truncate text-info">{{ url }}</span>
-                  </a>
-                }
+            <hr class="my-3">
+
+            <!-- Recursos Solicitud -->
+             <div class="mb-3">
+              <h6 class="fw-semibold mb-2"><i class="bi bi-folder2-open me-2 text-secondary"></i>Recursos del Estudiante</h6>
+              @if (loadingResources) {
+                <span class="small text-muted">Cargando...</span>
+              } @else if (requestResources.length === 0) {
+                 <p class="mb-0 small text-muted fst-italic">Sin recursos en la solicitud.</p>
+              } @else {
+                <div class="list-group list-group-flush rounded-3 border overflow-hidden">
+                  @for (url of requestResources; track url) {
+                    <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between px-3 py-2 small">
+                      <div class="d-flex align-items-center text-truncate me-2">
+                        <i class="bi bi-file-earmark-text text-secondary me-2"></i>
+                        <span class="text-truncate text-dark">{{ url.split('/').pop() }}</span>
+                      </div>
+                      <a [href]="url" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success border-0 py-0" title="Descargar">
+                        <i class="bi bi-download"></i>
+                      </a>
+                    </div>
+                  }
+                </div>
+              }
+             </div>
+
+            <!-- Enlaces y Recursos de Sesión -->
+            <div class="mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="fw-semibold mb-0">
+                  <i class="bi bi-collection-play me-2 text-success"></i>Enlaces y Recursos de Sesión
+                </h6>
+                <div class="d-flex gap-2">
+                  @if (!historyDetail.virtualLink && !isEditingLink) {
+                    <button class="btn btn-sm btn-outline-success border-0 py-0 px-2" style="background:#f0fff4; color:var(--t-accent)"
+                            (click)="isEditingLink = true; virtualLinkUrl = ''" [disabled]="uploadingResource">
+                      <small class="fw-bold"><i class="bi bi-camera-video me-1"></i>Reunión</small>
+                    </button>
+                  }
+                  <button class="btn btn-sm btn-outline-success border-0 py-0 px-2" style="background:#f0fff4"
+                          (click)="toggleAddLink()" [disabled]="uploadingResource">
+                    <small class="fw-semibold"><i class="bi bi-link-45deg me-1"></i>Enlace Extra</small>
+                  </button>
+                  <label class="btn btn-sm btn-outline-success border-0 py-0 px-2" style="background:#f0fff4" [class.disabled]="uploadingResource">
+                    <small class="fw-semibold">
+                      <i class="bi" [class.bi-file-earmark-plus]="!uploadingResource" [class.bi-hourglass-split]="uploadingResource"></i>
+                      {{ uploadingResource ? 'Subiendo...' : 'Archivo' }}
+                    </small>
+                    <input type="file" hidden (change)="handleFileInput($event)" [disabled]="uploadingResource">
+                  </label>
+                </div>
               </div>
-            }
+
+              @if (isEditingLink) {
+                <div class="card p-3 mb-3 bg-success-subtle border-success-subtle">
+                  <h6 class="small fw-bold text-success mb-2"><i class="bi bi-camera-video me-1"></i>Definir Videoconferencia</h6>
+                  <div class="input-group mb-2">
+                    <span class="input-group-text bg-white text-success"><i class="bi bi-link-45deg"></i></span>
+                    <input type="url" class="form-control" [(ngModel)]="virtualLinkUrl"
+                           placeholder="https://meet.google.com/..." [disabled]="busy"/>
+                  </div>
+                  <div class="d-flex gap-2 justify-content-end">
+                    <button class="btn btn-sm btn-outline-secondary bg-white" (click)="isEditingLink = false" [disabled]="busy">Cancelar</button>
+                    <button class="btn btn-sm btn-success" (click)="submitVirtualLink()"
+                            [disabled]="busy || !virtualLinkUrl || !isValidUrl(virtualLinkUrl)">
+                      Guardar Reunión
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (isAddingLink) {
+                <div class="card p-3 mb-3 bg-light border-0">
+                  <h6 class="small fw-bold text-muted mb-2"><i class="bi bi-link me-1"></i>Nuevo enlace adicional</h6>
+                  <div class="mb-2">
+                    <input type="text" class="form-control form-control-sm mb-2" [(ngModel)]="newLinkName" placeholder="Título (ej. Video explicativo)" [disabled]="uploadingResource">
+                    <input type="url" class="form-control form-control-sm" [(ngModel)]="newLinkUrl" placeholder="https://..." [disabled]="uploadingResource">
+                  </div>
+                  <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" (click)="toggleAddLink()" [disabled]="uploadingResource">Cancelar</button>
+                    <button class="btn btn-sm btn-success text-white" (click)="saveLinkAsResource()"
+                            [disabled]="uploadingResource || !newLinkUrl || !newLinkName">
+                      Guardar Recurso
+                    </button>
+                  </div>
+                </div>
+              }
+
+              @if (loadingResources && sessionResources.length === 0 && sessionLinks.length === 0) {
+                <span class="small text-muted">Cargando...</span>
+              } @else if (sessionResources.length === 0 && sessionLinks.length === 0 && !historyDetail.virtualLink && !isAddingLink && !isEditingLink) {
+                <p class="mb-0 small text-muted fst-italic">No hay enlaces ni recursos de sesión.</p>
+              } @else {
+                <div class="list-group list-group-flush rounded-3 border overflow-hidden">
+                  @if (historyDetail.virtualLink) {
+                    <div class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between bg-success-subtle">
+                      <div class="d-flex align-items-center text-truncate me-2">
+                        <span class="badge bg-success me-2"><i class="bi bi-camera-video-fill"></i></span>
+                        <div class="d-flex flex-column text-truncate">
+                          <span class="fw-bold text-success" style="font-size:0.85rem">Enlace de Reunión</span>
+                          <a [href]="historyDetail.virtualLink" target="_blank" class="text-truncate text-decoration-none text-muted">
+                            {{ historyDetail.virtualLink }}
+                          </a>
+                        </div>
+                      </div>
+                      <div class="d-flex gap-1 align-items-center">
+                        <a [href]="historyDetail.virtualLink" target="_blank" class="btn btn-sm btn-success border-0 py-0" title="Unirse">Unirse</a>
+                        <button class="btn btn-sm btn-outline-success border-0 py-0" title="Editar enlace"
+                                (click)="isEditingLink = true; virtualLinkUrl = historyDetail.virtualLink!">
+                          <i class="bi bi-pencil-square"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @for (link of sessionLinks; track link.url) {
+                    <div class="list-group-item list-group-item-action py-2 small d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center text-truncate me-2">
+                        <i class="bi bi-link-45deg me-2 text-success"></i>
+                        <a [href]="link.url" target="_blank" class="text-truncate text-decoration-none text-dark fw-medium">{{ link.name || link.url }}</a>
+                      </div>
+                      <div class="d-flex gap-1">
+                        <a [href]="link.url" target="_blank" class="btn btn-sm btn-outline-secondary border-0 py-0" title="Abrir enlace"><i class="bi bi-box-arrow-up-right"></i></a>
+                        <button class="btn btn-sm btn-outline-danger border-0 py-0" title="Eliminar enlace" (click)="deleteLink(link.url)"><i class="bi bi-trash"></i></button>
+                      </div>
+                    </div>
+                  }
+
+                  @for (url of sessionResources; track url) {
+                    <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between px-3 py-2 small">
+                      <div class="d-flex align-items-center text-truncate me-2">
+                        @if (url.toLowerCase().endsWith('.pdf')) {
+                          <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>
+                        } @else {
+                          <i class="bi bi-file-earmark-check me-2 text-success"></i>
+                        }
+                        <span class="text-truncate text-success">{{ url.split('/').pop() }}</span>
+                      </div>
+                      <div class="d-flex gap-1">
+                        <a [href]="url" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success border-0 py-0" title="Descargar archivo">
+                          <i class="bi bi-download"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger border-0 py-0" title="Eliminar archivo" (click)="deleteResource(url)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
 
           }
         </div>
