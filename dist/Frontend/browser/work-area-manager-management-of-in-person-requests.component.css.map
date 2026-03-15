@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/workAreaManager/work-area-manager-management-of-in-person-requests/work-area-manager-management-of-in-person-requests.component.css"],
-  "sourcesContent": [".reinforcement-card {\r\n  border-radius: 0.75rem;\r\n  transition: transform 0.15s ease, box-shadow 0.15s ease;\r\n}\r\n\r\n.reinforcement-card:hover {\r\n  transform: translateY(-3px);\r\n  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;\r\n}\r\n"],
-  "mappings": ";AAAA,CAAC;AACC,iBAAe;AACf,cAAY,UAAU,MAAM,IAAI,EAAE,WAAW,MAAM;AACrD;AAEA,CALC,kBAKkB;AACjB,aAAW,WAAW;AACtB,cAAY,EAAE,OAAO,OAAO,KAAK,CAAC,EAAE,CAAC,EAAE,CAAC,EAAE;AAC5C;",
-  "names": []
-}

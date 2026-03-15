@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/components/administration/admin-dashboard/admin-dashboard.component.css"],
-  "sourcesContent": [".quick-action-card {\r\n  transition: transform 0.15s ease;\r\n}\r\n\r\n.quick-action-card:hover {\r\n  transform: translateY(-2px);\r\n}\r\n"],
-  "mappings": ";AAAA,CAAC;AACC,cAAY,UAAU,MAAM;AAC9B;AAEA,CAJC,iBAIiB;AAChB,aAAW,WAAW;AACxB;",
-  "names": []
-}
