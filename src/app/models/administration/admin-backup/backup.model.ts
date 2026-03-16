@@ -25,7 +25,8 @@ export interface BackupScheduleEntry {
   habilitado: boolean;
   frecuencia: 'DIARIO' | 'SEMANAL' | 'MENSUAL';
   diaSemana?: string | null;
-  diaMes?: number | null;
+  diaMes?: string | null;
+  meses?: string | null;
   hora: number;
   minuto: number;
   fechaUltimaEjecucion?: string | null;
