@@ -36,6 +36,11 @@ export class AdminBackupComponent implements OnInit {
   confirmingRestore = signal<string | null>(null);
   restoreCountdown  = signal<number | null>(null);
 
+  // ── Modal de opciones de restore ─────────────────────────────────────────
+  showRestoreModal     = signal(false);
+  selectedRestoreFile  = signal<string | null>(null);
+  restoringToNewDb     = signal(false);
+
   // ── KPIs ───────────────────────────────────────────────────────────────────
   totalCount = computed(() => this.history().length);
   lastDate   = computed(() => this.history()[0]?.createdAt ?? '—');
@@ -325,10 +330,59 @@ export class AdminBackupComponent implements OnInit {
 
   confirmRestore(fileName: string): void {
     this.confirmingDelete.set(null);
-    this.confirmingRestore.set(fileName);
+    this.selectedRestoreFile.set(fileName);
+    this.showRestoreModal.set(true);
   }
 
   cancelRestore(): void { this.confirmingRestore.set(null); }
+
+  closeRestoreModal(): void {
+    this.showRestoreModal.set(false);
+    this.selectedRestoreFile.set(null);
+  }
+
+  restoreToSameDb(): void {
+    const fileName = this.selectedRestoreFile();
+    if (!fileName || this.restoring() === fileName) return;
+    this.showRestoreModal.set(false);
+    this.restoring.set(fileName);
+    this.backupService.restore(fileName).subscribe({
+      next: (result) => {
+        this.restoring.set(null);
+        this.selectedRestoreFile.set(null);
+        if (result.success) { this.iniciarCountdownRecarga(); }
+        else { this.toastService.show(false, result.message); }
+      },
+      error: () => {
+        this.restoring.set(null);
+        this.selectedRestoreFile.set(null);
+        this.toastService.show(false, 'Error al restaurar la base de datos.');
+      }
+    });
+  }
+
+  restoreToNewDb(): void {
+    const fileName = this.selectedRestoreFile();
+    if (!fileName || this.restoringToNewDb()) return;
+    this.showRestoreModal.set(false);
+    this.restoringToNewDb.set(true);
+    this.backupService.restoreToNewDatabase(fileName).subscribe({
+      next: (result) => {
+        this.restoringToNewDb.set(false);
+        this.selectedRestoreFile.set(null);
+        if (result.success) {
+          this.toastService.show(true, result.message || 'Respaldo restaurado en una nueva base de datos exitosamente.');
+        } else {
+          this.toastService.show(false, result.message);
+        }
+      },
+      error: () => {
+        this.restoringToNewDb.set(false);
+        this.selectedRestoreFile.set(null);
+        this.toastService.show(false, 'Error al restaurar en la nueva base de datos.');
+      }
+    });
+  }
 
   restoreBackup(fileName: string): void {
     if (this.restoring() === fileName) return;

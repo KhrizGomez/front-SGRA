@@ -46,6 +46,10 @@ export class AdminBackupService {
     return this.http.post<BackupResult>(`${this.apiUrl}/admin/backup/restore/${encodeURIComponent(fileName)}`, {});
   }
 
+  restoreToNewDatabase(fileName: string): Observable<BackupResult> {
+    return this.http.post<BackupResult>(`${this.apiUrl}/admin/backup/restore-new-db/${encodeURIComponent(fileName)}`, {});
+  }
+
   // Programaciones automáticas
   listSchedules(): Observable<BackupScheduleEntry[]> {
     return this.http.get<BackupScheduleEntry[]>(`${this.apiUrl}/admin/backup/schedules`);

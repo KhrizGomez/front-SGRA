@@ -184,3 +184,92 @@
   border-color: #0d6efd;
   color: #fff;
 }
+
+/* ── Modal de opciones de restauración ──────────────────────────────────── */
+
+.restore-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+}
+
+.restore-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1055;
+  width: 480px;
+  max-width: 95vw;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.restore-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.restore-modal-body {
+  padding: 16px 18px;
+}
+
+.restore-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 18px;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.restore-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.restore-option:hover:not(.restore-option-disabled) {
+  border-color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+}
+
+.restore-option-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.restore-option:last-of-type {
+  margin-bottom: 0;
+}
+
+.restore-option-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.restore-option-content {
+  flex: 1;
+  min-width: 0;
+}
