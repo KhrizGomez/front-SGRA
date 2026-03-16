@@ -1,95 +1,123 @@
 <div class="d-flex vh-100 bg-light">
 
-  <!-- Botón toggle fuera del aside para no ser cortado por overflow:hidden -->
-  <button class="sidebar-toggle-btn" (click)="toggleSidebar()"
-          [style.left]="sidebarCollapsed ? 'calc(4.5rem - 13px)' : 'calc(15rem - 13px)'"
-          [title]="sidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'">
-    <i class="bi" [class.bi-chevron-left]="!sidebarCollapsed" [class.bi-chevron-right]="sidebarCollapsed"></i>
-  </button>
+  <!-- OVERLAY BACKDROP (solo móvil) -->
+  @if (isOverlayOpen()) {
+    <div class="sidebar-backdrop" (click)="closeOverlay()"></div>
+  }
 
-  <aside class="teacher-sidebar d-flex flex-column text-white shadow" [class.collapsed]="sidebarCollapsed">
+  <!-- SIDEBAR -->
+  <aside class="teacher-sidebar d-flex flex-column text-white shadow"
+         [class.collapsed]="isSidebarCollapsed()"
+         [class.mobile-open]="isOverlayOpen()">
 
-    <!-- Header -->
-    <div class="sidebar-header text-center border-bottom border-light border-opacity-25">
+    <div class="sidebar-header text-center p-4 border-bottom border-light border-opacity-25">
       <i class="bi bi-mortarboard-fill display-6 mb-2"></i>
-      <h6 class="m-0 fw-bold sidebar-label titulo">SGRA</h6>
+      <div class="brand-text">
+        <h6 class="m-0 fw-bold">SGRA</h6>
+        <small class="text-light opacity-75">Módulo de Docente</small>
+      </div>
     </div>
 
     <ul class="nav nav-pills flex-column mb-auto p-3 gap-2">
       <li class="nav-item">
-        <a routerLink="/teacher/dashboard" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
-           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Dashboard' : ''">
-          <i class="bi bi-speedometer2 nav-icon" [class.me-2]="!sidebarCollapsed"></i>
-          <span class="sidebar-label">Dashboard</span>
+        <a routerLink="/teacher/dashboard" routerLinkActive="active-link"
+           class="nav-link text-white d-flex align-items-center"
+           (click)="onNavClick()">
+          <i class="bi bi-speedometer2 nav-icon"></i>
+          <span class="nav-label">Dashboard</span>
         </a>
       </li>
       <li class="nav-item">
-        <a routerLink="/teacher/requests" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
-           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Solicitudes' : ''">
-          <i class="bi bi-inbox-fill nav-icon" [class.me-2]="!sidebarCollapsed"></i>
-          <span class="sidebar-label">Solicitudes</span>
+        <a routerLink="/teacher/requests" routerLinkActive="active-link"
+           class="nav-link text-white d-flex align-items-center"
+           (click)="onNavClick()">
+          <i class="bi bi-inbox-fill nav-icon"></i>
+          <span class="nav-label">Solicitudes</span>
         </a>
       </li>
       <li class="nav-item">
-        <a routerLink="/teacher/history" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
-           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Aula Virtual' : ''">
-          <i class="bi bi-easel2-fill nav-icon" [class.me-2]="!sidebarCollapsed"></i>
-          <span class="sidebar-label">Aula Virtual</span>
+        <a routerLink="/teacher/history" routerLinkActive="active-link"
+           class="nav-link text-white d-flex align-items-center"
+           (click)="onNavClick()">
+          <i class="bi bi-easel2-fill nav-icon"></i>
+          <span class="nav-label">Aula Virtual</span>
         </a>
       </li>
       <li class="nav-item">
-        <a routerLink="/teacher/preferences" routerLinkActive="active-link" class="nav-link text-white d-flex align-items-center"
-           [class.justify-content-center]="sidebarCollapsed" [title]="sidebarCollapsed ? 'Preferencias' : ''">
-          <i class="bi bi-sliders nav-icon" [class.me-2]="!sidebarCollapsed"></i>
-          <span class="sidebar-label">Preferencias</span>
+        <a routerLink="/teacher/preferences" routerLinkActive="active-link"
+           class="nav-link text-white d-flex align-items-center"
+           (click)="onNavClick()">
+          <i class="bi bi-sliders nav-icon"></i>
+          <span class="nav-label">Preferencias</span>
         </a>
       </li>
     </ul>
+
+    <div class="p-3 border-top border-light border-opacity-25 mt-auto">
+      <button type="button" (click)="logout()" class="btn btn-logout text-white w-100 text-start d-flex align-items-center nav-link logout-link">
+        <i class="bi bi-box-arrow-left nav-icon"></i>
+        <span class="nav-label">Cerrar Sesión</span>
+      </button>
+    </div>
   </aside>
 
-  <div class="flex-grow-1 d-flex flex-column content-area" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Botón chevron en el borde del sidebar -->
+  <div class="sidebar-toggle-wrapper">
+    <button class="sidebar-toggle-btn" (click)="toggleSidebar()"
+            [title]="isSidebarCollapsed() ? 'Expandir menú' : 'Colapsar menú'">
+      <i class="bi" [class.bi-chevron-left]="!isSidebarCollapsed()" [class.bi-chevron-right]="isSidebarCollapsed()"></i>
+    </button>
+  </div>
 
-    <header class="top-header bg-white shadow-sm p-3 d-flex justify-content-between align-items-center z-1">
-      <h5 class="m-0 text-secondary fw-semibold header-title"></h5>
+  <!-- MAIN CONTENT -->
+  <div class="flex-grow-1 d-flex flex-column overflow-hidden">
 
-      <!-- Profile Dropdown -->
-      <div class="position-relative">
-        <button type="button" class="btn btn-profile d-flex align-items-center gap-2" (click)="toggleDropdown()">
-          <span class="fw-medium text-dark d-none d-md-inline">{{ userName }}</span>
-          <div class="teacher-avatar rounded-circle text-white d-flex justify-content-center align-items-center">
-            <span class="fw-bold">{{ userInitials }}</span>
-          </div>
-          <i class="bi bi-chevron-down text-muted small"></i>
-        </button>
+    <!-- TOPBAR -->
+    <header class="bg-white shadow-sm p-3 d-flex justify-content-between align-items-center z-1">
+      <div class="d-flex align-items-center">
+        <h5 class="m-0 text-secondary fw-semibold d-none d-md-block">SGRA | Sistema de Gestión de Refuerzos Académicos</h5>
+        <h6 class="m-0 text-secondary fw-semibold d-block d-md-none">SGRA</h6>
+      </div>
 
-        @if (showDropdown) {
-          <div class="profile-dropdown shadow-sm border">
-            <div class="dropdown-header px-3 py-3 border-bottom">
-              <p class="fw-bold mb-1">{{ userName }}</p>
-              <span class="text-muted">Docente</span>
+      <div class="d-flex align-items-center gap-2">
+        <div class="position-relative">
+          <button type="button" class="btn btn-profile d-flex align-items-center gap-2" (click)="toggleDropdown()">
+            <span class="fw-medium text-dark d-none d-md-inline">{{ userName() }}</span>
+            <div class="teacher-avatar rounded-circle text-white d-flex justify-content-center align-items-center shadow-sm">
+              {{ userInitials() }}
             </div>
-            <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
-                    (click)="openChangePasswordModal()">
-              <i class="bi bi-shield-lock"></i> Cambiar contraseña
-            </button>
-            <button type="button" class="dropdown-item text-danger d-flex align-items-center gap-2 px-3 py-2"
-                    (click)="logout()">
-              <i class="bi bi-door-open"></i> Cerrar sesión
-            </button>
-          </div>
-          <div class="dropdown-backdrop" (click)="closeDropdown()"></div>
-        }
+            <i class="bi bi-chevron-down text-muted small"></i>
+          </button>
+
+          @if (showDropdown) {
+            <div class="profile-dropdown shadow-sm border">
+              <div class="dropdown-header px-3 py-3 border-bottom">
+                <p class="fw-bold mb-1">{{ userName() }}</p>
+                <span class="text-muted">Docente</span>
+              </div>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
+                      (click)="openChangePasswordModal()">
+                <i class="bi bi-shield-lock"></i> Cambiar contraseña
+              </button>
+              <button type="button" class="dropdown-item text-danger d-flex align-items-center gap-2 px-3 py-2"
+                      (click)="logout()">
+                <i class="bi bi-door-open"></i> Cerrar sesión
+              </button>
+            </div>
+            <div class="dropdown-backdrop" (click)="closeDropdown()"></div>
+          }
+        </div>
       </div>
     </header>
 
-    <main class="flex-grow-1 p-4 overflow-auto">
+    <!-- CONTENT -->
+    <main class="flex-grow-1 p-3 p-md-4 overflow-auto">
       <router-outlet></router-outlet>
     </main>
 
   </div>
 </div>
 
-<!-- Modal Cambiar Contraseña -->
 @if (showChangePasswordModal) {
   <app-change-password-modal
     (closed)="closeChangePasswordModal()">

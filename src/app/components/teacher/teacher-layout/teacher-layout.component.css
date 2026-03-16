@@ -1,135 +1,171 @@
-/* ── Typography ── */
 :host {
-  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.sidebar-header {
-  padding: 0.9rem 0.5rem 0.9rem 0.5rem;
+  --sgra-primary: #1B7505;
+  --sgra-primary-dark: #124d1c;
 }
 
 /* ── Sidebar ── */
 .teacher-sidebar {
-  width: 15rem;
-  min-width: 15rem;
-  max-width: 15rem;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: #1B7505;
-  transition: width 0.35s cubic-bezier(.4,0,.2,1),
-              min-width 0.35s cubic-bezier(.4,0,.2,1),
-              max-width 0.35s cubic-bezier(.4,0,.2,1);
-  z-index: 20;
+  width: 17.5rem;
+  background-color: var(--sgra-primary);
+  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
   overflow: hidden;
-  border-right: 1px solid rgba(0,0,0,0.15);
-}
-
-.titulo{
-  padding-left: 0.8rem;
-  font-size: 1.4rem;
-}
-
-
-/* ── Textos y etiquetas del sidebar con fade/slide ── */
-.sidebar-label {
-  display: inline-block;
-  overflow: hidden;
-  white-space: nowrap;
-  max-width: 160px;
-  opacity: 1;
-  transition: max-width 0.35s cubic-bezier(.4,0,.2,1),
-              opacity 0.25s ease,
-              margin 0.3s ease;
-}
-
-/* Iconos del nav: transición suave del margen */
-.nav-icon {
   flex-shrink: 0;
-  transition: margin 0.3s ease;
+  z-index: 1050;
 }
 
-/* ── Sidebar colapsado ── */
+/* ── Escritorio: colapso estrecho ── */
 .teacher-sidebar.collapsed {
-  width: 4.5rem;
-  min-width: 4.5rem;
-  max-width: 4.5rem;
+  width: 5rem;
 }
 
-.teacher-sidebar.collapsed .sidebar-header {
-  padding: 0.9rem 0.5rem !important;
-}
-
-/* Ocultar texto al colapsar */
-.teacher-sidebar.collapsed .sidebar-label {
-  max-width: 0;
-  opacity: 0;
-  margin: 0 !important;
+.teacher-sidebar.collapsed .brand-text,
+.teacher-sidebar.collapsed .nav-label {
+  display: none;
 }
 
 .teacher-sidebar.collapsed .nav-icon {
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
-.teacher-sidebar.collapsed .nav-link {
-  padding: 0.625rem 0;
-  font-size: 1.1rem;
+.sidebar-header {
+  transition: padding 0.3s ease-in-out;
 }
 
-.teacher-sidebar.collapsed .nav-link.active-link {
-  border-left: 4px solid #fff;
-  border-radius: 4px 8px 8px 4px;
+.teacher-sidebar.collapsed .sidebar-header {
+  padding: 1rem !important;
 }
 
-/* ── Botón toggle (fijo, se mueve con el sidebar) ── */
-.sidebar-toggle-btn {
+/* ── Backdrop (overlay móvil) ── */
+.sidebar-backdrop {
   position: fixed;
-  top: 4.8rem; /* alineado al borde inferior del header */
-  transform: translateY(-50%);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1040;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── MÓVIL (< 992 px): sidebar como drawer fijo ── */
+@media (max-width: 991.98px) {
+  .teacher-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    width: 17.5rem !important;
+    transform: translateX(-100%);
+  }
+
+  .teacher-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .teacher-sidebar.collapsed .brand-text,
+  .teacher-sidebar.collapsed .nav-label {
+    display: block;
+  }
+
+  .teacher-sidebar.collapsed .nav-icon {
+    margin-right: 0.625rem;
+  }
+
+  .teacher-sidebar.collapsed .sidebar-header {
+    padding: 1.5rem !important;
+  }
+}
+
+/* ── Nav icons & labels ── */
+.nav-icon {
+  font-size: 1.1rem;
+  margin-right: 0.625rem;
+  min-width: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ── Nav links ── */
+.nav-link,
+.btn-logout {
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.9375rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-link {
+  opacity: 0.85;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+  transform: translateX(0.25rem);
+}
+
+.active-link {
+  background-color: var(--sgra-primary-dark) !important;
+  font-weight: 600;
+  opacity: 1;
+  border-left: 0.25rem solid #ffffff;
+  border-radius: 0.25rem 0.5rem 0.5rem 0.25rem;
+}
+
+/* ── Logout button ── */
+.btn-logout {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-logout:hover {
+  background-color: #9c5151;
+}
+
+/* ── Botón chevron en borde del sidebar ── */
+.sidebar-toggle-wrapper {
+  position: relative;
+  width: 0;
+  overflow: visible;
+  z-index: 1060;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 4.5rem;
+  left: -13px;
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.7);
-  background: #1B7505;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: var(--sgra-primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 0.72rem;
-  transition: left 0.35s cubic-bezier(.4,0,.2,1),
-              background 0.2s,
-              border-color 0.2s,
-              box-shadow 0.2s;
-  z-index: 100;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
   padding: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar-toggle-btn:hover {
-  background: #124d1c;
+  background: var(--sgra-primary-dark);
   border-color: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-}
-
-/* ── Content area ── */
-.content-area {
-  margin-left: 15rem;
-  overflow: visible;
-  transition: margin-left 0.35s cubic-bezier(.4,0,.2,1);
-}
-
-.content-area.sidebar-collapsed {
-  margin-left: 4.5rem;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Teacher avatar ── */
 .teacher-avatar {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  background-color: #1B7505;
-  font-size: 0.8rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--sgra-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
   border: 2px solid #e8f5e9;
 }
 
@@ -137,8 +173,8 @@
 .btn-profile {
   background-color: transparent;
   transition: background-color 0.2s;
-  border-radius: 50px;
-  padding: 4px 12px 4px 12px;
+  border-radius: 3.125rem;
+  padding: 0.3125rem 0.9375rem 0.3125rem 0.3125rem;
   border: 1px solid #e0e0e0;
 }
 
@@ -178,7 +214,7 @@
 }
 
 .profile-dropdown .dropdown-item:hover {
-  background-color: #fff5f5;
+  background-color: #f8f9fa;
 }
 
 .dropdown-backdrop {
@@ -187,40 +223,9 @@
   z-index: 1040;
 }
 
-/* ── Nav links ── */
-.nav-link {
-  border-radius: 0.5rem;
-  padding: 0.625rem 0.9375rem;
-  transition: all 0.2s ease-in-out;
-  opacity: 0.85;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  opacity: 1;
-  transform: translateX(0.25rem);
-}
-
-.active-link {
-  background-color: #124d1c !important;
-  font-weight: 600;
-  opacity: 1;
-  border-left: 4px solid #ffffff;
-  border-radius: 4px 8px 8px 4px;
-}
-
-/* ── Top header ── */
-.top-header {
-  border-bottom: 1px solid #e0e0e0;
-  position: relative;
-  z-index: 20;
-  overflow: visible;
-}
-
-.header-title {
-  font-size: 0.95rem;
-  letter-spacing: 0.01em;
+/* ── Responsive general ── */
+@media (max-width: 575.98px) {
+  .btn-profile {
+    padding: 0.3125rem;
+  }
 }
