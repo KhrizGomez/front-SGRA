@@ -6,7 +6,8 @@
     <div class="sidebar-header text-center p-4 border-bottom border-light border-opacity-25">
       <i class="bi bi-mortarboard-fill display-6 mb-2"></i>
       <div class="brand-text">
-        <h6 class="m-0 fw-bold">Gestión de refuerzos académicos</h6>
+        <h6 class="m-0 fw-bold">SGRA</h6>
+        <small class="text-light opacity-75">Módulo de Administración</small>
       </div>
     </div>
 
@@ -35,18 +36,21 @@
     </div>
   </aside>
 
+  <!-- Botón chevron en el borde del sidebar -->
+  <div class="sidebar-toggle-wrapper">
+    <button class="sidebar-toggle-btn" (click)="toggleSidebar()"
+            [title]="isSidebarCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
+            aria-label="Contraer o expandir menú lateral">
+      <i class="bi" [class.bi-chevron-left]="!isSidebarCollapsed()" [class.bi-chevron-right]="isSidebarCollapsed()"></i>
+    </button>
+  </div>
+
   <div class="flex-grow-1 d-flex flex-column overflow-hidden" style="min-width: 0;">
 
     <header class="bg-white shadow-sm p-3 d-flex justify-content-between align-items-center z-1">
-      <div class="d-flex align-items-center gap-3">
-        <button type="button" class="btn btn-toggle-sidebar" (click)="toggleSidebar()"
-                aria-label="Contraer o expandir menú lateral">
-          <i class="bi bi-list fs-5"></i>
-        </button>
-        <h5 class="m-0 text-secondary fw-semibold d-none d-md-block">
-          SGRA | Sistema de Gestión de Refuerzos Académicos
-        </h5>
-      </div>
+      <h5 class="m-0 text-secondary fw-semibold d-none d-md-block">
+        SGRA | Sistema de Gestión de Refuerzos Académicos
+      </h5>
 
       <div class="d-flex align-items-center gap-3">
         <div class="position-relative">
