@@ -11,6 +11,8 @@
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -214,12 +216,53 @@ export class CoordReportsComponent implements OnDestroy {
   loadPreview(): void {
     this.isLoadingPreview.set(true);
     this.previewError.set('');
-
     this.hasLoadedPreview.set(false);
+
+    const type = this.selectedTypeKey();
+    const pType = this.periodType();
+    const pValue = this.periodValue();
+
+    // Para tipos YEAR, MONTHLY o WEEKLY: resolver a períodos académicos reales
+    if (pType !== 'PERIOD' && pValue) {
+      const matchingPeriods = this.findPeriodsForDateFilter(pType, pValue);
+
+      if (matchingPeriods.length === 0) {
+        this.serverRows.set([]);
+        this.isLoadingPreview.set(false);
+        this.hasLoadedPreview.set(true);
+        setTimeout(() => this.renderChart(), 60);
+        return;
+      }
+
+      forkJoin(
+        matchingPeriods.map(p =>
+          this.reportService.getReportPreview({ type, periodValue: p.periodo }).pipe(
+            catchError(() => of([] as ReportPreviewRow[]))
+          )
+        )
+      ).subscribe({
+        next: results => {
+          const merged = this.mergePreviewRows(results.flat());
+          this.serverRows.set(merged.length ? merged : []);
+          this.isLoadingPreview.set(false);
+          this.hasLoadedPreview.set(true);
+          setTimeout(() => this.renderChart(), 60);
+        },
+        error: () => {
+          this.previewError.set('Error al cargar datos con el filtro seleccionado.');
+          this.serverRows.set([]);
+          this.isLoadingPreview.set(false);
+          this.hasLoadedPreview.set(true);
+          setTimeout(() => this.renderChart(), 60);
+        },
+      });
+      return;
+    }
+
+    // PERIOD o sin valor: consultar directamente
     this.reportService.getReportPreview({
-      type: this.selectedTypeKey(),
-      periodType: this.periodType() || undefined,
-      periodValue: this.periodValue() || undefined,
+      type,
+      periodValue: pValue || undefined,
     }).subscribe({
       next: rows => {
         this.serverRows.set(Array.isArray(rows) && rows.length ? rows : []);
@@ -243,6 +286,81 @@ export class CoordReportsComponent implements OnDestroy {
         setTimeout(() => this.renderChart(), 60);
       },
     });
+  }
+
+  /**
+   * Encuentra los períodos académicos que se solapan con el filtro de fecha dado.
+   */
+  private findPeriodsForDateFilter(pType: PeriodType, pValue: string): GPeriod[] {
+    const periods = this.availablePeriods();
+
+    if (pType === 'YEAR') {
+      const year = Number(pValue);
+      return periods.filter(p => {
+        const sy = p.fechainicio ? new Date(p.fechainicio).getFullYear() : null;
+        const ey = p.fechafin ? new Date(p.fechafin).getFullYear() : null;
+        return sy === year || ey === year;
+      });
+    }
+
+    if (pType === 'MONTHLY') {
+      // pValue es como "2026-03"
+      const [yStr, mStr] = pValue.split('-');
+      const rangeStart = new Date(Number(yStr), Number(mStr) - 1, 1);
+      const rangeEnd = new Date(Number(yStr), Number(mStr), 0); // último día del mes
+      return periods.filter(p => {
+        const pStart = new Date(p.fechainicio);
+        const pEnd = new Date(p.fechafin);
+        return pStart <= rangeEnd && pEnd >= rangeStart;
+      });
+    }
+
+    if (pType === 'WEEKLY') {
+      // pValue es como "2026-W11"
+      const match = pValue.match(/(\d{4})-W(\d{1,2})/);
+      if (!match) return periods;
+      const yr = Number(match[1]);
+      const wk = Number(match[2]);
+      // Lunes de la semana ISO
+      const jan4 = new Date(yr, 0, 4);
+      const weekStart = new Date(jan4.getTime() - ((jan4.getDay() || 7) - 1) * 86400000 + (wk - 1) * 7 * 86400000);
+      const weekEnd = new Date(weekStart.getTime() + 6 * 86400000);
+      return periods.filter(p => {
+        const pStart = new Date(p.fechainicio);
+        const pEnd = new Date(p.fechafin);
+        return pStart <= weekEnd && pEnd >= weekStart;
+      });
+    }
+
+    return periods;
+  }
+
+  /**
+   * Fusiona filas de preview agrupando por la primera columna y sumando las numéricas.
+   */
+  private mergePreviewRows(rows: ReportPreviewRow[]): ReportPreviewRow[] {
+    if (!rows.length) return [];
+    const config = this.activeConfig();
+    const groupKey = config.columns[0]?.key;
+    if (!groupKey) return rows;
+
+    const map = new Map<string, ReportPreviewRow>();
+    for (const row of rows) {
+      const key = String(row[groupKey] ?? '');
+      const existing = map.get(key);
+      if (existing) {
+        for (const col of config.columns) {
+          if (col.key === groupKey) continue;
+          const val = Number(row[col.key]);
+          if (!isNaN(val)) {
+            existing[col.key] = (Number(existing[col.key]) || 0) + val;
+          }
+        }
+      } else {
+        map.set(key, { ...row });
+      }
+    }
+    return Array.from(map.values());
   }
   // ── Selección de tipo de reporte ─────────────────────────────────────────
   selectType(key: ReportTypeKey): void {

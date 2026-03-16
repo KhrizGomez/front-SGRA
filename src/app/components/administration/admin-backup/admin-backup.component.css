@@ -42,3 +42,9 @@
   background: #fff8e1;
   border: 1px solid #ffe082;
 }
+
+/* Fila de carpeta local automática */
+.auto-dir-row {
+  background: #f8f9fa;
+  border: 1px dashed #ced4da;
+}

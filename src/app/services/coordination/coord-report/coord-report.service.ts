@@ -27,7 +27,9 @@ export class CoordReportService {
    */
   getReportPreview(params: ReportPreviewParams): Observable<ReportPreviewRow[]> {
     const queryParams: Record<string, string> = { type: params.type };
-    // El backend espera un único parámetro ?period=<valor>
+    if (params.periodType) {
+      queryParams['periodType'] = params.periodType;
+    }
     if (params.periodValue) {
       queryParams['period'] = params.periodValue;
     }
@@ -48,9 +50,9 @@ export class CoordReportService {
    * Descarga un reporte del backend como Blob binario.
    */
   downloadReport(params: ReportParams): Observable<Blob> {
-    const { type, format, periodValue, columns } = params;
+    const { type, format, periodType, periodValue, columns } = params;
     const queryParams: Record<string, string> = { type, format };
-    // El backend espera un único parámetro ?period=<valor>
+    if (periodType) queryParams['periodType'] = periodType;
     if (periodValue) queryParams['period'] = periodValue;
     if (columns?.length) queryParams['columns'] = columns.join(',');
     return this.http.get(`${this.baseUrl}/download`, { params: queryParams, responseType: 'blob' });

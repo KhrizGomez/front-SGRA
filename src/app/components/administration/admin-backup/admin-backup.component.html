@@ -26,7 +26,7 @@
             style="min-width: 185px"
             (click)="triggerBackup()"
             [disabled]="isRunning() || pgDump()?.available === false"
-            [title]="pgDump()?.available === false ? 'pg_dump no disponible en el servidor' : ''">
+            [title]="pgDump()?.available === false ? 'pg_dump no disponible en el servidor' : 'Se pedirá elegir carpeta de destino antes de crear el respaldo'">
       @if (isRunning()) {
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         <span>Ejecutando respaldo...</span>
@@ -101,6 +101,52 @@
 
     @if (schedulesOpen()) {
     <div class="card-body">
+
+      <!-- Ruta local para respaldos automáticos (server-side) -->
+      <div class="auto-dir-row d-flex align-items-start gap-3 p-3 rounded-3 mb-3">
+        <div class="auto-dir-icon flex-shrink-0 pt-1">
+          <i class="bi bi-hdd-fill fs-4 text-secondary"></i>
+        </div>
+        <div class="flex-grow-1">
+          <p class="fw-semibold small mb-1">Ruta local para respaldos automáticos</p>
+
+          @if (isEditingRuta()) {
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+              <input type="text" class="form-control form-control-sm" style="max-width:400px"
+                     [(ngModel)]="localRuta"
+                     placeholder="Ej: C:\Respaldos\SGRA o /var/backups/sgra">
+              <button type="button" class="btn btn-sm btn-success" (click)="saveLocalConfig()" [disabled]="isSavingRuta()">
+                @if (isSavingRuta()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Guardar
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cancelEditRuta()">Cancelar</button>
+            </div>
+          } @else if (localConfig()) {
+            <p class="text-muted small mb-1">
+              Ruta configurada: <strong class="text-success font-monospace">{{ localConfig()!.ruta }}</strong>
+            </p>
+            @if (localConfig()!.fechaConfiguracion) {
+              <p class="text-muted" style="font-size:0.75rem; margin-bottom:0">
+                Última configuración: {{ localConfig()!.fechaConfiguracion }}
+              </p>
+            }
+          } @else {
+            <p class="text-muted small mb-0">
+              Sin ruta configurada — los respaldos automáticos no se guardarán localmente.
+              <strong class="text-warning">Se requiere para agregar programaciones.</strong>
+            </p>
+          }
+        </div>
+        @if (!isEditingRuta()) {
+          <div class="flex-shrink-0">
+            <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                    (click)="editRuta()">
+              <i class="bi bi-pencil-square"></i>
+              {{ localConfig() ? 'Editar ruta' : 'Configurar ruta' }}
+            </button>
+          </div>
+        }
+      </div>
 
       <!-- Formulario nueva programación -->
       @if (showForm()) {

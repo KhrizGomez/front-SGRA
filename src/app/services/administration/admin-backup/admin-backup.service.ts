@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   BackupHistoryItem,
+  BackupLocalConfig,
   BackupResult,
   BackupScheduleEntry,
   PgDumpValidation
@@ -30,6 +31,13 @@ export class AdminBackupService {
     return this.http.get<{ url: string }>(`${this.apiUrl}/admin/backup/download/${encodeURIComponent(fileName)}`);
   }
 
+  /** Descarga el contenido del backup a través del backend (evita CORS con Azure). */
+  downloadBlob(fileName: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/admin/backup/stream/${encodeURIComponent(fileName)}`, {
+      responseType: 'blob'
+    });
+  }
+
   deleteBackup(fileName: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/backup/history/${encodeURIComponent(fileName)}`);
   }
@@ -53,5 +61,13 @@ export class AdminBackupService {
 
   deleteSchedule(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/admin/backup/schedules/${id}`);
+  }
+
+  getLocalConfig(): Observable<BackupLocalConfig | null> {
+    return this.http.get<BackupLocalConfig>(`${this.apiUrl}/admin/backup/local-config`);
+  }
+
+  saveLocalConfig(ruta: string): Observable<BackupLocalConfig> {
+    return this.http.post<BackupLocalConfig>(`${this.apiUrl}/admin/backup/local-config`, { ruta });
   }
 }
