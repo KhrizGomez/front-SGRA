@@ -70,4 +70,11 @@ export class AdminBackupService {
   saveLocalConfig(ruta: string): Observable<BackupLocalConfig> {
     return this.http.post<BackupLocalConfig>(`${this.apiUrl}/admin/backup/local-config`, { ruta });
   }
+
+  browsePath(path?: string): Observable<{ currentPath: string; parentPath: string | null; directories: string[] }> {
+    const params = path ? `?path=${encodeURIComponent(path)}` : '';
+    return this.http.get<{ currentPath: string; parentPath: string | null; directories: string[] }>(
+      `${this.apiUrl}/admin/backup/browse${params}`
+    );
+  }
 }
