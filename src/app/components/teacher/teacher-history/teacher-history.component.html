@@ -761,8 +761,8 @@
           <button class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="busy">Cerrar</button>
           <button class="btn btn-outline-success"
                   (click)="openAttendance()"
-                  [disabled]="busy || showAttendance || selected.statusName !== 'Programado'"
-                  [title]="selected.statusName !== 'Programado' ? 'Solo puedes tomar asistencia cuando la sesión esté en estado Programado' : 'Tomar asistencia'">
+                  [disabled]="busy || showAttendance || !canTakeAttendance(selected)"
+                  [title]="attendanceTooltip(selected)">
             <i class="bi bi-person-check-fill me-1"></i>Asistencia
           </button>
           @if (selected.statusName === 'Programado' || selected.statusName.toLowerCase().includes('acepta') || selected.statusName.toLowerCase().includes('espera')) {

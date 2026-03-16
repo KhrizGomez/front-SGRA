@@ -485,6 +485,36 @@ export class TeacherHistoryComponent implements OnInit {
     return 'Finalizar sesión';
   }
 
+  canTakeAttendance(row: TeacherHistoryItemDTO | null): boolean {
+    return this.canFinalizeSession(row);
+  }
+
+  attendanceTooltip(row: TeacherHistoryItemDTO | null): string {
+    if (!row) return 'Sesión no disponible';
+    if (row.statusName !== 'Programado') {
+      return "La sesión debe estar en estado 'Programado' para tomar asistencia";
+    }
+
+    const sessionDate = this.parseDateOnly(row.scheduledDate);
+    const startMinutes = this.parseTimeMinutes(row.startTime);
+    if (!sessionDate || startMinutes === null) {
+      return 'No se pudo validar la fecha/hora de la sesión';
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (today.getTime() < sessionDate.getTime()) {
+      return 'Solo puedes tomar asistencia en la fecha programada';
+    }
+    if (today.getTime() === sessionDate.getTime()) {
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      if (nowMinutes < startMinutes) {
+        return `Se habilita desde las ${row.startTime}`;
+      }
+    }
+    return 'Tomar asistencia';
+  }
+
   // ── Session Resources ─────────────────────────────────────────────────────
   requestResources: string[] = [];
   sessionResources: string[] = [];
