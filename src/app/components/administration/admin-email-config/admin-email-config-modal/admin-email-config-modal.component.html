@@ -140,22 +140,35 @@
         </form>
       </div>
 
-      <footer class="modal-footer border-top-0 px-4 pb-4 pt-1 justify-content-end gap-2">
-        <button type="button" class="btn btn-light rounded-3 px-4 fw-medium text-secondary"
-                data-bs-dismiss="modal">
-          Cancelar
-        </button>
-        <button type="submit" class="btn btn-success rounded-3 px-4 fw-medium shadow-sm"
-                [disabled]="emailForm.invalid || isSubmitting"
-                (click)="onSubmit()">
-          @if (isSubmitting) {
+      <footer class="modal-footer border-top-0 px-4 pb-4 pt-1 justify-content-between">
+        <button type="button" class="btn btn-outline-primary rounded-3 px-4 fw-medium"
+                [disabled]="isTesting"
+                (click)="testEmailConfig()">
+          @if (isTesting) {
             <span class="spinner-border spinner-border-sm me-2"
                   role="status" aria-hidden="true"></span>
-            {{ isEditing ? 'Guardando...' : 'Creando...' }}
+            Probando...
           } @else {
-            {{ isEditing ? 'Guardar Cambios' : 'Crear Configuración' }}
+            <i class="bi bi-envelope-check me-2"></i>Validar Correo
           }
         </button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-light rounded-3 px-4 fw-medium text-secondary"
+                  data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-success rounded-3 px-4 fw-medium shadow-sm"
+                  [disabled]="emailForm.invalid || isSubmitting"
+                  (click)="onSubmit()">
+            @if (isSubmitting) {
+              <span class="spinner-border spinner-border-sm me-2"
+                    role="status" aria-hidden="true"></span>
+              {{ isEditing ? 'Guardando...' : 'Creando...' }}
+            } @else {
+              {{ isEditing ? 'Guardar Cambios' : 'Crear Configuración' }}
+            }
+          </button>
+        </div>
       </footer>
 
     </div>

@@ -19,6 +19,7 @@ export class AdminEmailConfigModalComponent {
 
   emailForm: FormGroup;
   isSubmitting = false;
+  isTesting = false;
   isEditing = false;
   currentConfigId: number | null = null;
   showPassword = false;
@@ -56,13 +57,13 @@ export class AdminEmailConfigModalComponent {
       this.emailConfigService.getEmailConfigById(id).subscribe({
         next: (data) => {
           this.emailForm.patchValue({
-            email: data.correo,
-            appPassword: data.contrasenaApp,
-            smtpServer: data.servidorSmtp,
-            smtpPort: data.puertoSmtp,
-            ssl: data.ssl ?? true,
-            senderName: data.nombreRemitente || '',
-            status: data.estado.toLowerCase() === 'activo' ? 'activo' : 'inactivo',
+            email: data.pcorreoemisor,
+            appPassword: data.paplicacionsontrasena,
+            smtpServer: data.pservidorsmtp,
+            smtpPort: data.ppuertosmtp,
+            ssl: data.pssl ?? true,
+            senderName: data.pnombreremitente || '',
+            status: data.pestadop ? 'activo' : 'inactivo',
           });
         },
         error: () => {
@@ -85,6 +86,42 @@ export class AdminEmailConfigModalComponent {
     this.showPassword = !this.showPassword;
   }
 
+  testEmailConfig(): void {
+    const formValues = this.emailForm.value;
+
+    // Validar que los campos requeridos para el test estén completos
+    if (!formValues.smtpServer || !formValues.smtpPort || !formValues.email || !formValues.appPassword) {
+      this.toastService.show(false, 'Complete los campos de servidor SMTP, puerto, correo y contraseña para probar la conexión.');
+      return;
+    }
+
+    this.isTesting = true;
+
+    const testPayload = {
+      servidorSmtp: formValues.smtpServer,
+      puertoSmtp: Number(formValues.smtpPort),
+      usaSSL: formValues.ssl ?? true,
+      correoEmisor: formValues.email,
+      contrasenaAplicacion: formValues.appPassword,
+      nombreRemitente: formValues.senderName || '',
+    };
+
+    this.emailConfigService.testSmtpConnection(testPayload).subscribe({
+      next: (success) => {
+        this.isTesting = false;
+        if (success) {
+          this.toastService.show(true, 'Configuración de correo válida. Conexión SMTP exitosa.');
+        } else {
+          this.toastService.show(false, 'Error en la configuración del correo. Verifique los datos ingresados.');
+        }
+      },
+      error: () => {
+        this.isTesting = false;
+        this.toastService.show(false, 'Error al probar la conexión SMTP. Verifique los datos ingresados.');
+      },
+    });
+  }
+
   onSubmit(): void {
     if (this.emailForm.invalid) {
       this.emailForm.markAllAsTouched();
@@ -99,11 +136,12 @@ export class AdminEmailConfigModalComponent {
       pidconfiguracioncorreo: this.isEditing ? (this.currentConfigId ?? undefined) : undefined,
       idusuario: currentUser?.userId ?? 0,
       pcorreoemisor: formValues.email,
-      paplicacionsontrasena: formValues.appPassword,
+      paplicacionsontrasena: formValues.appPassword || undefined,
       pservidorsmtp: formValues.smtpServer,
-      ppuertosmtp: formValues.smtpPort,
+      ppuertosmtp: Number(formValues.smtpPort),
       pssl: formValues.ssl,
       pnombreremitente: formValues.senderName,
+      pestadop: this.isEditing ? formValues.status : undefined,
     };
 
     const request$ = this.isEditing

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { GEmailConfig, GEmailConfigCUD, GEmailConfigDetail } from '../../../models/administration/admin-email-config/GEmailConfig.model';
+import { GEmailConfig, GEmailConfigCUD, EmailTestDTO } from '../../../models/administration/admin-email-config/GEmailConfig.model';
 import { InstitutionLogo } from '../../../models/administration/admin-email-config/InstitutionLogo.model';
 import { SpResponse } from '../../../models/administration/SpResponse.model';
 
@@ -24,10 +24,10 @@ export class AdminEmailConfigService {
     return this.http.get<GEmailConfig[]>(`${this.apiUrl}/security/email-settings/list-emails`, { params });
   }
 
-  getEmailConfigById(id: number): Observable<GEmailConfigDetail> {
+  getEmailConfigById(id: number): Observable<GEmailConfigCUD> {
     let params = new HttpParams();
-    params = params.set('idEmailConfig', id);
-    return this.http.get<GEmailConfigDetail>(`${this.apiUrl}/security/email-config/detail`, { params });
+    params = params.set('id', id);
+    return this.http.get<GEmailConfigCUD>(`${this.apiUrl}/security/email-settings/get-email-update`, { params });
   }
 
   createEmailConfig(data: GEmailConfigCUD): Observable<SpResponse> {
@@ -35,7 +35,7 @@ export class AdminEmailConfigService {
   }
 
   updateEmailConfig(data: GEmailConfigCUD): Observable<SpResponse> {
-    return this.http.put<SpResponse>(`${this.apiUrl}/security/email-config/update`, data);
+    return this.http.put<SpResponse>(`${this.apiUrl}/security/email-settings/update-email`, data);
   }
 
   getInstitutionLogos(): Observable<InstitutionLogo[]> {
@@ -54,5 +54,9 @@ export class AdminEmailConfigService {
     formData.append('institution', new Blob([JSON.stringify({ lidinstitucion: institutionId })], { type: 'application/json' }));
     formData.append('file', file);
     return this.http.put<SpResponse>(`${this.apiUrl}/general/institutions/update-logo`, formData);
+  }
+
+  testSmtpConnection(data: EmailTestDTO): Observable<boolean> {
+    return this.http.post<boolean>(`${this.apiUrl}/security/email-settings/test-email`, data);
   }
 }

@@ -11,22 +11,22 @@ export interface GEmailConfig {
 
 export interface GEmailConfigCUD {
   pidconfiguracioncorreo?: number;
-  idusuario: number;
-  pcorreoemisor: string;
-  paplicacionsontrasena: string;
-  pservidorsmtp: string;
-  ppuertosmtp: number;
-  pssl: boolean;
-  pnombreremitente: string;
+  idusuario?: number;
+  pcorreoemisor?: string;
+  paplicacionsontrasena?: string;
+  pservidorsmtp?: string;
+  ppuertosmtp?: number;
+  pssl?: boolean;
+  pnombreremitente?: string;
+  pfechahoracreacion?: string;
+  pestadop?: string;
 }
 
-export interface GEmailConfigDetail {
-  idCorreo: number;
-  correo: string;
-  contrasenaApp: string;
+export interface EmailTestDTO {
   servidorSmtp: string;
   puertoSmtp: number;
-  ssl: boolean;
+  usaSSL: boolean;
+  correoEmisor: string;
+  contrasenaAplicacion: string;
   nombreRemitente: string;
-  estado: string;
 }
