@@ -26,7 +26,7 @@
             style="min-width: 185px"
             (click)="triggerBackup()"
             [disabled]="isRunning() || pgDump()?.available === false"
-            [title]="pgDump()?.available === false ? 'pg_dump no disponible en el servidor' : ''">
+            [title]="pgDump()?.available === false ? 'pg_dump no disponible en el servidor' : 'Se pedirá elegir carpeta de destino antes de crear el respaldo'">
       @if (isRunning()) {
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         <span>Ejecutando respaldo...</span>
@@ -102,6 +102,39 @@
     @if (schedulesOpen()) {
     <div class="card-body">
 
+      <!-- Ruta local para respaldos automáticos -->
+      <div class="auto-dir-row d-flex align-items-center gap-3 p-3 rounded-3 mb-3">
+        <div class="auto-dir-icon flex-shrink-0">
+          <i class="bi bi-hdd-fill fs-4 text-secondary"></i>
+        </div>
+        <div class="flex-grow-1">
+          <p class="fw-semibold small mb-0">Ruta local para respaldos automáticos</p>
+          @if (localConfig()) {
+            <p class="text-muted small mb-0">
+              <i class="bi bi-folder-check text-success me-1"></i>
+              <strong class="font-monospace">{{ localConfig()!.ruta }}</strong>
+            </p>
+            @if (localConfig()!.fechaConfiguracion) {
+              <p class="text-muted mb-0" style="font-size:0.75rem">
+                Configurada el {{ localConfig()!.fechaConfiguracion }}
+              </p>
+            }
+          } @else {
+            <p class="text-muted small mb-0">
+              Sin ruta configurada.
+              <strong class="text-warning">Requerida para agregar programaciones.</strong>
+            </p>
+          }
+        </div>
+        <div class="flex-shrink-0">
+          <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                  (click)="openBrowser()">
+            <i class="bi bi-folder2-open"></i>
+            {{ localConfig() ? 'Cambiar carpeta' : 'Seleccionar carpeta' }}
+          </button>
+        </div>
+      </div>
+
       <!-- Formulario nueva programación -->
       @if (showForm()) {
         <div class="new-schedule-form p-3 rounded-3 mb-3">
@@ -109,43 +142,69 @@
           <div class="row g-2 align-items-end">
 
             <!-- Frecuencia -->
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-auto">
               <label class="form-label small mb-1">Frecuencia</label>
-              <select class="form-select form-select-sm" [(ngModel)]="form.frecuencia">
+              <select class="form-select form-select-sm" [(ngModel)]="form.frecuencia" style="min-width:130px">
                 <option value="DIARIO">Diario</option>
                 <option value="SEMANAL">Semanal</option>
                 <option value="MENSUAL">Mensual</option>
               </select>
             </div>
 
-            <!-- Día de la semana (solo SEMANAL) -->
+            <!-- SEMANAL: días de la semana (toggle buttons) -->
             @if (form.frecuencia === 'SEMANAL') {
-              <div class="col-12 col-md-3">
-                <label class="form-label small mb-1">Día de la semana</label>
-                <select class="form-select form-select-sm" [(ngModel)]="form.diaSemana">
+              <div class="col-12">
+                <label class="form-label small mb-1">Días de la semana</label>
+                <div class="d-flex flex-wrap gap-1">
                   @for (d of diasSemana; track d.value) {
-                    <option [value]="d.value">{{ d.label }}</option>
+                    <button type="button"
+                            class="btn btn-sm sched-toggle"
+                            [class.active]="isDiaSemanaSelected(d.value)"
+                            (click)="toggleDiaSemana(d.value)">
+                      {{ d.short }}
+                    </button>
                   }
-                </select>
+                </div>
               </div>
             }
 
-            <!-- Día del mes (solo MENSUAL) -->
+            <!-- MENSUAL: días del mes + meses -->
             @if (form.frecuencia === 'MENSUAL') {
-              <div class="col-12 col-md-3">
-                <label class="form-label small mb-1">Día del mes</label>
-                <select class="form-select form-select-sm" [(ngModel)]="form.diaMes">
+              <div class="col-12">
+                <label class="form-label small mb-1">Días del mes</label>
+                <div class="dias-mes-grid">
                   @for (d of diasMes; track d) {
-                    <option [value]="d">{{ d }}</option>
+                    <button type="button"
+                            class="btn btn-sm sched-toggle"
+                            [class.active]="isDiaMesSelected(d)"
+                            (click)="toggleDiaMes(d)">
+                      {{ d }}
+                    </button>
                   }
-                </select>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label small mb-1">
+                  Meses
+                  <span class="text-muted fw-normal">(sin selección = todos)</span>
+                </label>
+                <div class="d-flex flex-wrap gap-1">
+                  @for (m of mesesCatalogo; track m.value) {
+                    <button type="button"
+                            class="btn btn-sm sched-toggle"
+                            [class.active]="isMesSelected(m.value)"
+                            (click)="toggleMes(m.value)">
+                      {{ m.short }}
+                    </button>
+                  }
+                </div>
               </div>
             }
 
             <!-- Hora -->
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-auto">
               <label class="form-label small mb-1">Hora</label>
-              <select class="form-select form-select-sm" [(ngModel)]="form.hora">
+              <select class="form-select form-select-sm" [(ngModel)]="form.hora" style="min-width:90px">
                 @for (h of horas; track h) {
                   <option [value]="h">{{ h | number:'2.0' }}:00</option>
                 }
@@ -153,9 +212,9 @@
             </div>
 
             <!-- Minuto -->
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-auto">
               <label class="form-label small mb-1">Minuto</label>
-              <select class="form-select form-select-sm" [(ngModel)]="form.minuto">
+              <select class="form-select form-select-sm" [(ngModel)]="form.minuto" style="min-width:80px">
                 @for (m of minutos; track m) {
                   <option [value]="m">:{{ m | number:'2.0' }}</option>
                 }
@@ -163,7 +222,7 @@
             </div>
 
             <!-- Botones -->
-            <div class="col-12 col-md-auto d-flex gap-2">
+            <div class="col-12 col-md-auto d-flex gap-2 align-items-end">
               <button type="button" class="btn btn-sm btn-success" (click)="saveSchedule()" [disabled]="isSaving()">
                 @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
                 Guardar
@@ -366,3 +425,85 @@
   </div>
 
 </section>
+
+<!-- ── Modal explorador de directorios ───────────────────────────────────── -->
+@if (isBrowsing()) {
+  <div class="dir-backdrop" (click)="closeBrowser()"></div>
+
+  <div class="dir-modal" role="dialog" aria-modal="true" aria-label="Seleccionar carpeta">
+
+    <!-- Header -->
+    <div class="dir-modal-header">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-folder2-open text-primary fs-5"></i>
+        <span class="fw-semibold">Seleccionar carpeta de destino</span>
+      </div>
+      <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeBrowser()"></button>
+    </div>
+
+    <!-- Barra de ruta / breadcrumb -->
+    <div class="dir-modal-path">
+      <i class="bi bi-hdd text-secondary me-2 flex-shrink-0" style="font-size:0.9rem"></i>
+      @if (!browseCurrentPath()) {
+        <span class="text-muted small">Raíz del sistema de archivos</span>
+      } @else {
+        @for (part of breadcrumbParts(); track $index; let i = $index; let last = $last) {
+          <button type="button" class="dir-bc-btn" [class.dir-bc-active]="last"
+                  (click)="!last && navigateToBreadcrumb(i)">{{ part.label }}</button>
+          @if (!last) { <i class="bi bi-chevron-right dir-bc-sep"></i> }
+        }
+      }
+    </div>
+
+    <!-- Cuerpo: lista de carpetas -->
+    <div class="dir-modal-body">
+
+      <!-- Subir un nivel -->
+      <button type="button" class="dir-entry dir-entry-up"
+              [disabled]="isBrowseLoading() || !browseCurrentPath()"
+              (click)="navigateTo(browseParentPath() ?? undefined)">
+        <i class="bi bi-arrow-up-circle me-2"></i>
+        <span class="fst-italic small">Subir un nivel</span>
+      </button>
+
+      @if (isBrowseLoading()) {
+        <div class="text-center py-4 text-muted small">
+          <span class="spinner-border spinner-border-sm me-2"></span>Cargando...
+        </div>
+      } @else if (browseDirs().length === 0 && browseCurrentPath()) {
+        <div class="text-center py-4 text-muted small">
+          <i class="bi bi-folder-x d-block fs-2 mb-1 opacity-50"></i>
+          Sin subcarpetas
+        </div>
+      } @else {
+        @for (dir of browseDirs(); track dir) {
+          <button type="button" class="dir-entry" (click)="browseInto(dir)">
+            <i class="bi bi-folder-fill text-warning me-2"></i>
+            <span>{{ dir }}</span>
+          </button>
+        }
+      }
+    </div>
+
+    <!-- Footer: ruta seleccionada + acciones -->
+    <div class="dir-modal-footer">
+      <div class="dir-selected-path" [title]="browseCurrentPath()">
+        <i class="bi bi-folder-check text-success me-1 flex-shrink-0"></i>
+        <span class="font-monospace small text-truncate">
+          {{ browseCurrentPath() || '—' }}
+        </span>
+      </div>
+      <div class="d-flex gap-2 flex-shrink-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="closeBrowser()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-sm btn-success"
+                [disabled]="!browseCurrentPath() || isBrowseLoading()"
+                (click)="selectCurrentPath()">
+          <i class="bi bi-check-lg me-1"></i>Seleccionar
+        </button>
+      </div>
+    </div>
+
+  </div>
+}

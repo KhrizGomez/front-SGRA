@@ -25,9 +25,16 @@ export interface BackupScheduleEntry {
   habilitado: boolean;
   frecuencia: 'DIARIO' | 'SEMANAL' | 'MENSUAL';
   diaSemana?: string | null;
-  diaMes?: number | null;
+  diaMes?: string | null;
+  meses?: string | null;
   hora: number;
   minuto: number;
   fechaUltimaEjecucion?: string | null;
   resultadoUltimaEjecucion?: string | null;
+}
+
+export interface BackupLocalConfig {
+  ruta: string;
+  idusuario: number | null;
+  fechaConfiguracion: string | null;
 }
