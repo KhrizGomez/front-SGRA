@@ -1,0 +1,15 @@
+<ng-container *ngIf="roles.length > 1">
+  <div class="role-section-label px-3 pt-2 pb-1">Mis módulos</div>
+  <button
+    *ngFor="let role of roles"
+    class="role-item d-flex align-items-center gap-2 px-3 py-2"
+    [class.role-item--active]="isActive(role.route)"
+    [disabled]="isActive(role.route)"
+    (click)="switchTo(role.route)"
+  >
+    <i class="bi {{ role.icon }}"></i>
+    <span>{{ role.label }}</span>
+    <i class="bi bi-check2 ms-auto" *ngIf="isActive(role.route)"></i>
+  </button>
+  <div class="role-divider"></div>
+</ng-container>

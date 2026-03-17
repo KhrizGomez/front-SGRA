@@ -1,0 +1,39 @@
+.role-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.role-item {
+  background: none;
+  border: none;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #212529;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s;
+}
+
+.role-item:hover:not(:disabled) {
+  background-color: #f8f9fa;
+}
+
+.role-item--active {
+  color: #1B7505;
+  font-weight: 600;
+  background-color: #f0fdf4;
+  cursor: default;
+}
+
+.role-item--active i {
+  color: #1B7505;
+}
+
+.role-divider {
+  height: 1px;
+  background-color: #f0f0f0;
+  margin: 0.25rem 0;
+}
