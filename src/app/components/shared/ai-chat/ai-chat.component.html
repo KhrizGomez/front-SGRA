@@ -1,0 +1,103 @@
+<div class="chat-float-wrapper">
+
+  <!-- ── Panel del chat ── -->
+  <div class="chat-panel" [class.open]="isOpen">
+
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-avatar-header">
+          <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+        </div>
+        <div>
+          <div class="chat-title">{{ config.title }}</div>
+          <div class="chat-subtitle">SARA · Asistente IA</div>
+        </div>
+      </div>
+      <button class="chat-close-btn" (click)="toggleChat()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Mensajes -->
+    <div class="chat-messages" #messagesContainer>
+
+      <ng-container *ngFor="let msg of messages">
+
+        <!-- Burbuja IA -->
+        <div class="msg-row ai-row" *ngIf="msg.role === 'ai'">
+          <div class="msg-avatar-small">
+            <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+          </div>
+          <div>
+            <div class="msg-bubble ai-bubble">{{ msg.text }}</div>
+            <div class="msg-time">{{ formatTime(msg.timestamp) }}</div>
+          </div>
+        </div>
+
+        <!-- Burbuja usuario -->
+        <div class="msg-row user-row" *ngIf="msg.role === 'user'">
+          <div>
+            <div class="msg-bubble user-bubble">{{ msg.text }}</div>
+            <div class="msg-time user-time">{{ formatTime(msg.timestamp) }}</div>
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- Quick Actions (solo al inicio, antes de que el usuario escriba) -->
+      <div class="quick-actions" *ngIf="quickActionsVisible && !isTyping && messages.length <= 1">
+        <div class="quick-actions-label">Acciones rápidas</div>
+        <button
+          class="quick-chip"
+          *ngFor="let action of config.quickActions"
+          (click)="useQuickAction(action.prompt)"
+        >
+          <i class="bi" [class]="action.icon || 'bi-lightning-charge'"></i>
+          {{ action.label }}
+        </button>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="msg-row ai-row" *ngIf="isTyping">
+        <div class="msg-avatar-small">
+          <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+        </div>
+        <div class="msg-bubble ai-bubble typing-bubble">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <input
+        class="chat-input"
+        type="text"
+        placeholder="Escribe tu consulta..."
+        [(ngModel)]="inputMessage"
+        (keydown)="onKeyDown($event)"
+        [disabled]="isTyping"
+      />
+      <button
+        class="chat-send-btn"
+        (click)="sendMessage()"
+        [disabled]="!inputMessage.trim() || isTyping"
+      >
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ── Botón flotante ── -->
+  <button class="chat-float-btn" (click)="toggleChat()" [class.active]="isOpen">
+    <div class="float-btn-pulse" *ngIf="!isOpen"></div>
+    <i class="bi bi-x-lg" *ngIf="isOpen"></i>
+    <img *ngIf="!isOpen" src="assets/images/ChatBot.webp" alt="SARA" class="float-btn-avatar" />
+  </button>
+
+</div>
