@@ -5,11 +5,12 @@ import { AuthService } from '../../../services/auth/auth.service';
 import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
 import { AiChatComponent } from '../../shared/ai-chat/ai-chat.component';
 import { ChatbotConfig } from '../../../models/ai/chatbot.model';
+import { RoleSwitcherComponent } from '../../shared/role-switcher/role-switcher.component';
 
 @Component({
   selector: 'app-coord-layout',
   standalone: true,
-  imports: [RouterModule, CommonModule, ChangePasswordModalComponent, AiChatComponent],
+  imports: [RouterModule, CommonModule, ChangePasswordModalComponent, AiChatComponent, RoleSwitcherComponent],
   templateUrl: './coord-layout.component.html',
   styleUrls: ['./coord-layout.component.css']
 })

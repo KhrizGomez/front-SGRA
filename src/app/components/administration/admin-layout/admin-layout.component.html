@@ -68,6 +68,7 @@
               <p class="fw-bold mb-1">{{ userName() }}</p>
               <span class="text-muted">{{ userRoleLabel() }}</span>
             </div>
+            <app-role-switcher activeRoute="/admin"></app-role-switcher>
             <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
               (click)="openChangePasswordModal()">
               <i class="bi bi-key"></i> Cambiar contraseña
