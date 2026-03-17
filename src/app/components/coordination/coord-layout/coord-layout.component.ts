@@ -3,11 +3,13 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
+import { AiChatComponent } from '../../shared/ai-chat/ai-chat.component';
+import { ChatbotConfig } from '../../../models/ai/chatbot.model';
 
 @Component({
   selector: 'app-coord-layout',
   standalone: true,
-  imports: [RouterModule, CommonModule, ChangePasswordModalComponent],
+  imports: [RouterModule, CommonModule, ChangePasswordModalComponent, AiChatComponent],
   templateUrl: './coord-layout.component.html',
   styleUrls: ['./coord-layout.component.css']
 })
@@ -32,6 +34,17 @@ export class CoordLayoutComponent implements OnInit {
   readonly isOverlayOpen = computed(
     () => this.isMobile() && !this.isSidebarCollapsed()
   );
+
+  readonly chatConfig: ChatbotConfig = {
+    module: 'coordinacion',
+    title: 'Asistente SGRA',
+    quickActions: [
+      { label: 'Resumen del período',     prompt: 'Dame un resumen del estado actual del período.', icon: 'bi-clipboard-data' },
+      { label: '¿Hay algo urgente?',      prompt: '¿Hay solicitudes pendientes que requieran atención inmediata?', icon: 'bi-exclamation-triangle' },
+      { label: 'Materia con más demanda', prompt: '¿Cuál es la materia con mayor demanda de refuerzo?', icon: 'bi-bar-chart-line' },
+      { label: 'Estado de asistencia',    prompt: '¿Cómo está la tasa de asistencia este período?', icon: 'bi-person-check' },
+    ],
+  };
 
   navItems = [
     { path: '/coordinator/dashboard', label: 'Dashboard',           icon: 'bi-speedometer2'          },

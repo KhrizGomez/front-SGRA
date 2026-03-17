@@ -50,6 +50,7 @@ export class CoordDashboardComponent implements OnInit, AfterViewInit {
 
   private viewInitialized = false;
 
+
   readonly periodLabels: Record<ReportPeriod, string> = {
     mes: 'Último mes',
     trimestre: 'Trimestre',
