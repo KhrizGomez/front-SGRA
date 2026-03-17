@@ -24,14 +24,69 @@
 
       <ng-container *ngFor="let msg of messages">
 
-        <!-- Burbuja IA -->
-        <div class="msg-row ai-row" *ngIf="msg.role === 'ai'">
+        <!-- Burbuja IA normal -->
+        <div class="msg-row ai-row" *ngIf="msg.role === 'ai' && msg.type !== 'suggestion'">
           <div class="msg-avatar-small">
             <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
           </div>
           <div>
             <div class="msg-bubble ai-bubble">{{ msg.text }}</div>
-            <div class="msg-time">{{ formatTime(msg.timestamp) }}</div>
+            <div class="msg-meta">
+              <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+              <button class="speak-btn" (click)="speak(msg)" [class.speaking]="speakingMsgId === msg.id"
+                      [title]="speakingMsgId === msg.id ? 'Detener' : 'Escuchar respuesta'">
+                <i class="bi" [class.bi-volume-up-fill]="speakingMsgId !== msg.id"
+                              [class.bi-stop-circle-fill]="speakingMsgId === msg.id"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de sugerencia -->
+        <div class="msg-row ai-row" *ngIf="msg.role === 'ai' && msg.type === 'suggestion' && msg.suggestionData">
+          <div class="msg-avatar-small">
+            <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+          </div>
+          <div class="suggestion-card">
+            <div class="suggestion-header">
+              <i class="bi bi-stars"></i> Sugerencia IA
+            </div>
+            <div class="suggestion-body">
+              <div class="suggestion-row">
+                <span class="suggestion-label">Tipo de sesión</span>
+                <span class="suggestion-badge" [class.badge-grupal]="msg.suggestionData.tipoSesion === 'grupal'">
+                  <i class="bi" [class.bi-person-fill]="msg.suggestionData.tipoSesion === 'individual'"
+                               [class.bi-people-fill]="msg.suggestionData.tipoSesion === 'grupal'"></i>
+                  {{ msg.suggestionData.tipoSesion | titlecase }}
+                </span>
+              </div>
+              <div class="suggestion-row">
+                <span class="suggestion-label">Motivo sugerido</span>
+                <p class="suggestion-text">{{ msg.suggestionData.motivoSugerido }}</p>
+              </div>
+              <div class="suggestion-row" *ngIf="msg.suggestionData.evidencias?.length">
+                <span class="suggestion-label">Evidencias recomendadas</span>
+                <ul class="suggestion-list">
+                  <li *ngFor="let ev of msg.suggestionData.evidencias">{{ ev }}</li>
+                </ul>
+              </div>
+              <div class="suggestion-row">
+                <span class="suggestion-label">¿Por qué?</span>
+                <p class="suggestion-reason">{{ msg.suggestionData.razonamiento }}</p>
+              </div>
+            </div>
+            <button class="suggestion-cta" (click)="useSuggestion(msg.suggestionData!)">
+              <i class="bi bi-arrow-right-circle-fill"></i>
+              Ir a Nueva Solicitud con esta sugerencia
+            </button>
+            <div class="msg-meta" style="padding: 0.1rem 0.85rem 0.55rem;">
+              <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+              <button class="speak-btn" (click)="speak(msg)" [class.speaking]="speakingMsgId === msg.id"
+                      [title]="speakingMsgId === msg.id ? 'Detener' : 'Escuchar sugerencia'">
+                <i class="bi" [class.bi-volume-up-fill]="speakingMsgId !== msg.id"
+                              [class.bi-stop-circle-fill]="speakingMsgId === msg.id"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -45,13 +100,13 @@
 
       </ng-container>
 
-      <!-- Quick Actions (solo al inicio, antes de que el usuario escriba) -->
-      <div class="quick-actions" *ngIf="quickActionsVisible && !isTyping && messages.length <= 1">
+      <!-- Quick Actions — visibles al inicio y tras cada respuesta del bot -->
+      <div class="quick-actions" *ngIf="quickActionsVisible && !isTyping">
         <div class="quick-actions-label">Acciones rápidas</div>
         <button
           class="quick-chip"
           *ngFor="let action of config.quickActions"
-          (click)="useQuickAction(action.prompt)"
+          (click)="useQuickAction(action.prompt, action.action)"
         >
           <i class="bi" [class]="action.icon || 'bi-lightning-charge'"></i>
           {{ action.label }}
@@ -74,13 +129,25 @@
 
     <!-- Input -->
     <div class="chat-input-area">
+      <!-- Botón micrófono -->
+      <button
+        *ngIf="hasSpeechRecognition"
+        class="chat-mic-btn"
+        [class.listening]="isListening"
+        [disabled]="isTyping"
+        (click)="toggleListening()"
+        [title]="isListening ? 'Detener micrófono' : 'Hablar'"
+      >
+        <i class="bi" [class.bi-mic-fill]="!isListening" [class.bi-stop-circle-fill]="isListening"></i>
+      </button>
+
       <input
         class="chat-input"
         type="text"
-        placeholder="Escribe tu consulta..."
+        [placeholder]="isListening ? 'Escuchando...' : isSuggestionMode ? 'Describe tu dificultad...' : 'Escribe o habla...'"
         [(ngModel)]="inputMessage"
         (keydown)="onKeyDown($event)"
-        [disabled]="isTyping"
+        [disabled]="isTyping || isListening"
       />
       <button
         class="chat-send-btn"

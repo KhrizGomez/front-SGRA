@@ -3,12 +3,15 @@ export interface ChatMessage {
   role: 'user' | 'ai';
   text: string;
   timestamp: Date;
+  type?: 'text' | 'suggestion';
+  suggestionData?: AISuggestion;
 }
 
 export interface QuickAction {
   label: string;
   prompt: string;
   icon?: string;
+  action?: 'suggest';
 }
 
 export interface ChatbotConfig {
@@ -26,6 +29,22 @@ export interface ChatApiRequest {
 export interface ChatApiResponse {
   response: string;
   module: string;
+  success: boolean;
+  error?: string;
+}
+
+export interface AISuggestion {
+  tipoSesion: string;
+  motivoSugerido: string;
+  evidencias: string[];
+  razonamiento: string;
+}
+
+export interface AISuggestApiResponse {
+  tipoSesion: string;
+  motivoSugerido: string;
+  evidencias: string[];
+  razonamiento: string;
   success: boolean;
   error?: string;
 }

@@ -13,6 +13,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 0.75rem;
+  pointer-events: none; /* el wrapper no bloquea clicks — solo sus hijos interactivos lo hacen */
 }
 
 /* ════════════════════════════
@@ -35,6 +36,7 @@
   position: relative;
   flex-shrink: 0;
   outline: none;
+  pointer-events: auto; /* el botón siempre es clickeable */
 }
 
 .float-btn-avatar {
@@ -98,7 +100,7 @@
 .chat-panel.open {
   transform: scale(1) translateY(0);
   opacity: 1;
-  pointer-events: all;
+  pointer-events: auto; /* el panel solo intercepta clicks cuando está abierto */
 }
 
 /* ════════════════════════════
@@ -242,18 +244,53 @@
   box-shadow: 0 2px 10px rgba(27, 117, 5, 0.28);
 }
 
-/* ── Timestamps ── */
+/* ── Timestamps + meta row ── */
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 3px;
+  padding-left: 2px;
+}
+
 .msg-time {
   font-size: 0.63rem;
   color: #adb5bd;
-  margin-top: 3px;
-  padding-left: 2px;
   font-family: var(--t-font, 'Inter', sans-serif);
 }
 
 .user-time {
   text-align: right;
   padding-right: 2px;
+}
+
+/* ── Botón de voz ── */
+.speak-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #b0bec5;
+  font-size: 0.72rem;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+  outline: none;
+}
+
+.speak-btn:hover {
+  color: #1B7505;
+}
+
+.speak-btn.speaking {
+  color: #1B7505;
+  animation: pulse-speak 1s ease-in-out infinite;
+}
+
+@keyframes pulse-speak {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
 }
 
 /* ════════════════════════════
@@ -370,6 +407,46 @@
   cursor: not-allowed;
 }
 
+.chat-mic-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f0f4f0;
+  border: 1.5px solid #dee2e6;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  outline: none;
+}
+
+.chat-mic-btn:hover:not(:disabled) {
+  background: #e8f5e0;
+  border-color: #1B7505;
+  color: #1B7505;
+}
+
+.chat-mic-btn.listening {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: #fff;
+  animation: mic-pulse 1s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
+  50%       { box-shadow: 0 0 0 7px rgba(220, 53, 69, 0); }
+}
+
+.chat-mic-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .chat-send-btn {
   width: 36px;
   height: 36px;
@@ -398,6 +475,114 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* ════════════════════════════
+   TARJETA DE SUGERENCIA IA
+   ════════════════════════════ */
+.suggestion-card {
+  background: #fff;
+  border: 1.5px solid #c8e6c0;
+  border-radius: 4px 18px 18px 18px;
+  max-width: 280px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  font-family: var(--t-font, 'Inter', sans-serif);
+}
+
+.suggestion-header {
+  background: linear-gradient(135deg, #0D4F32 0%, #1B7505 100%);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.45rem 0.85rem;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.suggestion-body {
+  padding: 0.7rem 0.85rem 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.suggestion-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.suggestion-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.suggestion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #e8f5e0;
+  color: #1B7505;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.suggestion-badge.badge-grupal {
+  background: #e8f0fe;
+  color: #1a56d6;
+}
+
+.suggestion-text {
+  font-size: 0.78rem;
+  color: #374151;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.suggestion-reason {
+  font-size: 0.73rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0;
+  font-style: italic;
+}
+
+.suggestion-list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.74rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.suggestion-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  background: linear-gradient(140deg, #1B7505, #198754);
+  color: #fff;
+  border: none;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 0.4rem;
+  font-family: var(--t-font, 'Inter', sans-serif);
+}
+
+.suggestion-cta:hover {
+  opacity: 0.9;
 }
 
 /* ════════════════════════════

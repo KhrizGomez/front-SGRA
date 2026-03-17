@@ -11,6 +11,7 @@ import {
 } from '../../../models/student/catalog.model';
 import { CreateRequestPayload } from '../../../models/student/request.model';
 import { ToastService } from '../../../services/shared/toast.service';
+import { StudentAISuggestionService } from '../../../services/student/student-ai-suggestion.service';
 
 @Component({
   selector: 'app-student-new-request',
@@ -24,6 +25,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private toast = inject(ToastService);
+  private aiSuggestion = inject(StudentAISuggestionService);
 
   // Catálogos
   subjects: SubjectItem[] = [];
@@ -79,12 +81,35 @@ export class StudentNewRequestComponent implements AfterViewInit {
       this.subjects = subjects || [];
       this.sessionTypes = sessionTypes || [];
       this.loadingCatalogs = false;
+      this.applyAISuggestionIfPresent();
       this.cdr.detectChanges();
     }).catch(err => {
       this.toast.show(false, err?.message || 'Error al cargar los catálogos');
       this.loadingCatalogs = false;
       this.cdr.detectChanges();
     });
+  }
+
+  // ==================== SUGERENCIA IA ====================
+
+  private applyAISuggestionIfPresent(): void {
+    const suggestion = this.aiSuggestion.getSuggestion();
+    if (!suggestion) return;
+
+    // Match session type by name (individual/grupal)
+    const matched = this.sessionTypes.find(
+      st => st.sessionTypeName.toLowerCase().includes(suggestion.tipoSesion.toLowerCase())
+    );
+    if (matched) {
+      this.form.sessionTypeId = matched.sessionTypeId;
+    }
+
+    if (suggestion.motivoSugerido) {
+      this.form.reason = suggestion.motivoSugerido;
+    }
+
+    this.aiSuggestion.clearSuggestion();
+    this.toast.show(true, 'Sugerencia de IA aplicada. Selecciona la asignatura para continuar.');
   }
 
   // ==================== CAMBIO DE ASIGNATURA ====================

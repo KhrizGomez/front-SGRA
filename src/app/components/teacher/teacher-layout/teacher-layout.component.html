@@ -95,6 +95,7 @@
                 <p class="fw-bold mb-1">{{ userName() }}</p>
                 <span class="text-muted">Docente</span>
               </div>
+              <app-role-switcher activeRoute="/teacher"></app-role-switcher>
               <button type="button" class="dropdown-item d-flex align-items-center gap-2 px-3 py-2"
                       (click)="openChangePasswordModal()">
                 <i class="bi bi-shield-lock"></i> Cambiar contraseña

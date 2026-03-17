@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
+import { RoleSwitcherComponent } from '../../shared/role-switcher/role-switcher.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ChangePasswordModalComponent],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent, RoleSwitcherComponent],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css',
 })
