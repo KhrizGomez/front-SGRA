@@ -39,6 +39,7 @@ export class CoordLayoutComponent implements OnInit {
   readonly chatConfig: ChatbotConfig = {
     module: 'coordinacion',
     title: 'Asistente SGRA',
+    welcomeMessage: '¡Hola! Soy tu asistente del SGRA. Puedo ayudarte a analizar el estado del período, solicitudes, asistencia y tendencias del refuerzo académico. ¿Qué necesitas revisar?',
     quickActions: [
       { label: 'Resumen del período',     prompt: 'Dame un resumen del estado actual del período.', icon: 'bi-clipboard-data' },
       { label: '¿Hay algo urgente?',      prompt: '¿Hay solicitudes pendientes que requieran atención inmediata?', icon: 'bi-exclamation-triangle' },

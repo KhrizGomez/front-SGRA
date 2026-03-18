@@ -7,7 +7,7 @@
     <div class="chat-header">
       <div class="chat-header-left">
         <div class="chat-avatar-header">
-          <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+          <img src="assets/images/ChatBot.png" alt="SARA" class="bot-avatar-img" />
         </div>
         <div>
           <div class="chat-title">{{ config.title }}</div>
@@ -27,7 +27,7 @@
         <!-- Burbuja IA normal -->
         <div class="msg-row ai-row" *ngIf="msg.role === 'ai' && msg.type !== 'suggestion'">
           <div class="msg-avatar-small">
-            <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+            <img src="assets/images/ChatBot.png" alt="SARA" class="bot-avatar-img" />
           </div>
           <div>
             <div class="msg-bubble ai-bubble">{{ msg.text }}</div>
@@ -45,7 +45,7 @@
         <!-- Tarjeta de sugerencia -->
         <div class="msg-row ai-row" *ngIf="msg.role === 'ai' && msg.type === 'suggestion' && msg.suggestionData">
           <div class="msg-avatar-small">
-            <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+            <img src="assets/images/ChatBot.png" alt="SARA" class="bot-avatar-img" />
           </div>
           <div class="suggestion-card">
             <div class="suggestion-header">
@@ -116,7 +116,7 @@
       <!-- Typing indicator -->
       <div class="msg-row ai-row" *ngIf="isTyping">
         <div class="msg-avatar-small">
-          <img src="assets/images/ChatBot.webp" alt="SARA" class="bot-avatar-img" />
+          <img src="assets/images/ChatBot.png" alt="SARA" class="bot-avatar-img" />
         </div>
         <div class="msg-bubble ai-bubble typing-bubble">
           <span class="dot"></span>
@@ -164,7 +164,9 @@
   <button class="chat-float-btn" (click)="toggleChat()" [class.active]="isOpen">
     <div class="float-btn-pulse" *ngIf="!isOpen"></div>
     <i class="bi bi-x-lg" *ngIf="isOpen"></i>
-    <img *ngIf="!isOpen" src="assets/images/ChatBot.webp" alt="SARA" class="float-btn-avatar" />
+    <div class="float-avatar-circle" *ngIf="!isOpen">
+      <img src="assets/images/ChatBot.png" alt="SARA" class="float-btn-avatar" />
+    </div>
   </button>
 
 </div>
