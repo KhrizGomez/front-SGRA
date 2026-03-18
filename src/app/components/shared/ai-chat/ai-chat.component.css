@@ -20,8 +20,8 @@
    BOTÓN FLOTANTE
    ════════════════════════════ */
 .chat-float-btn {
-  width: 7rem;
-  height: 7rem;
+  width: 6rem;
+  height: 6rem;
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -36,32 +36,43 @@
   position: relative;
   flex-shrink: 0;
   outline: none;
-  pointer-events: auto; /* el botón siempre es clickeable */
+  pointer-events: auto;
+}
+
+/* Contenedor de la imagen en el botón flotante */
+.float-avatar-circle {
+  width: 5.6rem;
+  height: 5.6rem;
+  border-radius: 50%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .float-btn-avatar {
-  width: 7rem;
-  height: 7rem;
+  width: 5rem;
+  height: 5rem;
   display: block;
   object-fit: contain;
-  transform: scale(1.4);
-  filter: drop-shadow(0 4px 12px rgba(13, 79, 50, 0.45));
 }
 
 .chat-float-btn:hover {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 .chat-float-btn.active {
-  background: transparent;
+  background: #0D4F32;
+  box-shadow: 0 3px 14px rgba(13, 79, 50, 0.45);
 }
 
-/* Anillo pulsante — ahora rodea la imagen */
+/* Anillo pulsante — rodea el círculo blanco */
 .float-btn-pulse {
   position: absolute;
-  inset: -4px;
+  inset: -5px;
   border-radius: 50%;
-  border: 2.5px solid rgba(27, 117, 5, 0.5);
+  border: 2.5px solid rgba(27, 117, 5, 0.55);
   animation: pulse-ring 2.2s ease-out infinite;
   pointer-events: none;
 }
@@ -122,17 +133,23 @@
 }
 
 .chat-avatar-header {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .chat-avatar-header .bot-avatar-img {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 1.9rem;
+  height: 1.9rem;
   display: block;
   object-fit: contain;
-  transform: scale(1.35);
 }
 
 .chat-title {
@@ -206,17 +223,23 @@
 
 /* ── Avatar pequeño IA ── */
 .msg-avatar-small {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .msg-avatar-small .bot-avatar-img {
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 1.45rem;
+  height: 1.45rem;
   display: block;
   object-fit: contain;
-  transform: scale(1.35);
 }
 
 /* ── Burbujas ── */

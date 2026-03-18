@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth.service';
 import { ChangePasswordModalComponent } from '../../shared/change-password-modal/change-password-modal.component';
+import { AiChatComponent } from '../../shared/ai-chat/ai-chat.component';
+import { ChatbotConfig } from '../../../models/ai/chatbot.model';
 import { RoleSwitcherComponent } from '../../shared/role-switcher/role-switcher.component';
 
 @Component({
   selector: 'app-teacher-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ChangePasswordModalComponent, RoleSwitcherComponent],
+  imports: [CommonModule, RouterModule, ChangePasswordModalComponent, AiChatComponent, RoleSwitcherComponent],
   templateUrl: './teacher-layout.component.html',
   styleUrl: './teacher-layout.component.css',
 })
@@ -20,6 +22,18 @@ export class TeacherLayoutComponent implements OnInit {
   showDropdown = false;
   showChangePasswordModal = false;
   userName = signal('Docente');
+
+  readonly chatConfig: ChatbotConfig = {
+    module: 'docente',
+    title: 'Asistente SGRA',
+    welcomeMessage: '¡Hola! Soy tu asistente del SGRA. Puedo ayudarte con tus solicitudes asignadas, sesiones de refuerzo y estadísticas de tus estudiantes. ¿En qué te ayudo?',
+    quickActions: [
+      { label: '¿Tengo sesiones hoy?',        prompt: '¿Tengo sesiones de refuerzo programadas para hoy?',                                    icon: 'bi-calendar-check'  },
+      { label: 'Solicitudes pendientes',       prompt: '¿Cuántas solicitudes de refuerzo tengo pendientes de gestionar?',                        icon: 'bi-inbox-fill'      },
+      { label: '¿Cómo está la asistencia?',   prompt: '¿Cuál es la tasa de asistencia en mis sesiones este período?',                           icon: 'bi-person-check'    },
+      { label: 'Mis sesiones próximas',        prompt: '¿Qué sesiones de refuerzo tengo programadas para los próximos 7 días?',                  icon: 'bi-calendar-week'   },
+    ],
+  };
 
   userInitials = computed(() => {
     const parts = this.userName().trim().split(' ');
