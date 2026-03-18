@@ -24,7 +24,7 @@ export class CoordDataloadService {
     const formData = new FormData();
     formData.append('file', selectedFile, selectedFile.name);
     return this.http.post<string[]>(
-      `${this.apiUrl}/academic/coordinations/upload-registrations`,
+      `${this.apiUrl}/academic/excel-uploads/upload-registrations`,
       formData,
       { withCredentials: true }
     ).pipe(
@@ -54,7 +54,7 @@ export class CoordDataloadService {
     const formData = new FormData();
     formData.append('file', file, file.name);
 
-    return this.http.post<string[]>(`${this.apiUrl}/academic/coordinations/upload-students`, formData, {
+    return this.http.post<string[]>(`${this.apiUrl}/academic/excel-uploads/upload-students`, formData, {
       withCredentials: true
     }).pipe(
       catchError((error: HttpErrorResponse) => {
@@ -84,7 +84,7 @@ export class CoordDataloadService {
     const formData = new FormData();
     formData.append('file', file, file.name);
 
-    return this.http.post<string[]>(`${this.apiUrl}/academic/coordinations/upload-teachers`, formData, {
+    return this.http.post<string[]>(`${this.apiUrl}/academic/excel-uploads/upload-teachers`, formData, {
       withCredentials: true
     }).pipe(
       catchError((error: HttpErrorResponse) => {
@@ -225,7 +225,7 @@ export class CoordDataloadService {
     formData.append('loadType', loadType);
 
     return this.http.post<AIValidationResult>(
-      `${this.apiUrl}/academic/coordinations/validate-excel`,
+      `${this.apiUrl}/academic/excel-validations/validate`,
       formData,
       { withCredentials: true }
     ).pipe(
