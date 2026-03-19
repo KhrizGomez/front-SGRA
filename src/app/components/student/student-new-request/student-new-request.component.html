@@ -97,6 +97,58 @@
               </div>
             }
 
+            <!-- Disponibilidad del docente -->
+            @if (teacherInfo) {
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-calendar2-week me-1 text-success"></i>
+                  Horarios disponibles del docente
+                  <span class="text-muted fw-normal small ms-1">(opcional — selecciona tu franja preferida)</span>
+                </label>
+
+                @if (loadingAvailability) {
+                  <div class="text-muted small">
+                    <span class="spinner-border spinner-border-sm me-1"></span>Cargando disponibilidad...
+                  </div>
+                } @else if (teacherAvailability.length === 0) {
+                  <div class="alert alert-light border py-2 px-3 mb-0">
+                    <i class="bi bi-info-circle me-1 text-muted"></i>
+                    <small class="text-muted">El docente aún no ha configurado sus horarios de disponibilidad.</small>
+                  </div>
+                } @else {
+                  <div class="availability-days d-flex flex-wrap gap-3">
+                    @for (dayGroup of availabilityByDay(); track dayGroup.dayOfWeek) {
+                      <div class="availability-day-card">
+                        <div class="day-title">{{ dayGroup.dayName }}</div>
+                        <div class="d-flex flex-column gap-1 mt-1">
+                          @for (slot of dayGroup.slots; track slot.timeSlotId) {
+                            <button type="button"
+                                    class="slot-pill"
+                                    [class.selected]="selectedAvailabilityKey === availabilityKey(slot)"
+                                    (click)="selectAvailability(slot)">
+                              <i class="bi bi-clock me-1"></i>
+                              {{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  @if (selectedSlot()) {
+                    <div class="selected-slot-info mt-2">
+                      <i class="bi bi-check-circle-fill text-success me-1"></i>
+                      Franja preferida: <strong>{{ selectedSlot()!.dayName }}</strong>
+                      {{ formatTime(selectedSlot()!.startTime) }} – {{ formatTime(selectedSlot()!.endTime) }}
+                      <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2"
+                              (click)="selectedAvailabilityKey = null">
+                        <i class="bi bi-x-circle"></i> Quitar
+                      </button>
+                    </div>
+                  }
+                }
+              </div>
+            }
+
             <!-- Row 3: Motivo -->
             <div class="row g-3 mb-3">
               <div class="col-12">

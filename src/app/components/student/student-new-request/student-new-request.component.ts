@@ -7,7 +7,8 @@ import {
   SubjectItem,
   SessionTypeItem,
   StudentSubjectTeacher,
-  ClassmateItem
+  ClassmateItem,
+  TeacherAvailabilitySlot
 } from '../../../models/student/catalog.model';
 import { CreateRequestPayload } from '../../../models/student/request.model';
 import { ToastService } from '../../../services/shared/toast.service';
@@ -34,6 +35,12 @@ export class StudentNewRequestComponent implements AfterViewInit {
   // Docente (auto-cargado por paralelo)
   teacherInfo: StudentSubjectTeacher | null = null;
   loadingTeacher = false;
+
+  // Disponibilidad del docente
+  teacherAvailability: TeacherAvailabilitySlot[] = [];
+  loadingAvailability = false;
+  activePeriodId: number | null = null;
+  selectedAvailabilityKey: string | null = null;  // "dayOfWeek_timeSlotId"
 
   // Compañeros (sesión grupal)
   classmates: ClassmateItem[] = [];
@@ -76,10 +83,14 @@ export class StudentNewRequestComponent implements AfterViewInit {
 
     Promise.all([
       this.svc.getSubjects().toPromise(),
-      this.svc.getSessionTypes().toPromise()
-    ]).then(([subjects, sessionTypes]) => {
+      this.svc.getSessionTypes().toPromise(),
+      this.svc.getActivePeriod().toPromise().catch(() => null)
+    ]).then(([subjects, sessionTypes, activePeriod]) => {
       this.subjects = subjects || [];
       this.sessionTypes = sessionTypes || [];
+      if (activePeriod?.periodId) {
+        this.activePeriodId = activePeriod.periodId;
+      }
       this.loadingCatalogs = false;
       this.applyAISuggestionIfPresent();
       this.cdr.detectChanges();
@@ -115,8 +126,10 @@ export class StudentNewRequestComponent implements AfterViewInit {
   // ==================== CAMBIO DE ASIGNATURA ====================
 
   onSubjectChange(): void {
-    // Resetear docente y compañeros
+    // Resetear docente, compañeros y disponibilidad
     this.teacherInfo = null;
+    this.teacherAvailability = [];
+    this.selectedAvailabilityKey = null;
     this.classmates = [];
     this.selectedClassmates = [];
     this.selectedClassmateIds.clear();
@@ -138,6 +151,7 @@ export class StudentNewRequestComponent implements AfterViewInit {
           this.teacherInfo = null;
         } else if (data && data.teacherId) {
           this.teacherInfo = data as StudentSubjectTeacher;
+          this.loadTeacherAvailability();
         } else {
           this.teacherInfo = null;
         }
@@ -155,6 +169,58 @@ export class StudentNewRequestComponent implements AfterViewInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ==================== DISPONIBILIDAD DEL DOCENTE ====================
+
+  loadTeacherAvailability(): void {
+    if (!this.form.subjectId || !this.activePeriodId) return;
+    this.loadingAvailability = true;
+    this.cdr.detectChanges();
+
+    this.svc.getTeacherAvailability(this.form.subjectId, this.activePeriodId).subscribe({
+      next: (slots) => {
+        this.teacherAvailability = slots || [];
+        this.loadingAvailability = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.teacherAvailability = [];
+        this.loadingAvailability = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  availabilityKey(slot: TeacherAvailabilitySlot): string {
+    return `${slot.dayOfWeek}_${slot.timeSlotId}`;
+  }
+
+  selectAvailability(slot: TeacherAvailabilitySlot): void {
+    const key = this.availabilityKey(slot);
+    this.selectedAvailabilityKey = this.selectedAvailabilityKey === key ? null : key;
+    this.cdr.detectChanges();
+  }
+
+  selectedSlot(): TeacherAvailabilitySlot | null {
+    if (!this.selectedAvailabilityKey) return null;
+    return this.teacherAvailability.find(s => this.availabilityKey(s) === this.selectedAvailabilityKey) ?? null;
+  }
+
+  formatTime(time: string): string {
+    if (!time) return '';
+    return time.substring(0, 5);
+  }
+
+  availabilityByDay(): { dayOfWeek: number; dayName: string; slots: TeacherAvailabilitySlot[] }[] {
+    const map = new Map<number, { dayOfWeek: number; dayName: string; slots: TeacherAvailabilitySlot[] }>();
+    for (const slot of this.teacherAvailability) {
+      if (!map.has(slot.dayOfWeek)) {
+        map.set(slot.dayOfWeek, { dayOfWeek: slot.dayOfWeek, dayName: slot.dayName, slots: [] });
+      }
+      map.get(slot.dayOfWeek)!.slots.push(slot);
+    }
+    return Array.from(map.values()).sort((a, b) => a.dayOfWeek - b.dayOfWeek);
   }
 
   // ==================== SESIÓN GRUPAL / COMPAÑEROS ====================
@@ -294,11 +360,14 @@ export class StudentNewRequestComponent implements AfterViewInit {
 
     this.submitting = true;
 
+    const preferred = this.selectedSlot();
     const payload: CreateRequestPayload = {
       subjectId: this.form.subjectId!,
       sessionTypeId: this.form.sessionTypeId!,
       reason: this.form.reason.trim(),
-      participantIds: this.isGroupSession() ? Array.from(this.selectedClassmateIds) : undefined
+      participantIds: this.isGroupSession() ? Array.from(this.selectedClassmateIds) : undefined,
+      preferredDayOfWeek: preferred?.dayOfWeek ?? null,
+      preferredTimeSlotId: preferred?.timeSlotId ?? null
     };
 
     this.svc.createRequest(payload, this.selectedFiles).subscribe({

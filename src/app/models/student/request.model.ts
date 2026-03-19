@@ -8,7 +8,9 @@ export interface CreateRequestPayload {
   subjectId: number;
   sessionTypeId: number;
   reason: string;
-  participantIds?: number[];  // IDs de compañeros para sesiones grupales
+  participantIds?: number[];        // IDs de compañeros para sesiones grupales
+  preferredDayOfWeek?: number | null;   // Franja preferida (opcional)
+  preferredTimeSlotId?: number | null;
 }
 
 export interface CreateRequestResponse {

@@ -43,3 +43,15 @@ export interface ClassmateItem {
   email: string;
 }
 
+/**
+ * Franja horaria de disponibilidad del docente.
+ * Retornado por GET /api/student/catalogs/subjects/{subjectId}/teacher-availability
+ */
+export interface TeacherAvailabilitySlot {
+  dayOfWeek: number;
+  dayName: string;
+  timeSlotId: number;
+  startTime: string;
+  endTime: string;
+}
+

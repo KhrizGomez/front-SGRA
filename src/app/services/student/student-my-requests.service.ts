@@ -15,6 +15,9 @@ export interface MyRequestRowDTO {
   sessionType: string;
   status: string;
   totalCount: number;
+  preferredDayName: string | null;
+  preferredStartTime: string | null;
+  preferredEndTime: string | null;
 }
 
 export interface StudentMyRequestsPageDTO {

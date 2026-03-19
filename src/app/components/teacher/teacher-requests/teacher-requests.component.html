@@ -222,6 +222,16 @@
               <span class="label">Estado</span>
               <span class="badge rounded-pill" [ngClass]="statusBadge(selected.statusId)">{{ selected.statusName }}</span>
             </div>
+            @if (selected.preferredDayName) {
+              <div class="col-12">
+                <span class="label">Franja preferida por el estudiante</span>
+                <strong class="d-block">
+                  <i class="bi bi-clock-history me-1 text-success"></i>
+                  {{ selected.preferredDayName }},
+                  {{ selected.preferredStartTime?.substring(0, 5) }} – {{ selected.preferredEndTime?.substring(0, 5) }}
+                </strong>
+              </div>
+            }
           </div>
         </div>
         <div class="modal-footer border-top">
@@ -263,6 +273,15 @@
               ? 'Define fecha, hora de inicio y fin, modalidad y duración para programar la sesión de refuerzo.'
               : 'Actualiza los datos de programación. Solo disponible para solicitudes Aceptadas.' }}
           </p>
+          @if (selected.preferredDayName) {
+            <div class="alert alert-success d-flex align-items-center gap-2 py-2 px-3 mb-3 small">
+              <i class="bi bi-clock-history fs-5 flex-shrink-0"></i>
+              <span>
+                El estudiante prefiere:
+                <strong>{{ selected.preferredDayName }}, {{ selected.preferredStartTime?.substring(0, 5) }} – {{ selected.preferredEndTime?.substring(0, 5) }}</strong>
+              </span>
+            </div>
+          }
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-semibold small">Fecha programada <span class="text-danger">*</span></label>

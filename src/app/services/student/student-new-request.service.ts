@@ -8,7 +8,8 @@ import {
   SessionTypeItem,
   StudentSubjectTeacher,
   ActivePeriod,
-  ClassmateItem
+  ClassmateItem,
+  TeacherAvailabilitySlot
 } from '../../models/student/catalog.model';
 import {
   CreateRequestPayload,
@@ -52,6 +53,14 @@ export class StudentNewRequestService {
     return this.http.get<SessionTypeItem[]>(
       `${this.baseUrl}/student/catalogs/sessionTypes`,
       this.httpOptions
+    ).pipe(catchError(this.handleError));
+  }
+
+  /** Obtiene las franjas de disponibilidad del docente de una asignatura */
+  getTeacherAvailability(subjectId: number, periodId: number): Observable<TeacherAvailabilitySlot[]> {
+    return this.http.get<TeacherAvailabilitySlot[]>(
+      `${this.baseUrl}/student/catalogs/subjects/${subjectId}/teacher-availability`,
+      { ...this.httpOptions, params: { periodId: String(periodId) } }
     ).pipe(catchError(this.handleError));
   }
 

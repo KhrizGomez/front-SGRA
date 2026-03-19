@@ -1,2 +1,49 @@
 /* student-new-request.component.css */
 
+/* Disponibilidad del docente */
+.availability-day-card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width: 130px;
+}
+
+.day-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+
+.slot-pill {
+  display: block;
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid #dee2e6;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  color: #444;
+  cursor: pointer;
+  transition: all .14s ease;
+  text-align: left;
+}
+.slot-pill:hover {
+  border-color: #1B7505;
+  color: #1B7505;
+  background: #f0faf0;
+}
+.slot-pill.selected {
+  background: #1B7505;
+  border-color: #1B7505;
+  color: #fff;
+  font-weight: 600;
+}
+
+.selected-slot-info {
+  font-size: 0.85rem;
+  color: #333;
+}

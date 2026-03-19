@@ -16,6 +16,9 @@ export interface TeacherRequestItemDTO {
   createdAt: string;
   isGroupal: boolean;
   participantCount: number;
+  preferredDayName: string | null;
+  preferredStartTime: string | null;
+  preferredEndTime: string | null;
 }
 
 export interface TeacherRequestsPageDTO {

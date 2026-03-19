@@ -1,0 +1,184 @@
+<div class="container-fluid">
+
+  <!-- Header -->
+  <div class="mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="header-icon"><i class="bi bi-calendar2-week-fill"></i></div>
+      <div>
+        <h3 class="fw-bold text-dark mb-0">Horarios de Disponibilidad</h3>
+        <p class="text-muted mb-0">Configura los días y franjas horarias en que puedes atender refuerzos académicos</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading inicial -->
+  @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="text-muted mt-2 mb-0 small">Cargando...</p>
+    </div>
+  }
+
+  @if (!loading) {
+
+    <!-- Selector de periodo -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body px-4 py-3">
+        <div class="row align-items-center g-3">
+          <div class="col-12 col-md-5">
+            <label class="form-label fw-semibold small mb-1">Periodo académico</label>
+            <select class="form-select border"
+                    [(ngModel)]="selectedPeriodId"
+                    (ngModelChange)="onPeriodChange()"
+                    name="periodId">
+              <option [ngValue]="null">Selecciona un periodo...</option>
+              @for (p of periods; track p.idperiodo) {
+                <option [ngValue]="p.idperiodo">{{ p.periodo }}</option>
+              }
+            </select>
+          </div>
+          @if (selectedPeriodId && !loadingSlots) {
+            <div class="col-12 col-md-7 d-flex align-items-end gap-2 flex-wrap">
+              <div class="summary-chip">
+                <i class="bi bi-check2-square me-1"></i>
+                <strong>{{ countSelected() }}</strong> franjas seleccionadas
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de disponibilidad -->
+    @if (selectedPeriodId) {
+
+      @if (loadingSlots) {
+        <div class="text-center py-4">
+          <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+          <span class="text-muted ms-2 small">Cargando disponibilidad...</span>
+        </div>
+      }
+
+      @if (!loadingSlots) {
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-grid-3x3-gap-fill text-success fs-5"></i>
+              <span class="fw-semibold small">Selecciona tus franjas disponibles</span>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-success"
+                      (click)="toggleNewSlotForm()" [disabled]="saving">
+                <i class="bi" [class.bi-plus-lg]="!showNewSlotForm" [class.bi-x-lg]="showNewSlotForm"></i>
+                {{ showNewSlotForm ? 'Cancelar' : 'Nueva franja' }}
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      (click)="clearAll()" [disabled]="saving">
+                <i class="bi bi-x-circle me-1"></i>Limpiar todo
+              </button>
+            </div>
+          </div>
+
+          <!-- Formulario nueva franja -->
+          @if (showNewSlotForm) {
+            <div class="new-slot-form border-bottom px-4 py-3">
+              <p class="fw-semibold small mb-2 text-success">
+                <i class="bi bi-plus-circle me-1"></i>Nueva franja horaria
+              </p>
+              <div class="d-flex align-items-end gap-3 flex-wrap">
+                <div>
+                  <label class="form-label small mb-1">Hora inicio</label>
+                  <input type="time" class="form-control form-control-sm" style="min-width:130px"
+                         [(ngModel)]="newSlotStart" name="newSlotStart">
+                </div>
+                <div>
+                  <label class="form-label small mb-1">Hora fin</label>
+                  <input type="time" class="form-control form-control-sm" style="min-width:130px"
+                         [(ngModel)]="newSlotEnd" name="newSlotEnd">
+                </div>
+                <button type="button" class="btn btn-sm btn-success"
+                        (click)="addTimeSlot()"
+                        [disabled]="savingNewSlot || !newSlotStart || !newSlotEnd">
+                  @if (savingNewSlot) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                  } @else {
+                    <i class="bi bi-floppy-fill me-1"></i>
+                  }
+                  Agregar
+                </button>
+              </div>
+            </div>
+          }
+
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="availability-table w-100">
+                <thead>
+                  <tr>
+                    <th class="slot-header text-muted small fw-semibold">Franja horaria</th>
+                    @for (day of DAYS; track day.value) {
+                      <th class="day-header text-center">
+                        <span class="day-label">{{ day.label }}</span>
+                        @if (countForDay(day.value) > 0) {
+                          <span class="day-badge">{{ countForDay(day.value) }}</span>
+                        }
+                      </th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (slot of timeSlots; track slot.timeSlotId) {
+                    <tr>
+                      <td class="slot-time-cell text-nowrap">
+                        <i class="bi bi-clock me-1 text-muted small"></i>
+                        <span class="fw-medium small">{{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}</span>
+                      </td>
+                      @for (day of DAYS; track day.value) {
+                        <td class="toggle-cell text-center">
+                          <button type="button"
+                                  class="toggle-btn"
+                                  [class.active]="isSelected(day.value, slot.timeSlotId)"
+                                  (click)="toggleSlot(day.value, slot.timeSlotId)"
+                                  [title]="day.label + ' ' + formatTime(slot.startTime) + '-' + formatTime(slot.endTime)">
+                            @if (isSelected(day.value, slot.timeSlotId)) {
+                              <i class="bi bi-check-lg"></i>
+                            } @else {
+                              <i class="bi bi-plus-lg text-muted"></i>
+                            }
+                          </button>
+                        </td>
+                      }
+                    </tr>
+                  }
+                  @if (timeSlots.length === 0) {
+                    <tr>
+                      <td [attr.colspan]="DAYS.length + 1" class="text-center text-muted py-4 small">
+                        No hay franjas horarias configuradas en el sistema.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón guardar -->
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button"
+                  class="btn btn-success px-4"
+                  (click)="saveAvailability()"
+                  [disabled]="saving || !selectedPeriodId">
+            @if (saving) {
+              <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+            } @else {
+              <i class="bi bi-floppy-fill me-2"></i>Guardar disponibilidad
+            }
+          </button>
+        </div>
+      }
+    }
+
+  }
+
+</div>
