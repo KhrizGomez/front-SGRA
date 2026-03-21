@@ -40,6 +40,8 @@ export class AdminBackupComponent implements OnInit {
   showRestoreModal     = signal(false);
   selectedRestoreFile  = signal<string | null>(null);
   restoringToNewDb     = signal(false);
+  dbNotFoundError      = signal(false);
+  checkingDb           = signal(false);
 
   // ── KPIs ───────────────────────────────────────────────────────────────────
   totalCount = computed(() => this.history().length);
@@ -331,7 +333,13 @@ export class AdminBackupComponent implements OnInit {
   confirmRestore(fileName: string): void {
     this.confirmingDelete.set(null);
     this.selectedRestoreFile.set(fileName);
+    this.dbNotFoundError.set(false);
+    this.checkingDb.set(true);
     this.showRestoreModal.set(true);
+    this.backupService.checkDatabase().subscribe({
+      next:  (res) => { this.checkingDb.set(false); if (!res.available) this.dbNotFoundError.set(true); },
+      error: ()    => { this.checkingDb.set(false); this.dbNotFoundError.set(true); }
+    });
   }
 
   cancelRestore(): void { this.confirmingRestore.set(null); }
@@ -339,6 +347,8 @@ export class AdminBackupComponent implements OnInit {
   closeRestoreModal(): void {
     this.showRestoreModal.set(false);
     this.selectedRestoreFile.set(null);
+    this.dbNotFoundError.set(false);
+    this.checkingDb.set(false);
   }
 
   restoreToSameDb(): void {
@@ -353,10 +363,15 @@ export class AdminBackupComponent implements OnInit {
         if (result.success) { this.iniciarCountdownRecarga(); }
         else { this.toastService.show(false, result.message); }
       },
-      error: () => {
+      error: (err: any) => {
         this.restoring.set(null);
-        this.selectedRestoreFile.set(null);
-        this.toastService.show(false, 'Error al restaurar la base de datos.');
+        if (err?.status === 503) {
+          this.dbNotFoundError.set(true);
+          this.showRestoreModal.set(true);
+        } else {
+          this.selectedRestoreFile.set(null);
+          this.toastService.show(false, 'Error al restaurar la base de datos.');
+        }
       }
     });
   }
@@ -366,22 +381,41 @@ export class AdminBackupComponent implements OnInit {
     if (!fileName || this.restoringToNewDb()) return;
     this.showRestoreModal.set(false);
     this.restoringToNewDb.set(true);
-    this.backupService.restoreToNewDatabase(fileName).subscribe({
-      next: (result) => {
-        this.restoringToNewDb.set(false);
-        this.selectedRestoreFile.set(null);
-        if (result.success) {
-          this.toastService.show(true, result.message || 'Respaldo restaurado en una nueva base de datos exitosamente.');
-        } else {
-          this.toastService.show(false, result.message);
+
+    if (this.dbNotFoundError()) {
+      // BD no existe → recrear la BD original con los datos del respaldo
+      this.backupService.restorebdNoExistent(fileName).subscribe({
+        next: (success) => {
+          this.restoringToNewDb.set(false);
+          this.selectedRestoreFile.set(null);
+          if (success) { this.iniciarCountdownRecarga(); }
+          else { this.toastService.show(false, 'No se pudo recrear la base de datos.'); }
+        },
+        error: () => {
+          this.restoringToNewDb.set(false);
+          this.selectedRestoreFile.set(null);
+          this.toastService.show(false, 'Error al recrear la base de datos.');
         }
-      },
-      error: () => {
-        this.restoringToNewDb.set(false);
-        this.selectedRestoreFile.set(null);
-        this.toastService.show(false, 'Error al restaurar en la nueva base de datos.');
-      }
-    });
+      });
+    } else {
+      // BD existe → crear una base de datos nueva con otro nombre
+      this.backupService.restoreToNewDatabase(fileName).subscribe({
+        next: (result) => {
+          this.restoringToNewDb.set(false);
+          this.selectedRestoreFile.set(null);
+          if (result.success) {
+            this.toastService.show(true, result.message || 'Respaldo restaurado en una nueva base de datos exitosamente.');
+          } else {
+            this.toastService.show(false, result.message);
+          }
+        },
+        error: () => {
+          this.restoringToNewDb.set(false);
+          this.selectedRestoreFile.set(null);
+          this.toastService.show(false, 'Error al restaurar en la nueva base de datos.');
+        }
+      });
+    }
   }
 
   restoreBackup(fileName: string): void {

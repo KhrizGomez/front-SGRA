@@ -60,10 +60,6 @@ export class TeacherRequestsComponent implements OnInit {
   scheduleForm: AcceptRescheduleBodyDTO = { scheduledDate: '', startTime: '', endTime: '', modalityId: 1, estimatedDuration: '', reason: '', workAreaTypeId: null };
   todayStr = new Date().toISOString().split('T')[0];
 
-  // Custom 24h time pickers
-  startHour: number | null = null; startMin = '00'; startMinNum: number | null = null;
-  endHour:   number | null = null; endMin   = '00'; endMinNum:   number | null = null;
-
   // Duration presets
   durationPresets: string[] = [];
 
@@ -80,22 +76,6 @@ export class TeacherRequestsComponent implements OnInit {
     return this.modalities.find(m =>
       m.modality.toLowerCase().includes('presencial')
     )?.idModality ?? null;
-  }
-
-  onStartTimeSelect(): void {
-    const min = this.startMinNum !== null ? this.startMinNum : 0;
-    this.startMin = String(min).padStart(2, '0');
-    this.scheduleForm.startTime = this.startHour !== null
-      ? `${String(this.startHour).padStart(2,'0')}:${this.startMin}` : '';
-    this.onTimeChange();
-  }
-
-  onEndTimeSelect(): void {
-    const min = this.endMinNum !== null ? this.endMinNum : 0;
-    this.endMin = String(min).padStart(2, '0');
-    this.scheduleForm.endTime = this.endHour !== null
-      ? `${String(this.endHour).padStart(2,'0')}:${this.endMin}` : '';
-    this.onTimeChange();
   }
 
   onTimeChange(): void {
@@ -174,8 +154,6 @@ export class TeacherRequestsComponent implements OnInit {
     const defaultModality = this.modalities[0]?.idModality ?? 1;
     this.scheduleForm = { scheduledDate: '', startTime: '', endTime: '', modalityId: defaultModality, estimatedDuration: '', reason: '', workAreaTypeId: null };
     this.durationPresets = [];
-    this.startHour = null; this.startMin = '00'; this.startMinNum = null;
-    this.endHour = null;   this.endMin   = '00'; this.endMinNum   = null;
     this.loadWorkAreaTypes();
     this.activeModal = 'accept';
   }
@@ -185,8 +163,6 @@ export class TeacherRequestsComponent implements OnInit {
     const defaultModality = this.modalities[0]?.idModality ?? 1;
     this.scheduleForm = { scheduledDate: '', startTime: '', endTime: '', modalityId: defaultModality, estimatedDuration: '', reason: '', workAreaTypeId: null };
     this.durationPresets = [];
-    this.startHour = null; this.startMin = '00'; this.startMinNum = null;
-    this.endHour = null;   this.endMin   = '00'; this.endMinNum   = null;
     this.loadWorkAreaTypes();
     this.activeModal = 'reschedule';
   }

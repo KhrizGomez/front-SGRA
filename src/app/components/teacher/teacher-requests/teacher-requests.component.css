@@ -126,6 +126,7 @@
 .filter-tag--active .filter-tag__count { background: rgba(255,255,255,.3); color: #fff; }
 
 /* ── Time picker ─────────────────────────────────────────────────── */
+.time-input { width: 130px; cursor: pointer; }
 .time-card-group { display: flex; align-items: center; gap: 10px; }
 .time-card {
   display: flex; flex-direction: column; align-items: center;
