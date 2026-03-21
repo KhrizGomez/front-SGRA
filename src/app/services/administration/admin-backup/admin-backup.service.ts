@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
@@ -80,5 +80,10 @@ export class AdminBackupService {
     return this.http.get<{ currentPath: string; parentPath: string | null; directories: string[] }>(
       `${this.apiUrl}/admin/backup/browse${params}`
     );
+  }
+
+  restorebdNoExistent(fileName: string): Observable<boolean>{
+    let params = new HttpParams().set('fileName',fileName);
+    return this.http.post<boolean>(`${this.apiUrl}/admin/backup/restorebd-no-existent`,{params});
   }
 }
