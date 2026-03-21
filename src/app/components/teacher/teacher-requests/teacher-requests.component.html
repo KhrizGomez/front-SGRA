@@ -271,37 +271,11 @@
             <div class="col-md-6">
               <label class="form-label fw-semibold small mb-1">Horario <span class="text-danger">*</span></label>
               <div class="d-flex align-items-center gap-3 flex-wrap">
-                <div class="d-flex flex-column">
-                  <div class="time-card-group">
-                    <div class="time-card" [class.time-card--active]="startHour !== null">
-                      <input type="number" class="time-card-input"
-                        [(ngModel)]="startHour" (ngModelChange)="onStartTimeSelect()"
-                        min="0" max="23" placeholder="--" />
-                    </div>
-                    <span class="time-card-sep">:</span>
-                    <div class="time-card" [class.time-card--active]="true">
-                      <input type="number" class="time-card-input"
-                        [(ngModel)]="startMinNum" (ngModelChange)="onStartTimeSelect()"
-                        min="0" max="45" step="15" placeholder="--" />
-                    </div>
-                  </div>
-                </div>
-                <i class="bi bi-arrow-right text-secondary fs-5 mt-3"></i>
-                <div class="d-flex flex-column">
-                  <div class="time-card-group">
-                    <div class="time-card" [class.time-card--active]="endHour !== null">
-                      <input type="number" class="time-card-input"
-                        [(ngModel)]="endHour" (ngModelChange)="onEndTimeSelect()"
-                        min="0" max="23" placeholder="--" />
-                    </div>
-                    <span class="time-card-sep">:</span>
-                    <div class="time-card" [class.time-card--active]="true">
-                      <input type="number" class="time-card-input"
-                        [(ngModel)]="endMinNum" (ngModelChange)="onEndTimeSelect()"
-                        min="0" max="45" step="15" placeholder="--" />
-                    </div>
-                  </div>
-                </div>
+                <input type="time" class="form-control form-control-sm time-input"
+                  [(ngModel)]="scheduleForm.startTime" (ngModelChange)="onTimeChange()" />
+                <i class="bi bi-arrow-right text-secondary fs-5"></i>
+                <input type="time" class="form-control form-control-sm time-input"
+                  [(ngModel)]="scheduleForm.endTime" (ngModelChange)="onTimeChange()" />
               </div>
             </div>
 

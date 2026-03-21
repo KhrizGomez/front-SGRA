@@ -530,57 +530,81 @@
         <i class="bi bi-file-earmark-binary-fill text-success me-1"></i>
         <strong>{{ selectedRestoreFile() }}</strong>
       </p>
-      <p class="small mb-3">Selecciona cómo deseas restaurar este respaldo:</p>
 
-      <!-- Opción 1: Misma base de datos -->
-      <div class="restore-option" [class.restore-option-disabled]="restoring() || restoringToNewDb()">
-        <div class="restore-option-icon bg-warning-subtle text-warning">
-          <i class="bi bi-database-fill-gear"></i>
+      @if (checkingDb()) {
+        <!-- Verificando disponibilidad de la BD -->
+        <div class="d-flex flex-column align-items-center justify-content-center py-4 gap-2">
+          <span class="spinner-border text-primary"></span>
+          <span class="small text-muted mt-1">Verificando base de datos...</span>
         </div>
-        <div class="restore-option-content">
-          <h6 class="mb-1 fw-semibold">Restaurar en la misma base de datos</h6>
-          <p class="text-muted small mb-2">
-            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
-            <strong class="text-danger">¡Advertencia!</strong> Esta acción reemplazará <strong>todos los datos actuales</strong> de la base de datos. La aplicación se recargará después de completar la restauración.
-          </p>
-          <button type="button" class="btn btn-sm btn-warning"
-                  (click)="restoreToSameDb()"
-                  [disabled]="restoring() || restoringToNewDb()">
-            @if (restoring()) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
-              Restaurando...
-            } @else {
-              <i class="bi bi-arrow-repeat me-1"></i>
-              Restaurar aquí
-            }
-          </button>
-        </div>
-      </div>
+      } @else {
+        <p class="small mb-3">Selecciona cómo deseas restaurar este respaldo:</p>
 
-      <!-- Opción 2: Nueva base de datos -->
-      <div class="restore-option" [class.restore-option-disabled]="restoring() || restoringToNewDb()">
-        <div class="restore-option-icon bg-success-subtle text-success">
-          <i class="bi bi-database-fill-add"></i>
-        </div>
-        <div class="restore-option-content">
-          <h6 class="mb-1 fw-semibold">Restaurar en una nueva base de datos</h6>
-          <p class="text-muted small mb-2">
-            <i class="bi bi-shield-check text-success me-1"></i>
-            Se creará una <strong>nueva base de datos</strong> con los datos del respaldo. Los datos actuales no se verán afectados.
-          </p>
-          <button type="button" class="btn btn-sm btn-success"
-                  (click)="restoreToNewDb()"
-                  [disabled]="restoring() || restoringToNewDb()">
-            @if (restoringToNewDb()) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
-              Creando BD...
+        <!-- Opción 1: Misma base de datos -->
+        <div class="restore-option" [class.restore-option-disabled]="restoring() || restoringToNewDb() || dbNotFoundError()">
+          <div class="restore-option-icon bg-warning-subtle text-warning">
+            <i class="bi bi-database-fill-gear"></i>
+          </div>
+          <div class="restore-option-content">
+            <h6 class="mb-1 fw-semibold">Restaurar en la misma base de datos</h6>
+            @if (dbNotFoundError()) {
+              <div class="alert alert-danger py-2 px-3 small mb-2 d-flex align-items-center gap-2">
+                <i class="bi bi-database-x fs-5 flex-shrink-0"></i>
+                <span>La base de datos <strong>no existe</strong>. Usa la opción de abajo para recrearla.</span>
+              </div>
             } @else {
-              <i class="bi bi-plus-circle me-1"></i>
-              Crear nueva BD
+              <p class="text-muted small mb-2">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                <strong class="text-danger">¡Advertencia!</strong> Esta acción reemplazará <strong>todos los datos actuales</strong> de la base de datos. La aplicación se recargará después de completar la restauración.
+              </p>
             }
-          </button>
+            <button type="button" class="btn btn-sm btn-warning"
+                    (click)="restoreToSameDb()"
+                    [disabled]="restoring() || restoringToNewDb() || dbNotFoundError()">
+              @if (restoring()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Restaurando...
+              } @else {
+                <i class="bi bi-arrow-repeat me-1"></i>
+                Restaurar aquí
+              }
+            </button>
+          </div>
         </div>
-      </div>
+
+        <!-- Opción 2: Nueva base de datos / Recrear BD original -->
+        <div class="restore-option" [class.restore-option-disabled]="restoring() || restoringToNewDb()">
+          <div class="restore-option-icon bg-success-subtle text-success">
+            <i class="bi bi-database-fill-add"></i>
+          </div>
+          <div class="restore-option-content">
+            @if (dbNotFoundError()) {
+              <h6 class="mb-1 fw-semibold">Recrear base de datos original</h6>
+              <p class="text-muted small mb-2">
+                <i class="bi bi-database-check text-success me-1"></i>
+                Se creará nuevamente la base de datos original y se restaurarán los datos del respaldo.
+              </p>
+            } @else {
+              <h6 class="mb-1 fw-semibold">Restaurar en una nueva base de datos</h6>
+              <p class="text-muted small mb-2">
+                <i class="bi bi-shield-check text-success me-1"></i>
+                Se creará una <strong>nueva base de datos</strong> con los datos del respaldo. Los datos actuales no se verán afectados.
+              </p>
+            }
+            <button type="button" class="btn btn-sm btn-success"
+                    (click)="restoreToNewDb()"
+                    [disabled]="restoring() || restoringToNewDb()">
+              @if (restoringToNewDb()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                {{ dbNotFoundError() ? 'Recreando BD...' : 'Creando BD...' }}
+              } @else {
+                <i class="bi bi-plus-circle me-1"></i>
+                {{ dbNotFoundError() ? 'Recrear BD original' : 'Crear nueva BD' }}
+              }
+            </button>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- Footer -->
@@ -593,3 +617,4 @@
 
   </div>
 }
+

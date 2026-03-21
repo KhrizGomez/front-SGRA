@@ -83,7 +83,11 @@ export class AdminBackupService {
   }
 
   restorebdNoExistent(fileName: string): Observable<boolean>{
-    let params = new HttpParams().set('fileName',fileName);
-    return this.http.post<boolean>(`${this.apiUrl}/admin/backup/restorebd-no-existent`,{params});
+    const params = new HttpParams().set('fileName', fileName);
+    return this.http.post<boolean>(`${this.apiUrl}/admin/backup/restorebd-no-existent`, null, { params });
+  }
+
+  checkDatabase(): Observable<{ available: boolean }> {
+    return this.http.get<{ available: boolean }>(`${this.apiUrl}/admin/backup/db-check`);
   }
 }
