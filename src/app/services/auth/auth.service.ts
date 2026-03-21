@@ -124,6 +124,12 @@ export class AuthService {
     return user.roles.some((r: string) => r.toLowerCase() === role.toLowerCase());
   }
 
+  emergencyLogin(password: string): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/emergency/login`, { password }, {
+      withCredentials: true
+    });
+  }
+
   // ─── Recuperación de contraseña ───
 
   /**

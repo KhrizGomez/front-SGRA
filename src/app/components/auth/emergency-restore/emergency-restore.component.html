@@ -1,0 +1,224 @@
+<div class="er-page">
+
+  <!-- Banner de emergencia -->
+  <div class="er-banner">
+    <div class="er-banner-inner">
+      <div class="er-banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="er-banner-text">
+        <span class="er-banner-title">Modo de Emergencia — Base de datos no disponible</span>
+        <span class="er-banner-sub">
+          La base de datos del sistema no está disponible. Selecciona un respaldo para restaurarla y reanudar operaciones.
+          @if (currentUser) {
+            Conectado como <strong>{{ currentUser.firstName }} {{ currentUser.lastName }}</strong>.
+          }
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido -->
+  <div class="er-content">
+
+    <!-- Header -->
+    <div class="er-header">
+      <div class="er-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+          <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="er-title">Recuperación de Base de Datos</h2>
+        <p class="er-subtitle">Selecciona uno de los respaldos disponibles en Azure Blob Storage para restaurar el sistema.</p>
+      </div>
+    </div>
+
+    <!-- Instrucciones -->
+    <div class="er-info-card">
+      <div class="er-info-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="er-info-text">
+        <strong>¿Qué hace la restauración?</strong> Recrea la base de datos original con los datos del respaldo seleccionado.
+        Al completarse serás redirigido al inicio de sesión para acceder al sistema normalmente.
+      </div>
+    </div>
+
+    <!-- Lista de respaldos -->
+    <div class="er-card">
+      <div class="er-card-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="er-card-icon">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span>Respaldos disponibles</span>
+      </div>
+
+      <!-- Cargando -->
+      @if (isLoading()) {
+        <div class="er-loading">
+          <span class="er-spinner"></span>
+          <span>Cargando respaldos desde Azure Blob Storage...</span>
+        </div>
+      }
+
+      <!-- Error al cargar -->
+      @else if (loadError()) {
+        <div class="er-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="er-empty-icon">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p>No se pudo obtener el listado de respaldos.<br>La conexión a Azure Blob Storage puede estar afectada.</p>
+          <button class="er-btn-retry" (click)="loadHistory()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            Reintentar
+          </button>
+        </div>
+      }
+
+      <!-- Sin respaldos -->
+      @else if (history().length === 0) {
+        <div class="er-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="er-empty-icon">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+            <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+          </svg>
+          <p>No hay respaldos disponibles en el almacenamiento.</p>
+        </div>
+      }
+
+      <!-- Lista -->
+      @else {
+        <div class="er-list">
+          @for (item of history(); track item.fileName) {
+            <div class="er-item" [class.er-item-restoring]="restoring() === item.fileName">
+              <div class="er-item-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                  <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+                </svg>
+              </div>
+              <div class="er-item-info">
+                <span class="er-item-name">{{ item.fileName }}</span>
+                <span class="er-item-meta">
+                  {{ formatSize(item.fileSizeBytes) }}
+                  @if (item.createdAt && item.createdAt !== '—') {
+                    &nbsp;·&nbsp;{{ item.createdAt }}
+                  }
+                </span>
+              </div>
+              <button class="er-btn-restore"
+                      (click)="restoreBackup(item.fileName)"
+                      [disabled]="!!restoring()">
+                @if (restoring() === item.fileName) {
+                  <span class="er-spinner er-spinner-sm"></span>
+                  <span>Restaurando...</span>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+                  </svg>
+                  <span>Restaurar</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div><!-- /er-content -->
+
+</div><!-- /er-page -->
+
+<!-- Modal de progreso (no closeable durante operación) -->
+@if (showProgressModal()) {
+  <div class="er-progress-overlay">
+    <div class="er-progress-modal">
+
+      <div class="er-progress-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+          <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+        </svg>
+        <span>Restaurando base de datos</span>
+      </div>
+
+      <div class="er-progress-steps">
+        @for (step of progressSteps(); track $index) {
+          <div class="er-step"
+               [class.step-done]="$index < progressCurrent() || (progressDone() && progressSuccess() && $index === progressSteps().length - 1)"
+               [class.step-active]="$index === progressCurrent() && !progressDone()"
+               [class.step-error]="progressDone() && !progressSuccess() && $index === progressCurrent()"
+               [class.step-pending]="$index > progressCurrent()">
+            <div class="er-step-icon">
+              @if ($index < progressCurrent() || (progressDone() && progressSuccess() && $index === progressSteps().length - 1)) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="icon-done">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              } @else if (progressDone() && !progressSuccess() && $index === progressCurrent()) {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="icon-error">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              } @else if ($index === progressCurrent() && !progressDone()) {
+                <span class="er-spinner er-spinner-sm spinner-primary"></span>
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-pending">
+                  <circle cx="12" cy="12" r="9"/>
+                </svg>
+              }
+            </div>
+            <span class="er-step-label">{{ step }}</span>
+          </div>
+        }
+      </div>
+
+      @if (progressDone()) {
+        <div class="er-progress-result" [class.result-success]="progressSuccess()" [class.result-error]="!progressSuccess()">
+          @if (progressSuccess()) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          }
+          <span>{{ progressMessage() }}</span>
+        </div>
+        <button class="er-btn-close" (click)="closeProgressModal()">
+          @if (progressSuccess()) {
+            Ir al inicio de sesión
+          } @else {
+            Cerrar
+          }
+        </button>
+      }
+
+    </div>
+  </div>
+}

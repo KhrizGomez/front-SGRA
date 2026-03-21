@@ -1,0 +1,234 @@
+/* ── Overlay ─────────────────────────────────────────────────────────── */
+.em-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────── */
+.em-modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Banner rojo ─────────────────────────────────────────────────────── */
+.em-banner {
+  background: #b71c1c;
+  color: #fff;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.em-banner svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.em-banner-title {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.15rem;
+}
+
+.em-banner-sub {
+  display: block;
+  font-size: 0.82rem;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* ── Cuerpo ──────────────────────────────────────────────────────────── */
+.em-body {
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.em-header-icon {
+  width: 52px;
+  height: 52px;
+  background: rgba(183, 28, 28, 0.08);
+  border: 1px solid rgba(183, 28, 28, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b71c1c;
+  margin-bottom: 1rem;
+}
+
+.em-header-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.em-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.em-subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 0.855rem;
+  color: #6c757d;
+  line-height: 1.55;
+}
+
+/* ── Formulario ──────────────────────────────────────────────────────── */
+.em-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.em-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  text-align: left;
+}
+
+.em-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.em-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.em-field-icon {
+  position: absolute;
+  left: 0.75rem;
+  width: 17px;
+  height: 17px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.em-input {
+  width: 100%;
+  padding: 0.65rem 2.5rem 0.65rem 2.4rem;
+  border: 1.5px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #1a1a2e;
+  background: #fff;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.em-input:focus {
+  outline: none;
+  border-color: #b71c1c;
+  box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.1);
+}
+
+.em-input:disabled {
+  background: #f8f9fa;
+  color: #9ca3af;
+}
+
+.em-toggle-pwd {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+}
+
+.em-toggle-pwd svg {
+  width: 18px;
+  height: 18px;
+}
+
+.em-toggle-pwd:hover { color: #6c757d; }
+
+/* ── Error ───────────────────────────────────────────────────────────── */
+.em-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  background: rgba(183, 28, 28, 0.07);
+  border: 1px solid rgba(183, 28, 28, 0.25);
+  border-radius: 7px;
+  font-size: 0.845rem;
+  color: #b71c1c;
+  text-align: left;
+}
+
+.em-error svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+/* ── Botón submit ────────────────────────────────────────────────────── */
+.em-btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2e7d32;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  width: 100%;
+}
+
+.em-btn-submit:hover:not(:disabled) {
+  background: #1b5e20;
+  transform: translateY(-1px);
+}
+
+.em-btn-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.em-btn-submit svg { width: 17px; height: 17px; }
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+.em-spinner {
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: em-spin 0.7s linear infinite;
+}
+
+@keyframes em-spin {
+  to { transform: rotate(360deg); }
+}

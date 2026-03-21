@@ -1,2 +1,10 @@
 <app-toast></app-toast>
 <router-outlet />
+
+@if (emergencyModal.visible()) {
+  <app-emergency-login-modal />
+}
+
+@if (emergencyModal.maintenanceVisible()) {
+  <app-service-unavailable />
+}

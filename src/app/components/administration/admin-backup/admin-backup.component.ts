@@ -43,6 +43,16 @@ export class AdminBackupComponent implements OnInit {
   dbNotFoundError      = signal(false);
   checkingDb           = signal(false);
 
+  // ── Modal de progreso (no closeable durante operación) ───────────────────
+  showProgressModal = signal(false);
+  progressSteps     = signal<string[]>([]);
+  progressCurrent   = signal(0);
+  progressDone      = signal(false);
+  progressSuccess   = signal(false);
+  progressMessage   = signal('');
+  private progressTimer: any = null;
+  private restoreNeedsReload = false;
+
   // ── KPIs ───────────────────────────────────────────────────────────────────
   totalCount = computed(() => this.history().length);
   lastDate   = computed(() => this.history()[0]?.createdAt ?? '—');
@@ -344,6 +354,39 @@ export class AdminBackupComponent implements OnInit {
 
   cancelRestore(): void { this.confirmingRestore.set(null); }
 
+  private startProgress(steps: string[]): void {
+    this.progressSteps.set(steps);
+    this.progressCurrent.set(0);
+    this.progressDone.set(false);
+    this.progressSuccess.set(false);
+    this.progressMessage.set('');
+    this.showProgressModal.set(true);
+    let idx = 0;
+    this.progressTimer = setInterval(() => {
+      idx++;
+      if (idx < steps.length - 1) {
+        this.progressCurrent.set(idx);
+      } else {
+        clearInterval(this.progressTimer);
+        this.progressTimer = null;
+      }
+    }, 3000);
+  }
+
+  private finishProgress(success: boolean, message: string): void {
+    if (this.progressTimer) { clearInterval(this.progressTimer); this.progressTimer = null; }
+    this.progressCurrent.set(this.progressSteps().length - 1);
+    this.progressSuccess.set(success);
+    this.progressMessage.set(message);
+    this.progressDone.set(true);
+  }
+
+  closeProgressModal(): void {
+    const needsReload = this.restoreNeedsReload && this.progressSuccess();
+    this.showProgressModal.set(false);
+    if (needsReload) { window.location.reload(); }
+  }
+
   closeRestoreModal(): void {
     this.showRestoreModal.set(false);
     this.selectedRestoreFile.set(null);
@@ -356,21 +399,31 @@ export class AdminBackupComponent implements OnInit {
     if (!fileName || this.restoring() === fileName) return;
     this.showRestoreModal.set(false);
     this.restoring.set(fileName);
+    this.restoreNeedsReload = true;
+    this.startProgress([
+      'Conectando con la base de datos...',
+      'Preparando la restauración...',
+      'Restaurando tablas y esquemas...',
+      'Asignando permisos...',
+      'Verificando integridad...',
+      '¡Restauración completada!'
+    ]);
     this.backupService.restore(fileName).subscribe({
       next: (result) => {
         this.restoring.set(null);
         this.selectedRestoreFile.set(null);
-        if (result.success) { this.iniciarCountdownRecarga(); }
-        else { this.toastService.show(false, result.message); }
+        if (result.success) { this.finishProgress(true, 'Base de datos restaurada exitosamente.'); }
+        else { this.finishProgress(false, result.message || 'Error en la restauración.'); }
       },
       error: (err: any) => {
         this.restoring.set(null);
         if (err?.status === 503) {
+          this.showProgressModal.set(false);
           this.dbNotFoundError.set(true);
           this.showRestoreModal.set(true);
         } else {
           this.selectedRestoreFile.set(null);
-          this.toastService.show(false, 'Error al restaurar la base de datos.');
+          this.finishProgress(false, 'Error al restaurar la base de datos.');
         }
       }
     });
@@ -384,35 +437,53 @@ export class AdminBackupComponent implements OnInit {
 
     if (this.dbNotFoundError()) {
       // BD no existe → recrear la BD original con los datos del respaldo
+      this.restoreNeedsReload = true;
+      this.startProgress([
+        'Verificando parámetros de conexión...',
+        'Creando base de datos...',
+        'Creando esquemas...',
+        'Restaurando datos del respaldo...',
+        'Asignando permisos...',
+        '¡Base de datos recreada exitosamente!'
+      ]);
       this.backupService.restorebdNoExistent(fileName).subscribe({
         next: (success) => {
           this.restoringToNewDb.set(false);
           this.selectedRestoreFile.set(null);
-          if (success) { this.iniciarCountdownRecarga(); }
-          else { this.toastService.show(false, 'No se pudo recrear la base de datos.'); }
+          if (success) { this.finishProgress(true, 'Base de datos recreada. El sistema se recargará al cerrar.'); }
+          else { this.finishProgress(false, 'No se pudo recrear la base de datos.'); }
         },
         error: () => {
           this.restoringToNewDb.set(false);
           this.selectedRestoreFile.set(null);
-          this.toastService.show(false, 'Error al recrear la base de datos.');
+          this.finishProgress(false, 'Error al recrear la base de datos.');
         }
       });
     } else {
       // BD existe → crear una base de datos nueva con otro nombre
+      this.restoreNeedsReload = false;
+      this.startProgress([
+        'Conectando con el servidor...',
+        'Creando nueva base de datos...',
+        'Restaurando esquemas...',
+        'Restaurando datos...',
+        'Asignando permisos...',
+        '¡Nueva base de datos creada exitosamente!'
+      ]);
       this.backupService.restoreToNewDatabase(fileName).subscribe({
         next: (result) => {
           this.restoringToNewDb.set(false);
           this.selectedRestoreFile.set(null);
           if (result.success) {
-            this.toastService.show(true, result.message || 'Respaldo restaurado en una nueva base de datos exitosamente.');
+            this.finishProgress(true, result.message || 'Respaldo restaurado en una nueva base de datos exitosamente.');
           } else {
-            this.toastService.show(false, result.message);
+            this.finishProgress(false, result.message || 'Error al restaurar.');
           }
         },
         error: () => {
           this.restoringToNewDb.set(false);
           this.selectedRestoreFile.set(null);
-          this.toastService.show(false, 'Error al restaurar en la nueva base de datos.');
+          this.finishProgress(false, 'Error al restaurar en la nueva base de datos.');
         }
       });
     }

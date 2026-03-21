@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -9,15 +9,21 @@ import { LoginResponse } from '../../../models/auth.model';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent {
   loginForm: FormGroup;
-  showPassword = signal(false);
-  errorMessage = signal<string | null>(null);
-  isLoading = signal(false);
+  showPassword       = signal(false);
+  errorMessage       = signal<string | null>(null);
+  isLoading          = signal(false);
+
+  // ── Modo de emergencia ────────────────────────────────────────────────────
+  showEmergencyPanel = signal(false);
+  emergencyPassword  = '';
+  emergencyLoading   = signal(false);
+  emergencyError     = signal<string | null>(null);
 
   constructor(
     private fb: FormBuilder,
@@ -57,11 +63,30 @@ export class LoginComponent {
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading.set(false);
-        if (error.error?.error) {
+        if (error.status === 503) {
+          this.showEmergencyPanel.set(true);
+          this.errorMessage.set('La base de datos no está disponible. Si eres administrador usa el acceso de emergencia.');
+        } else if (error.error?.error) {
           this.errorMessage.set(error.error.error);
         } else {
           this.errorMessage.set('Error al conectar con el servidor');
         }
+      }
+    });
+  }
+
+  onEmergencySubmit(): void {
+    if (!this.emergencyPassword || this.emergencyLoading()) return;
+    this.emergencyLoading.set(true);
+    this.emergencyError.set(null);
+    this.authService.emergencyLogin(this.emergencyPassword).subscribe({
+      next: () => {
+        this.emergencyLoading.set(false);
+        this.router.navigate(['/emergency']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.emergencyLoading.set(false);
+        this.emergencyError.set(err.error?.error || 'Contraseña de emergencia incorrecta.');
       }
     });
   }
