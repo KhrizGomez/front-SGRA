@@ -19,20 +19,20 @@ import { ToastService } from '../../../services/shared/toast.service';
 export class AdminAuditComponent implements OnInit {
   @ViewChild(AdminAuditTableComponent) auditTable!: AdminAuditTableComponent;
 
-  // --- Auditoría de acceso ---
   auditRecords: AuditAccess[] = [];
   filteredRecords: AuditAccess[] = [];
   isLoading = true;
   searchControl = new FormControl('');
+  statusFilterControl = new FormControl('');
   currentPage = 1;
   pageSize = 10;
 
-  // --- Auditoría de datos ---
   dataAuditRecords: DataAudit[] = [];
   filteredDataRecords: DataAudit[] = [];
   isLoadingData = true;
   searchDataControl = new FormControl('');
   dateFilterControl = new FormControl('');
+  actionFilterDataControl = new FormControl('');
   currentDataPage = 1;
   dataPageSize = 10;
 
@@ -40,7 +40,6 @@ export class AdminAuditComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private toastService = inject(ToastService);
 
-  // --- Paginación acceso ---
   get totalPages(): number {
     return Math.ceil(this.filteredRecords.length / this.pageSize) || 1;
   }
@@ -62,7 +61,6 @@ export class AdminAuditComponent implements OnInit {
     return range;
   }
 
-  // --- Paginación datos ---
   get totalDataPages(): number {
     return Math.ceil(this.filteredDataRecords.length / this.dataPageSize) || 1;
   }
@@ -96,12 +94,20 @@ export class AdminAuditComponent implements OnInit {
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe(() => this.applyDataFilters());
 
+
     this.dateFilterControl.valueChanges
       .pipe(distinctUntilChanged())
       .subscribe(() => this.loadDataAuditRecords());
+
+    this.actionFilterDataControl.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe(() => this.applyDataFilters());
+
+    this.statusFilterControl.valueChanges
+      .pipe(distinctUntilChanged())
+      .subscribe(() => this.applyFilters());
   }
 
-  // --- Métodos auditoría de acceso ---
   loadAuditRecords(): void {
     this.isLoading = true;
     this.auditService.getAuditAccessList().subscribe({
@@ -121,16 +127,21 @@ export class AdminAuditComponent implements OnInit {
 
   applyFilters(): void {
     const search = (this.searchControl.value || '').toLowerCase().trim();
+    const status = this.statusFilterControl.value || '';
 
     this.filteredRecords = this.auditRecords.filter((record) => {
-      return (
+      const matchesSearch =
         !search ||
         record.ausuario?.toLowerCase().includes(search) ||
         record.adireccionip?.toLowerCase().includes(search) ||
         record.anavegador?.toLowerCase().includes(search) ||
         record.aaccion?.toLowerCase().includes(search) ||
-        record.aso?.toLowerCase().includes(search)
-      );
+        record.aso?.toLowerCase().includes(search);
+
+      const matchesStatus =
+        !status || record.aaccion === status;
+
+      return matchesSearch && matchesStatus;
     });
 
     this.currentPage = 1;
@@ -157,7 +168,6 @@ export class AdminAuditComponent implements OnInit {
     });
   }
 
-  // --- Métodos auditoría de datos ---
   loadDataAuditRecords(): void {
     this.isLoadingData = true;
     const date = this.dateFilterControl.value || undefined;
@@ -178,14 +188,19 @@ export class AdminAuditComponent implements OnInit {
 
   applyDataFilters(): void {
     const search = (this.searchDataControl.value || '').toLowerCase().trim();
+    const action = (this.actionFilterDataControl.value || '').toUpperCase();
 
     this.filteredDataRecords = this.dataAuditRecords.filter((record) => {
-      return (
+      const matchesSearch =
         !search ||
         record.ausuario?.toLowerCase().includes(search) ||
         record.aaccion?.toLowerCase().includes(search) ||
-        record.atablaafectada?.toLowerCase().includes(search)
-      );
+        record.atablaafectada?.toLowerCase().includes(search);
+
+      const matchesAction =
+        !action || record.aaccion?.toUpperCase() === action;
+
+      return matchesSearch && matchesAction;
     });
 
     this.currentDataPage = 1;

@@ -41,11 +41,20 @@
       <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtro de auditoría de accesos">
         <div class="card-body">
           <div class="row g-2 align-items-end">
-            <div class="col-12">
+            <div class="col-12 col-md-8">
               <label for="searchAccessAudit" class="form-label mb-1">Buscar</label>
               <input id="searchAccessAudit" type="text" class="form-control"
                     placeholder="Buscar por usuario, IP, navegador, acción o S.O...."
                     [formControl]="searchControl">
+            </div>
+            <div class="col-12 col-md-4">
+              <label for="statusFilterAccessAudit" class="form-label mb-1">Filtrar por estado</label>
+              <select id="statusFilterAccessAudit" class="form-select" [formControl]="statusFilterControl">
+                <option value="">Todos</option>
+                <option value="Acceso">Acceso</option>
+                <option value="Cierre de sesion">Cierre de sesion</option>
+                <option value="Cierre de sesion forzado">Cierre de sesion forzado</option>
+              </select>
             </div>
           </div>
         </div>
@@ -90,9 +99,7 @@
       </div>
     </section>
 
-    <!-- Tab: Auditoría de Datos -->
-    <section class="tab-pane fade" id="data-audit" role="tabpanel"
-             aria-labelledby="data-audit-tab">
+    <section class="tab-pane fade" id="data-audit" role="tabpanel" aria-labelledby="data-audit-tab">
 
       <div class="d-flex justify-content-end mb-3">
         <button type="button" class="btn btn-outline-success d-flex align-items-center gap-2"
@@ -104,13 +111,22 @@
       <div class="card border-0 shadow-sm mb-3" role="search" aria-label="Filtro de auditoría de datos">
         <div class="card-body">
           <div class="row g-2 align-items-end">
-            <div class="col-12 col-md-8">
+            <div class="col-12 col-md-6">
               <label for="searchDataAudit" class="form-label mb-1">Buscar</label>
               <input id="searchDataAudit" type="text" class="form-control"
                     placeholder="Buscar por usuario, acción o tabla afectada..."
                     [formControl]="searchDataControl">
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
+              <label for="actionFilterDataAudit" class="form-label mb-1">Filtrar por acción</label>
+              <select id="actionFilterDataAudit" class="form-select" [formControl]="actionFilterDataControl">
+                <option value="">Todas</option>
+                <option value="INSERT">Insertar</option>
+                <option value="UPDATE">Actualizar</option>
+                <option value="DELETE">Eliminar</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3">
               <label for="dateFilterDataAudit" class="form-label mb-1">Filtrar por fecha</label>
               <input id="dateFilterDataAudit" type="date" class="form-control"
                     [formControl]="dateFilterControl">
