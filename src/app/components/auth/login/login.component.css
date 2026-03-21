@@ -316,6 +316,67 @@
   letter-spacing: 0.02em;
 }
 
+/* Panel de emergencia */
+.emergency-panel {
+  margin: 0 clamp(1.5rem, 5vw, 2rem) clamp(1rem, 3vw, 1.5rem);
+  padding: 1.25rem;
+  background: rgba(211, 47, 47, 0.05);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.emergency-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--error-color);
+}
+
+.emergency-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.emergency-panel-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.btn-emergency {
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: white;
+  background: #b71c1c;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.btn-emergency:hover:not(:disabled) {
+  background: #7f0000;
+  box-shadow: 0 4px 14px rgba(183, 28, 28, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-emergency:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 440px) {
   .login-card {

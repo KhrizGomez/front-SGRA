@@ -166,6 +166,11 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'emergency',
+    loadComponent: () => import('./components/auth/emergency-restore/emergency-restore.component').then(m => m.EmergencyRestoreComponent),
+    canActivate: [authGuard, roleGuard(['admin', 'administrador'])]
+  },
+  {
     path: '**',
     redirectTo: '/login'
   }

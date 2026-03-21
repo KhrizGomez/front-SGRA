@@ -101,6 +101,40 @@
       </div>
     </form>
 
+    <!-- Panel de emergencia (solo cuando BD no está disponible) -->
+    @if (showEmergencyPanel()) {
+      <div class="emergency-panel">
+        <div class="emergency-panel-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="emergency-icon">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+            <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/>
+            <line x1="2" y1="2" x2="22" y2="22"/>
+          </svg>
+          <span>Acceso de Emergencia — Solo Administrador</span>
+        </div>
+        <p class="emergency-panel-desc">
+          Ingresa la contraseña de emergencia del servidor para acceder únicamente al módulo de respaldos.
+        </p>
+        @if (emergencyError()) {
+          <div class="alert alert-danger py-2 small">{{ emergencyError() }}</div>
+        }
+        <div class="form-group">
+          <label class="form-label">Contraseña de emergencia</label>
+          <input type="password" class="form-control" [(ngModel)]="emergencyPassword"
+            placeholder="Contraseña de emergencia"
+            (keyup.enter)="onEmergencySubmit()" />
+        </div>
+        <button class="btn-emergency" (click)="onEmergencySubmit()" [disabled]="emergencyLoading() || !emergencyPassword">
+          @if (emergencyLoading()) {
+            <span class="spinner"></span>
+            <span>Verificando...</span>
+          } @else {
+            <span>Acceder al módulo de respaldos</span>
+          }
+        </button>
+      </div>
+    }
+
     <!-- Footer -->
     <div class="login-footer">
       <p>© 2026 UTEQ - Todos los derechos reservados</p>

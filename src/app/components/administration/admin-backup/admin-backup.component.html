@@ -618,3 +618,57 @@
   </div>
 }
 
+<!-- ── Modal de progreso (no closeable durante operación) ────────────────── -->
+@if (showProgressModal()) {
+  <div class="progress-overlay">
+    <div class="progress-modal" role="dialog" aria-modal="true" aria-label="Progreso de restauración">
+
+      <div class="progress-modal-header">
+        <i class="bi bi-database-gear fs-5"></i>
+        <span>Procesando restauración</span>
+      </div>
+
+      <div class="progress-steps">
+        @for (step of progressSteps(); track $index) {
+          <div class="progress-step"
+               [class.step-done]="$index < progressCurrent() || (progressDone() && progressSuccess() && $index === progressSteps().length - 1)"
+               [class.step-active]="$index === progressCurrent() && !progressDone()"
+               [class.step-error]="progressDone() && !progressSuccess() && $index === progressCurrent()"
+               [class.step-pending]="$index > progressCurrent()">
+            <div class="step-icon">
+              @if ($index < progressCurrent() || (progressDone() && progressSuccess() && $index === progressSteps().length - 1)) {
+                <i class="bi bi-check-circle-fill text-success"></i>
+              } @else if (progressDone() && !progressSuccess() && $index === progressCurrent()) {
+                <i class="bi bi-x-circle-fill text-danger"></i>
+              } @else if ($index === progressCurrent() && !progressDone()) {
+                <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+              } @else {
+                <i class="bi bi-circle text-muted"></i>
+              }
+            </div>
+            <span class="step-label">{{ step }}</span>
+          </div>
+        }
+      </div>
+
+      @if (progressDone()) {
+        <div class="progress-result"
+             [class.progress-result-success]="progressSuccess()"
+             [class.progress-result-error]="!progressSuccess()">
+          <i class="bi fs-5"
+             [class.bi-check-circle-fill]="progressSuccess()"
+             [class.bi-exclamation-triangle-fill]="!progressSuccess()"></i>
+          <span>{{ progressMessage() }}</span>
+        </div>
+        <button type="button" class="btn btn-sm mt-3 w-100"
+                [class.btn-success]="progressSuccess()"
+                [class.btn-danger]="!progressSuccess()"
+                (click)="closeProgressModal()">
+          Cerrar
+        </button>
+      }
+
+    </div>
+  </div>
+}
+
