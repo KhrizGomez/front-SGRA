@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador EDR | SGRA · Seguridad Informática UTEQ</title>
+<link rel="stylesheet" href="./assets/sgra.css">
+<link rel="stylesheet" href="./assets/edr.css">
+<script defer src="./assets/sgra.js"></script>
+<script defer src="./assets/edr-data.js"></script>
+<script defer src="./assets/edr.js"></script>
+</head>
+<body data-simulator="edr">
+<div class="sgra-shell">
+  <div data-sgra-sidebar></div>
+  <div class="sgra-workspace">
+    <div data-sgra-header></div>
+    <div class="sgra-page">
+      <h1>Simulador EDR</h1>
+      <p class="sgra-description">Detección y respuesta en equipos vinculados a SGRA</p>
+      <div class="topbar" role="group" aria-label="Controles de la simulación">
+  <div class="ctl"><label for="scn">Escenario</label>
+    <select id="scn">
+      <option value="a">Cifrado simulado en un equipo de Coordinación</option>
+      <option value="b">Proceso no autorizado en el servidor de la API SGRA</option>
+    </select></div>
+  <div class="ctl">
+    <button type="button" class="tb" id="play">Iniciar</button>
+    <button type="button" class="tb" id="step">Avanzar 1 minuto</button>
+    <button type="button" class="tb" id="reset">Reiniciar</button>
+  </div>
+  <div class="ctl" role="group" aria-label="Velocidad">
+    <span>Velocidad</span><button type="button" class="tb" data-speed="1" aria-pressed="true">1×</button><button type="button" class="tb" data-speed="2" aria-pressed="false">2×</button>
+  </div>
+  <div class="ctl">
+  <span class="clock" id="clock"></span>
+    <button type="button" class="tb" id="end">Cerrar el incidente</button>
+  </div>
+      </div>
+
+<main class="edr">
+  <section class="kpis" id="kpis" aria-label="Indicadores del incidente"></section>
+  <section class="panel hosts" aria-labelledby="h-h"><h2 id="h-h">Equipos con agente</h2><ul class="hlist" id="hlist"></ul>
+    <div class="policy" style="margin-top:.7rem"><span><b>Política del agente</b></span><span class="seg" role="group" aria-label="Modo de la política"><button type="button" data-pol="detectar" aria-pressed="true">Detectar</button><button type="button" data-pol="prevenir" aria-pressed="false">Prevenir</button></span></div>
+    <p class="muted" style="font-size:.8rem;margin:.3rem 0 0">Prevenir bloquea ejecuciones de mala reputación antes de que ocurran; detectar solo alerta.</p>
+  </section>
+  <section class="panel host" id="host" aria-live="polite"></section>
+  <section class="side">
+    <div class="panel"><h2>Acciones de respuesta <span class="hint" id="act-host"></span></h2><div class="acts" id="acts"></div><div id="act-fb"></div></div>
+    <div class="panel"><h2>Detecciones <span class="hint">todas las del turno</span></h2><ul class="dets" id="dets"></ul></div>
+    <div class="panel"><h2>Cadena de custodia</h2><div id="cust" class="cust"></div></div>
+  </section>
+</main>
+
+
+<p class="foot-note">Ejercicio local del Sistema de Gestión de Refuerzos Académicos (SGRA). La infraestructura, los usuarios y los eventos del ejercicio son ficticios. Simulación didáctica con procesos, dominios e identificadores ficticios. Basada en el Tema 4: contención con preservación de evidencia y orden de volatilidad (NIST SP 800-86), erradicación y recuperación (NIST SP 800-61; CISA, 2024).</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="report" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="rep-h"><h2 id="rep-h">Informe de la respuesta</h2><div id="rep-body"></div><div style="display:flex;gap:.5rem;margin-top:.6rem"><button type="button" class="btn primary" id="rep-close">Volver a la consola</button><button type="button" class="btn" id="rep-reset">Reiniciar el escenario</button></div></div></div>
+
+</body>
+</html>

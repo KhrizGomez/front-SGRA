@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador ID.AM | SGRA · Seguridad Informática UTEQ</title>
+<link rel="stylesheet" href="./assets/sgra.css">
+<link rel="stylesheet" href="./assets/idam.css">
+<script defer src="./assets/sgra.js"></script>
+<script defer src="./assets/idam-data.js"></script>
+<script defer src="./assets/idam.js"></script>
+</head>
+<body data-simulator="idam">
+<div class="sgra-shell">
+  <div data-sgra-sidebar></div>
+  <div class="sgra-workspace">
+    <div data-sgra-header></div>
+    <div class="sgra-page idam-page">
+      <h1>Simulador ID.AM</h1>
+      <p class="sgra-description">Inventario y priorización de activos de SGRA según NIST CSF 2.0</p>
+      <div class="topbar" role="group" aria-label="Controles de la simulación">
+  <button type="button" class="tb" id="reset">Reiniciar</button>
+      </div>
+
+<main class="idam">
+  <aside>
+    <div class="panel"><h2>Tareas</h2><ol class="steps" id="steps"></ol></div>
+    <div class="panel" style="margin-top:.7rem"><h2>Cobertura de ID.AM <span class="hint">se actualiza al comprobar</span></h2><div class="cov" id="cov"></div><p class="muted" style="font-size:.8rem;margin:.5rem 0 0">Un inventario actualizado sostiene la respuesta a vulnerabilidades e incidentes (CISA, 2024; CIS Controls v8.1, controles 1 y 2).</p></div>
+  </aside>
+  <section class="panel work" id="work" aria-live="polite"></section>
+</main>
+
+<p class="foot-note">Ejercicio local del Sistema de Gestión de Refuerzos Académicos (SGRA). La infraestructura, los usuarios y los eventos del ejercicio son ficticios. Simulación didáctica con activos, IP de redes privadas y productos ficticios. Basada en el Tema 4: inventario de activos y propietarios (CSF 2.0, ID.AM), priorización por criticidad y respuesta a vulnerabilidades (CISA, 2024).</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

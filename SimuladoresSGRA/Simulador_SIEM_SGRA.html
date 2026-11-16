@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador SIEM | SGRA · Seguridad Informática UTEQ</title>
+<link rel="stylesheet" href="./assets/sgra.css">
+<link rel="stylesheet" href="./assets/siem.css">
+<script defer src="./assets/sgra.js"></script>
+<script defer src="./assets/siem-data.js"></script>
+<script defer src="./assets/siem.js"></script>
+</head>
+<body data-simulator="siem">
+<div class="sgra-shell">
+  <div data-sgra-sidebar></div>
+  <div class="sgra-workspace">
+    <div data-sgra-header></div>
+    <div class="sgra-page">
+      <h1>Simulador SIEM</h1>
+      <p class="sgra-description">Correlación y triaje de eventos de seguridad de SGRA</p>
+      <div class="topbar" role="group" aria-label="Controles de la simulación">
+  <div class="ctl"><label for="scn">Escenario</label>
+    <select id="scn">
+      <option value="s1">Cuenta de coordinación comprometida</option>
+      <option value="s2">Phishing con una falsa invitación de refuerzo</option>
+      <option value="s3">Operación normal y respaldo programado</option>
+    </select></div>
+  <div class="ctl">
+    <button type="button" class="tb" id="play">Iniciar turno</button>
+    <button type="button" class="tb" id="step">Avanzar 1 minuto</button>
+    <button type="button" class="tb" id="reset">Reiniciar</button>
+  </div>
+  <div class="ctl" role="group" aria-label="Velocidad">
+    <span>Velocidad</span><button type="button" class="tb" data-speed="1" aria-pressed="true">1×</button><button type="button" class="tb" data-speed="2" aria-pressed="false">2×</button><button type="button" class="tb" data-speed="4" aria-pressed="false">4×</button>
+  </div>
+  <div class="ctl">
+  <span class="clock" id="clock" aria-live="off"></span>
+    <button type="button" class="tb" id="end">Cerrar turno</button>
+  </div>
+      </div>
+
+<main class="siem">
+  <section class="kpis" id="kpis" aria-label="Indicadores del turno"></section>
+
+  <section class="panel events" aria-labelledby="ev-h">
+    <h2 id="ev-h">Eventos normalizados <span class="hint">Los más recientes arriba. Hora en UTC (Ecuador: UTC−5).</span></h2>
+    <div class="filters">
+      <input type="search" id="q" placeholder="Buscar: usuario, IP, dominio, evento…" aria-label="Buscar en los eventos">
+      <span id="srcs" role="group" aria-label="Filtrar por fuente"></span>
+    </div>
+    <div class="scroll"><table class="tbl ev"><thead><tr><th scope="col">Hora UTC</th><th scope="col">Fuente</th><th scope="col">Host</th><th scope="col">Usuario</th><th scope="col">Evento</th><th scope="col">Detalle</th><th scope="col">IP de origen</th></tr></thead><tbody id="evs"></tbody></table></div>
+  </section>
+
+  <section class="panel side" aria-label="Alertas, reglas e indicadores">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-tab="al" id="tab-al">Alertas</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="ru">Reglas de correlación</button>
+      <button type="button" role="tab" aria-selected="false" data-tab="io" id="tab-io">Indicadores (IoC)</button>
+    </div>
+    <div class="scroll" id="pane-al"><ul class="alerts" id="alerts"></ul></div>
+    <div class="scroll" id="pane-ru" hidden></div>
+    <div class="scroll" id="pane-io" hidden><ul class="ioc" id="iocs"></ul></div>
+  </section>
+
+  <section class="panel detail" id="detail" aria-live="polite"></section>
+</main>
+
+
+<p class="foot-note">Ejercicio local del Sistema de Gestión de Refuerzos Académicos (SGRA). La infraestructura, los usuarios y los eventos del ejercicio son ficticios. Simulación didáctica con datos ficticios: IP de los rangos reservados para documentación y dominios .example. Basada en el Tema 4: detección y análisis, triaje y declaración formal de incidentes (NIST SP 800-61; CISA, 2024; CSF 2.0 DE y RS.AN).</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="report" hidden><div class="box" role="dialog" aria-modal="true" aria-labelledby="rep-h"><h2 id="rep-h">Informe del turno</h2><div id="rep-body"></div><div class="decide"><button type="button" class="btn primary" id="rep-close">Volver al tablero</button><button type="button" class="btn" id="rep-reset">Reiniciar el escenario</button></div></div></div>
+
+</body>
+</html>
